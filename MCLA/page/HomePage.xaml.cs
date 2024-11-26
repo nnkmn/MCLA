@@ -78,7 +78,7 @@ namespace MCLA.page
         {
             try
             {
-                var auth = new MicrosoftAuthentication("e1e383f9-59d9-4aa2-bf5e-73fe83b15ba0");
+                var auth = new MicrosoftAuthentication("youer MicrosoftAuthentication Id");
                 var code = await auth.RetrieveDeviceCodeInfo();
 
                 Clipboard.SetText(code.UserCode);
