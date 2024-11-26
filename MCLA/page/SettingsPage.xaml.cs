@@ -4,31 +4,27 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using MCLA.Enums;
+using System.IO;
 
 namespace MCLA.page
 {
-    /// <summary>
-    /// SettingPage.xaml 的交互逻辑
-    /// </summary>
     public partial class SettingsPage : Page
     {
         public static string GameVer { get; set; }
-        public static string JaveLibrary { get; set; }
+        public static string JavaLibrary { get; set; }
         public static int Login { get; set; }
         public static string UserName { get; set; }
-
-       
-
+        public static string MinecraftPath { get; set; } // 用于保存自动计算的 .minecraft 路径
 
         public SettingsPage()
         {
             InitializeComponent();
-            GetgameVer();
-            GetJavas();
-            LoginMode.SelectedIndex = 0; // 默认选中在线模式
+            LoadGameVersions();
+            LoadJavaPaths();
         }
 
-        void GetgameVer()
+        // 加载游戏版本
+        private void LoadGameVersions()
         {
             var gameCores = GameCoreUtil.GetGameCores();
             if (gameCores == null || !gameCores.Any())
@@ -43,7 +39,8 @@ namespace MCLA.page
             GameVersions.SelectedIndex = 0; // 默认选中第一项
         }
 
-        void GetJavas()
+        // 加载Java路径
+        private void LoadJavaPaths()
         {
             var javas = JavaUtil.GetJavas();
             if (javas == null || !javas.Any())
@@ -58,34 +55,49 @@ namespace MCLA.page
             JavaPath.SelectedIndex = 0; // 默认选中第一项
         }
 
-        private void LoginMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // 游戏设置按钮点击时
+        private void GameSettings_Button_Click(object sender, RoutedEventArgs e)
         {
-            Login = LoginMode.SelectedIndex;
-            bool isOfflineMode = LoginMode.SelectedIndex == 0;
-
-            PlayerNameText.Visibility = isOfflineMode ? Visibility.Visible : Visibility.Collapsed;
-            PlayerName.Visibility = isOfflineMode ? Visibility.Visible : Visibility.Collapsed;
+            // 切换显示状态
+            if (GameSettingsPanel.Visibility == Visibility.Collapsed)
+            {
+                GameSettingsPanel.Visibility = Visibility.Visible; // 显示内容
+            }
+            else
+            {
+                GameSettingsPanel.Visibility = Visibility.Collapsed; // 隐藏内容
+            }
         }
 
+        // 游戏版本选择变化时
         private void GameVersions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GameVersions.SelectedValue != null)
             {
                 GameVer = GameVersions.SelectedValue.ToString();
+
+                // 自动构建 .minecraft 路径
+                string baseMinecraftPath = @"F:\MC lucha\MCLA\MCLA\bin\Debug\net6.0-windows\.minecraft"; // 这里可以是自定义路径
+                string versionPath = Path.Combine(baseMinecraftPath, "versions", GameVer);
+
+                if (Directory.Exists(versionPath))
+                {
+                    MinecraftPath = baseMinecraftPath;
+                }
+                else
+                {
+                    MessageBox.Show("所选版本的目录不存在！");
+                }
             }
         }
 
+        // Java路径选择变化时
         private void JavaPath_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (JavaPath.SelectedValue != null)
             {
-                JaveLibrary = JavaPath.SelectedValue.ToString();
+                JavaLibrary = JavaPath.SelectedValue.ToString();
             }
-        }
-
-        private void PlayerName_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            UserName = PlayerName.Text;
         }
     }
 }

@@ -1,19 +1,21 @@
-﻿using StarLight_Core.Authentication;
-using StarLight_Core.Enum;
-using StarLight_Core.Models.Authentication;
-using StarLight_Core.Models.Launch;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using StarLight_Core.Authentication;
+using StarLight_Core.Models.Authentication;
+using StarLight_Core.Enum;
+using StarLight_Core.Models.Launch;
+using System.Threading.Tasks;
 using MCLA.Enums;
+using System.Diagnostics;
 
 namespace MCLA.page
 {
     public partial class HomePage : Page
     {
         private readonly string logPath;
+        private LoginModeEnum loginMode;
 
         public HomePage()
         {
@@ -21,44 +23,67 @@ namespace MCLA.page
 
             // 初始化日志路径
             string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            Directory.CreateDirectory(logDirectory); // 确保日志目录存在
+            Directory.CreateDirectory(logDirectory);
             logPath = Path.Combine(logDirectory, "error.log");
+
+            // 设置默认登录方式为离线
+            loginMode = LoginModeEnum.Offline;
+
+            // 初始隐藏离线玩家名称输入框
+            OfflineLoginPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void LoginMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LoginMode.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)
+            {
+                string mode = selectedItem.Tag.ToString();
+                loginMode = mode == "Offline" ? LoginModeEnum.Offline : LoginModeEnum.Online;
+
+                // 切换输入框显示
+                ToggleOfflineLoginPanel();
+            }
+        }
+
+        private void ToggleOfflineLoginPanel()
+        {
+            if (loginMode == LoginModeEnum.Offline)
+            {
+                OfflineLoginPanel.Visibility = Visibility.Visible; // 显示玩家名称输入框
+            }
+            else
+            {
+                OfflineLoginPanel.Visibility = Visibility.Collapsed; // 隐藏玩家名称输入框
+            }
         }
 
         private async void Button_click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // 校验登录模式
-                if (!Enum.IsDefined(typeof(LoginModeEnum), SettingsPage.Login))
-                {
-                    MessageBox.Show("未知的登录模式，请重新配置！");
-                    return;
-                }
-
-                LoginModeEnum loginMode = (LoginModeEnum)SettingsPage.Login;  // 将 int 转换为 LoginModeEnum 枚举
                 BaseAccount account;
 
-                // 离线模式登录逻辑
                 if (loginMode == LoginModeEnum.Offline)
                 {
-                    if (string.IsNullOrWhiteSpace(SettingsPage.UserName))
+                    // 离线登录，获取玩家名称
+                    string playerName = PlayerNameTextBox.Text.Trim();
+                    if (string.IsNullOrEmpty(playerName))
                     {
-                        MessageBox.Show("离线模式需要提供用户名，请重新配置！");
+                        MessageBox.Show("离线登录需要提供玩家名称！");
                         return;
                     }
-                    account = new OfflineAuthentication(SettingsPage.UserName).OfflineAuth();
+
+                    account = new OfflineAuthentication(playerName).OfflineAuth();
                 }
-                else // 在线模式
+                else
                 {
+                    // 在线登录
                     account = await HandleMicrosoftAuthentication();
-                    if (account == null)
-                        return; // 如果微软认证失败，直接退出
+                    if (account == null) return;
                 }
 
                 // 校验启动配置
-                if (!ValidateLaunchConfig())
-                    return;
+                if (!ValidateLaunchConfig()) return;
 
                 // 准备启动参数
                 LaunchConfig args = PrepareLaunchConfig(account);
@@ -68,8 +93,8 @@ namespace MCLA.page
             }
             catch (Exception ex)
             {
-                LogError("发生未处理的异常", ex);
-                MessageBox.Show("发生未处理的异常，请检查日志文件。");
+                LogError("启动游戏时发生异常", ex);
+                MessageBox.Show("启动失败，请查看日志。");
             }
         }
 
@@ -78,7 +103,7 @@ namespace MCLA.page
         {
             try
             {
-                var auth = new MicrosoftAuthentication("youer MicrosoftAuthentication Id");
+                var auth = new MicrosoftAuthentication("e1e383f9-59d9-4aa2-bf5e-73fe83b15ba0");
                 var code = await auth.RetrieveDeviceCodeInfo();
 
                 Clipboard.SetText(code.UserCode);
@@ -107,24 +132,30 @@ namespace MCLA.page
         // 校验启动配置
         private bool ValidateLaunchConfig()
         {
-            if (string.IsNullOrWhiteSpace(SettingsPage.GameVer) || string.IsNullOrWhiteSpace(SettingsPage.JaveLibrary))
+            // 检查游戏版本或Java路径是否为空
+            if (string.IsNullOrWhiteSpace(SettingsPage.GameVer) || string.IsNullOrWhiteSpace(SettingsPage.JavaLibrary))
             {
                 MessageBox.Show("启动配置缺失，请检查游戏版本或Java路径！");
-                return false;
+                return false; // 确保返回 false
             }
 
-            if (!File.Exists(SettingsPage.JaveLibrary))
+            // 检查指定的 Java 路径是否存在
+            if (!File.Exists(SettingsPage.JavaLibrary))
             {
                 MessageBox.Show("指定的Java路径无效！");
-                return false;
+                return false; // 确保返回 false
             }
 
+            // 如果所有检查都通过，返回 true
             return true;
         }
 
         // 准备启动参数
         private LaunchConfig PrepareLaunchConfig(BaseAccount account)
         {
+            // 如果 MinecraftPath 为空，则使用默认路径
+            string minecraftRootPath = SettingsPage.MinecraftPath ?? @"C:\Users\Administrator\AppData\Roaming\.minecraft";
+
             return new LaunchConfig
             {
                 Account = new()
@@ -133,13 +164,13 @@ namespace MCLA.page
                 },
                 GameCoreConfig = new()
                 {
-                    Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft"),
+                    Root = minecraftRootPath,  // 使用计算出来的 .minecraft 路径
                     Version = SettingsPage.GameVer,
                     IsVersionIsolation = true
                 },
                 JavaConfig = new()
                 {
-                    JavaPath = SettingsPage.JaveLibrary,
+                    JavaPath = SettingsPage.JavaLibrary,
                     MaxMemory = 4000,
                     MinMemory = 1000
                 }
@@ -159,7 +190,9 @@ namespace MCLA.page
 
                 if (launch.Status == Status.Succeeded)
                 {
-                    MessageBox.Show("启动成功！");
+                    // 更新UI显示
+                    Progress.Text = "启动成功！";
+                    Progress.Visibility = Visibility.Visible;
                 }
                 else
                 {

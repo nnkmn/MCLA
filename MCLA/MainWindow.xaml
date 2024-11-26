@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MCLA"
         mc:Ignorable="d"
-        Title="MCLA" Height="450" Width="800">
+        Title="MCLA" 
+        Height="450" 
+        Width="800" 
+        Icon="Assets/launcher.ico">
     <Grid>
         <TabControl>
             <TabItem Header="主页">
@@ -18,7 +21,5 @@
                 <Frame NavigationUIVisibility="Hidden" Source="Page/SettingsPage.xaml"></Frame>
             </TabItem>
         </TabControl>
-        
-       
     </Grid>
 </Window>

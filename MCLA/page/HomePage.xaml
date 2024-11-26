@@ -9,12 +9,27 @@
       Title="HomePage">
 
     <Grid>
-        <!-- 启动按钮，设置居中对齐 -->
+        <!-- 启动按钮 -->
         <Button Content="启动游戏" FontSize="22" Click="Button_click" Width="150" Height="60"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,20"/>
 
-        <!-- 显示进度的 TextBlock -->
-        <TextBlock x:Name="Progress" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="800"
-                   Margin="0,0,30,90" FontSize="16" TextWrapping="Wrap" Text="启动进度..."/>
+        <!-- 进度显示 -->
+        <TextBlock x:Name="Progress" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                   FontSize="16" TextWrapping="Wrap" Text="启动进度..." Visibility="Collapsed"/>
+
+        <!-- 登录方式选择 -->
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20">
+            <TextBlock Text="选择登录方式：" FontSize="16" Margin="0,0,0,10"/>
+            <ComboBox x:Name="LoginMode" SelectionChanged="LoginMode_SelectionChanged" Width="200">
+                <ComboBoxItem Content="离线登录" Tag="Offline"/>
+                <ComboBoxItem Content="微软登录" Tag="Microsoft"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- 离线登录时显示玩家名称 -->
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,80,0,0" Visibility="Collapsed" x:Name="OfflineLoginPanel">
+            <TextBlock Text="请输入游戏名称：" FontSize="16" Margin="0,0,0,10"/>
+            <TextBox x:Name="PlayerNameTextBox" Width="200" Height="30" Margin="0,0,0,15"/>
+        </StackPanel>
     </Grid>
 </Page>
