@@ -12,14 +12,14 @@
         <!-- 左侧边菜单栏 -->
         <DockPanel>
             <!-- 菜单栏 -->
-            <StackPanel Width="200" Background="LightGray" VerticalAlignment="Stretch" DockPanel.Dock="Left">
-                <Button Content="游戏设置" Height="40" Margin="10" Click="GameSettings_Button_Click"/>
+            <StackPanel Width="154" Background="LightGray" DockPanel.Dock="Left">
+                <Button Content="游戏设置" Height="50" Margin="10" Click="GameSettings_Button_Click" Width="84"/>
             </StackPanel>
 
             <!-- 右侧内容区域 -->
             <StackPanel Margin="20">
                 <!-- 游戏设置区域，默认隐藏 -->
-                <StackPanel x:Name="GameSettingsPanel" Visibility="Collapsed">
+                <StackPanel x:Name="GameSettingsPanel">
                     <TextBlock Text="游戏版本" FontSize="16" />
                     <ComboBox SelectionChanged="GameVersions_SelectionChanged" x:Name="GameVersions" Height="30" Margin="0,5" />
                     <TextBlock Text="JAVA版本" FontSize="16" Margin="20,0,0,0" />
