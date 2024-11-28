@@ -1,5 +1,6 @@
 # MCLA
  MCLA启动器由Linpot【nnkmn】制作（处于研发阶段）
+ 致力于对标PCL2
 
 # 版权归属
  Copyright 2024 MCLA Linpot【nnkmn】 版权所有
