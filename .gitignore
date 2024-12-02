@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/MCLA/MainWindow - 复制.xaml.cs
+/MCLA/MainWindow - 复制.xaml

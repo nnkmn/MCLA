@@ -99,5 +99,13 @@ namespace MCLA.page
                 JavaLibrary = JavaPath.SelectedValue.ToString();
             }
         }
+
+        private void GameOfflineSkins_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GameOfflineSkins.SelectedItem is ComboBoxItem selectedItem)
+            {
+                
+            }
+        }
     }
 }

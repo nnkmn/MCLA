@@ -12,14 +12,27 @@
         <!-- 左侧边菜单栏 -->
         <DockPanel>
             <!-- 菜单栏 -->
-            <StackPanel Width="154" Background="LightGray" DockPanel.Dock="Left">
-                <Button Content="游戏设置" Height="50" Margin="10" Click="GameSettings_Button_Click" Width="84"/>
+            <StackPanel Width="104" Background="LightGray" DockPanel.Dock="Left">
+                <Button Content="游戏设置" Height="25" Margin="10" Click="GameSettings_Button_Click" Width="84"/>
+                
             </StackPanel>
 
             <!-- 右侧内容区域 -->
             <StackPanel Margin="20">
                 <!-- 游戏设置区域，默认隐藏 -->
                 <StackPanel x:Name="GameSettingsPanel">
+                    <TextBlock Text="离线皮肤" FontSize="16"/>
+                    <!-- 定义 ComboBox -->
+                    <ComboBox Name="GameOfflineSkins" SelectionChanged="GameOfflineSkins_SelectionChanged" HorizontalAlignment="Left" VerticalAlignment="Top" Width="660">
+                        <!-- 添加初始项 -->
+                        <ComboBoxItem Content="随机"/>
+                        <ComboBoxItem Content="Alex"/>
+                        <ComboBoxItem Content="Steve"/>
+                        <ComboBoxItem Content="正版皮肤"/>
+                        <ComboBoxItem Content="自定义"/>
+                    </ComboBox>
+                    <!-- 显示选中项 -->
+                    <TextBlock Name="SelectedOptionTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,40,0,0" FontSize="16" />
                     <TextBlock Text="游戏版本" FontSize="16" />
                     <ComboBox SelectionChanged="GameVersions_SelectionChanged" x:Name="GameVersions" Height="30" Margin="0,5" />
                     <TextBlock Text="JAVA版本" FontSize="16" Margin="20,0,0,0" />

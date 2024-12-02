@@ -11,8 +11,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="MainWindow - 复制.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Assets\launcher.ico" />
     <None Remove="Assets\pinterest_profile_image.png" />
+    <None Remove="Images\skins\Alex.png" />
+    <None Remove="Images\skins\Ari.png" />
+    <None Remove="Images\skins\Efe.png" />
+    <None Remove="Images\skins\Kai.png" />
+    <None Remove="Images\skins\Makena.png" />
+    <None Remove="Images\skins\Noor.png" />
+    <None Remove="Images\skins\Steve.png" />
+    <None Remove="Images\skins\Sunny.png" />
+    <None Remove="Images\skins\Zuri.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="MainWindow - 复制.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\skins\Steve.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\skins\Alex.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +51,27 @@
     <Resource Include="Assets\pinterest_profile_image.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Ari.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Efe.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Kai.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Makena.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Noor.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Sunny.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\skins\Zuri.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
