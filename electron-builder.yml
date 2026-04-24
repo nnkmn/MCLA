@@ -12,7 +12,8 @@ extraResources:
 win:
   target:
     - nsis
-  icon: resources/icons/icon.png
+  icon: resources/icons/icon.ico
+  signAndEditExecutable: false
 mac:
   target:
     - dmg

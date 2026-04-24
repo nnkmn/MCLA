@@ -41,6 +41,9 @@ components.d.ts
 coverage/
 *.lcov
 
+# WorkBuddy（开发工具数据）
+.workbuddy/
+
 # 临时文件
 *.tmp
 *.temp

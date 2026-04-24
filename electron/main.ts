@@ -21,8 +21,9 @@ function createWindow(): BrowserWindow {
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
+    title: 'MCLA',
     backgroundColor: '#0D0D1A',
-    icon: join(__dirname, '../../resources/icons/icon.png'),
+    icon: join(__dirname, '../../resources/icons/icon.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

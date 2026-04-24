@@ -36,6 +36,7 @@
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0",
     "electron-vite": "^2.3.0",
+    "png-to-ico": "^3.0.1",
     "sass": "^1.77.0",
     "typescript": "^5.5.0",
     "unplugin-icons": "^23.0.1",
