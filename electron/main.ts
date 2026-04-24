@@ -41,11 +41,11 @@ function createWindow(): BrowserWindow {
     return { action: 'deny' }
   })
 
-if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-  mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-} else {
-  mainWindow.loadFile(join(__dirname, '../src/index.html'))
-}
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
 
   return mainWindow
 }

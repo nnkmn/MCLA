@@ -1,28 +1,29 @@
 appId: com.mcla.launcher
 productName: MCLA
+copyright: Copyright © 2026 EccenTri
+
 directories:
   buildResources: resources
-  output: dist
+  output: build
+
 files:
   - out/**/*
   - "!out/renderer/**/*"
+
 extraResources:
   - from: out/renderer
     to: renderer
+
 win:
   target:
     - nsis
   icon: resources/icons/icon.ico
   signAndEditExecutable: false
-mac:
-  target:
-    - dmg
-  icon: resources/icons/icon.png
-linux:
-  target:
-    - AppImage
-  icon: resources/icons/icon.png
+
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: MCLA
+  uninstallDisplayName: MCLA

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "MCLA - 一个现代化的 Minecraft 启动器，支持微软正版登录、版本管理、Mod 下载",
   "main": "./out/main/index.js",
-  "author": "EccenTri <nnkmn>",
+  "author": "EccenTri",
   "license": "MIT",
   "repository": {
     "type": "git",
