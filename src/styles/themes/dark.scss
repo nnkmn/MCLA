@@ -1,0 +1,98 @@
+/**
+ * MCLA 暗色主题
+ *
+ * 使用方式：通过 [data-theme="dark"] 选择器激活
+ * App.vue 初始化时或用户在设置页切换时设置
+ */
+
+[data-theme='dark'] {
+  /* ====== 主色调（暗色下不变） ====== */
+  --mcla-primary: #818cf8;
+  --mcla-primary-light: rgba(99, 102, 234, 0.15);
+  --mcla-primary-50: #eef2ff;
+  --mcla-primary-100: #e0e7ff;
+  --mcla-primary-200: #c7d2fe;
+  --mcla-primary-300: #a5b4fc;
+  --mcla-primary-400: #818cf8;
+  --mcla-primary-500: #6366f1;
+  --mcla-primary-600: #4f46e5;
+  --mcla-primary-700: #4338ca;
+
+  /* ====== 渐变色 ====== */
+  --mcla-gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+  --mcla-gradient-secondary: linear-gradient(135deg, #ec4899, #f472b6);
+  --mcla-gradient-success: linear-gradient(135deg, #10b981, #34d399);
+  --mcla-gradient-warning: linear-gradient(135deg, #f59e0b, #fbbf24);
+  --mcla-gradient-error: linear-gradient(135deg, #ef4444, #f87171);
+
+  /* ====== 背景色 ====== */
+  --mcla-bg-primary: #0D0D1A;       /* 最深背景 - 主背景 */
+  --mcla-bg-secondary: #13132B;     /* 二级背景 - 卡片/面板 */
+  --mcla-bg-elevated: #1A1A35;      /* 浮起层 - 侧栏/弹窗 */
+  --mcla-bg-hover: #22224A;         /* 悬停态 */
+  --mcla-bg-active: #2D2D58;        /* 激活/选中 */
+  --mcla-bg-input: #16163A;         /* 输入框背景 */
+  --mcla-bg-overlay: rgba(0, 0, 0, 0.65); /* 遮罩层 */
+
+  /* ====== 文字颜色 ====== */
+  --mcla-text-primary: #EAEAFF;     /* 主文字 */
+  --mcla-text-secondary: #A0A0C0;   /* 次要文字 */
+  --mcla-text-muted: #6B6B8F;       /* 弱化文字 / 占位符 */
+  --mcla-text-inverse: #FFFFFF;     /* 反色文字（深色背景上） */
+  --mcla-text-link: #818CF8;        /* 链接色 */
+  --mcla-text-error: #FCA5A5;       /* 错误文字（暗底用亮红） */
+  --mcla-text-success: #86EFAC;     /* 成功文字 */
+  --mcla-text-warning: #FCD34D;     /* 警告文字 */
+
+  /* ====== 边框颜色 ====== */
+  --mcla-border-color: #2A2A4E;
+  --mcla-border-color-light: #232342;
+  --mcla-border-color-focus: #6366f1;
+  --mcla-border-color-error: #ef4444;
+
+  /* ====== 状态色 ====== */
+  --mcla-error: #ef4444;
+  --mcla-error-light: rgba(239, 68, 68, 0.15);
+  --mcla-success: #22c55e;
+  --mcla-success-light: rgba(34, 197, 94, 0.15);
+  --mcla-warning: #f59e0b;
+  --mcla-warning-light: rgba(245, 158, 11, 0.15);
+  --mcla-info: #3b82f6;
+  --mcla-info-light: rgba(59, 130, 246, 0.15);
+
+  /* ====== 阴影（暗色下更深） ====== */
+  --mcla-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --mcla-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --mcla-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  /* ====== 输入框焦点阴影 ====== */
+  --mcla-input-focus-shadow: 0 0 0 3px rgba(99, 102, 234, 0.25);
+
+  /* ====== 滚动条（暗色风格） ====== */
+  --mcla-scrollbar-track: transparent;
+  --mcla-scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --mcla-scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+}
+
+/* ====== 暗色特有组件覆盖 ====== */
+
+[data-theme='dark'] .mcla-card,
+[data-theme='dark'] .card {
+  background: var(--mcla-bg-elevated);
+  border-color: var(--mcla-border-color);
+  color: var(--mcla-text-primary);
+}
+
+[data-theme='dark'] .mcla-input,
+[data-theme='dark'] input:not([type]),
+[data-theme='dark'] input[type='text'],
+[data-theme='dark'] input[type='password'],
+[data-theme='dark'] textarea {
+  background: var(--mcla-bg-input);
+  color: var(--mcla-text-primary);
+  border-color: var(--mcla-border-color);
+}
+
+[data-theme='dark'] ::placeholder {
+  color: var(--mcla-text-muted);
+}

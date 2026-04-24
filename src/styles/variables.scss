@@ -1,0 +1,37 @@
+// ============================================
+// MCLA 变量覆盖层（运行时动态修改用）
+// ============================================
+//
+// 基础变量定义在 pixel-ui.scss 中
+// 这个文件只放：
+//   1. App 特有的额外变量
+//   2. 用户主题覆盖（通过 JS 动态注入）
+//   3. 组件内部使用的 SCSS mixin/函数
+//
+
+// ---- SCSS Mixin 快捷引用 ----
+
+// 按钮变体
+@mixin btn-variant($type: primary) {
+  &-#{$type} {
+    @extend .mcla-btn-#{$type};
+  }
+}
+
+// Badge
+@mixin badge($variant: primary) {
+  @extend .mcla-badge-#{$variant};
+}
+
+// 响应式断点
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm { @media (max-width: $breakpoint-sm) { @content; } }
+  @else if $breakpoint == md { @media (max-width: $breakpoint-md) { @content; } }
+  @else if $breakpoint == lg { @media (max-width: $breakpoint-lg) { @content; } }
+  @else if $breakpoint == xl { @media (max-width: $breakpoint-xl) { @content; } }
+}

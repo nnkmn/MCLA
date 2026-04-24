@@ -1,0 +1,282 @@
+// ============================================
+// MCLA Animations - 像素风动画系统
+// ============================================
+
+// --- 关键帧定义 ---
+
+@keyframes px-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes px-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes px-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes px-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes px-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes px-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes px-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes px-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// 像素风旋转 - 8步离散旋转，不是平滑的
+@keyframes px-spin {
+  0%   { transform: rotate(0deg); }
+  12.5%{ transform: rotate(45deg); }
+  25%  { transform: rotate(90deg); }
+  37.5%{ transform: rotate(135deg); }
+  50%  { transform: rotate(180deg); }
+  62.5%{ transform: rotate(225deg); }
+  75%  { transform: rotate(270deg); }
+  87.5%{ transform: rotate(315deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// 像素风闪烁（用于加载指示器、提示等）
+@keyframes px-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+// 呼吸效果（用于在线状态、重要提示）
+@keyframes px-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+// 像素风弹跳（按钮点击反馈）
+@keyframes px-pop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.92); }
+  50%  { transform: scale(1.06); }
+  70%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+// 像素抖动（错误提示）
+@keyframes px-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+// 打字机光标闪烁
+@keyframes px-cursor {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+// 进度条条纹滚动
+@keyframes px-stripes {
+  0%   { background-position: 0 0; }
+  100% { background-position: 16px 0; }
+}
+
+// 加载点跳动（Loading... 动画）
+@keyframes px-dots {
+  0%, 20% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+// 扫描线效果（复古CRT风格，用于启动画面）
+@keyframes px-scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+// Glitch 效果（用于错误/故障状态）
+@keyframes px-glitch-1 {
+  0%, 100% { transform: translate(0); }
+  20%       { transform: translate(-2px, 2px); }
+  40%       { transform: translate(-2px, -2px); }
+  60%       { transform: translate(2px, 2px); }
+  80%       { transform: translate(2px, -2px); }
+}
+
+@keyframes px-glitch-2 {
+  0%, 100% { transform: translate(0); }
+  20%       { transform: translate(2px, -2px); }
+  40%       { transform: translate(2px, 2px); }
+  60%       { transform: translate(-2px, -2px); }
+  80%       { transform: translate(-2px, 2px); }
+}
+
+// --- 工具类 ---
+
+.animate-fade-in {
+  animation: px-fade-in var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: px-fade-out var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: px-slide-up var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: px-slide-down var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: px-slide-left var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: px-slide-right var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: px-scale-in var(--px-transition-normal) ease-out forwards;
+}
+
+.animate-bounce-in {
+  animation: px-bounce-in 0.5s ease-out forwards;
+}
+
+.animate-spin {
+  animation: px-spin 1s linear infinite;
+}
+
+.animate-blink {
+  animation: px-blink 1s step-end infinite;
+}
+
+.animate-pulse {
+  animation: px-pulse 2s ease-in-out infinite;
+}
+
+.animate-pop {
+  animation: px-pop 0.3s ease-out;
+}
+
+.animate-shake {
+  animation: px-shake 0.5s ease-out;
+}
+
+.animate-glitch {
+  position: relative;
+  &::before,
+  &::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  &::before {
+    animation: px-glitch-1 0.3s infinite;
+    color: #ff00ff;
+    z-index: -1;
+  }
+  &::after {
+    animation: px-glitch-2 0.3s infinite;
+    color: #00ffff;
+    z-index: -2;
+  }
+}
+
+// --- 延迟工具类 ---
+
+@for $i from 1 through 5 {
+  .animate-delay-#{$i} {
+    animation-delay: #{$i * 0.1}s;
+  }
+}
+
+// --- 减少动效支持 ---
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

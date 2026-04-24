@@ -1,0 +1,98 @@
+/* ============================================
+   MCLA Global Styles
+   基础样式补充（pixel-ui.css 已包含重置和组件样式）
+   ============================================ */
+
+/* ---- 滚动条（全局统一）---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--mcla-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mcla-border-color);
+  border: 2px solid var(--mcla-bg-secondary);
+  border-radius: var(--mcla-radius-full);
+  
+  &:hover {
+    background: var(--mcla-text-muted);
+  }
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mcla-border-color) var(--mcla-bg-secondary);
+}
+
+/* ---- 选中文本 ---- */
+::selection {
+  background: var(--mcla-primary-200);
+  color: var(--mcla-primary-900);
+}
+
+/* ---- Focus 可见性 ---- */
+:focus-visible {
+  outline: 2px solid var(--mcla-primary-500);
+  outline-offset: 2px;
+}
+
+/* ---- Electron 禁止文字选中区域 ---- */
+[aria-draggable="true"],
+.titlebar,
+.mcla-sidebar,
+.mcla-nav-item {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- 全局过渡 ---- */
+a, button, input, select, textarea {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* ---- 链接默认样式 ---- */
+a {
+  color: var(--mcla-primary-500);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--mcla-primary-600);
+    text-decoration: underline;
+  }
+}
+
+/* ---- 代码块 ---- */
+code, pre {
+  font-family: var(--mcla-font-mono);
+  font-size: 0.9em;
+}
+code {
+  background: var(--mcla-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--mcla-radius-xs);
+}
+pre {
+  background: var(--mcla-bg-secondary);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  padding: var(--mcla-space-4);
+  overflow-x: auto;
+}
+
+/* ---- 页面切换动画 ---- */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}

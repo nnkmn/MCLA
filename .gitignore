@@ -1,0 +1,47 @@
+# 依赖
+node_modules/
+
+# 构建输出
+out/
+dist/
+
+# 开发文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Vite/Vue 类型声明
+auto-imports.d.ts
+components.d.ts
+
+# 环境变量（不要提交！）
+.env
+.env.local
+.env.*.local
+
+# 调试文件
+*.pdb
+*.map
+
+# 测试覆盖率
+coverage/
+*.lcov
+
+# 临时文件
+*.tmp
+*.temp
+.cache/

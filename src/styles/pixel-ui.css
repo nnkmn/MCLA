@@ -1,0 +1,1093 @@
+/* ==========================================================================
+
+  MCLA Design System - 像素×渐变混搭版
+  基于 Pixel-UI Custom + Gradient 合并改造
+  前缀: --mcla- / .mcla-
+  
+  设计理念：
+  - 结构来自 Custom 版（变量驱动，用户可完全定制颜色）
+  - 渐变效果来自 Gradient 版（按钮/进度条/标签页用渐变）
+  - 圆角适中（不硬像素也不过度圆润）
+  - 发光阴影增强视觉层次
+  
+  用户可通过修改 :root 变量或设置页的定制面板换肤
+
+  ========================================================================== */
+
+/* ==========================================================================
+   1. CSS 变量 - 设计令牌（完整可定制）
+   ========================================================================== */
+
+:root {
+  /* ===== 字体 ===== */
+  --mcla-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mcla-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --mcla-font-pixel: 'Press Start 2P', 'VT323', monospace;  /* 像素字体用于标题/logo */
+
+  /* ===== 圆角（适中：比像素柔和，比普通UI有棱角）===== */
+  --mcla-radius-xs: 4px;
+  --mcla-radius-sm: 6px;
+  --mcla-radius-md: 8px;
+  --mcla-radius-lg: 12px;
+  --mcla-radius-xl: 16px;
+  --mcla-radius-full: 9999px;
+
+  /* ===== 边框宽度 ===== */
+  --mcla-border-width: 1px;
+  --mcla-border-width-md: 2px;
+
+  /* ===== 过渡速度 ===== */
+  --mcla-transition-fast: 150ms ease;
+  --mcla-transition-normal: 250ms ease;
+  --mcla-transition-slow: 400ms ease;
+
+  /* ===== 阴影 ===== */
+  --mcla-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --mcla-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --mcla-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.14);
+  --mcla-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.18);
+
+  /* ===== 渐变发光阴影（从 Gradient 版引入）===== */
+  --mcla-shadow-glow-primary: 0 4px 20px rgba(99, 102, 234, 0.35);
+  --mcla-shadow-glow-secondary: 0 4px 20px rgba(240, 147, 251, 0.35);
+  --mcla-shadow-glow-success: 0 4px 20px rgba(34, 197, 94, 0.35);
+  --mcla-shadow-glow-warning: 0 4px 20px rgba(245, 158, 11, 0.35);
+  --mcla-shadow-glow-error: 0 4px 20px rgba(239, 68, 68, 0.35);
+  --mcla-shadow-glow-info: 0 4px 20px rgba(14, 165, 233, 0.35);
+
+  /* ===== 间距系统 (8px grid) ===== */
+  --mcla-space-1: 4px;
+  --mcla-space-2: 8px;
+  --mcla-space-3: 12px;
+  --mcla-space-4: 16px;
+  --mcla-space-5: 20px;
+  --mcla-space-6: 24px;
+  --mcla-space-8: 32px;
+  --mcla-space-10: 40px;
+  --mcla-space-12: 48px;
+  --mcla-space-16: 64px;
+
+  /* ===== 字号 ===== */
+  --mcla-text-xs: 12px;
+  --mcla-text-sm: 13px;
+  --mcla-text-base: 14px;
+  --mcla-text-lg: 16px;
+  --mcla-text-xl: 18px;
+  --mcla-text-2xl: 22px;
+  --mcla-text-3xl: 28px;
+  --mcla-text-4xl: 36px;
+
+  /* ===== 字重 ===== */
+  --mcla-font-normal: 400;
+  --mcla-font-medium: 500;
+  --mcla-font-semibold: 600;
+  --mcla-font-bold: 700;
+
+  /* ===== 标题栏高度（Electron 自定义标题栏）===== */
+  --mcla-titlebar-height: 32px;
+
+  /* ===== 侧边栏宽度 ===== */
+  --mcla-sidebar-width: 56px;
+
+  /* ================================
+     颜色系统 - 暗色主题（默认）
+     ================================ */
+
+  /* 背景色 */
+  --mcla-bg-primary: #1a1b2e;
+  --mcla-bg-secondary: #16172a;
+  --mcla-bg-tertiary: #0f1020;
+  --mcla-bg-elevated: #1e2035;
+  --mcla-bg-hover: #252640;
+  --mcla-bg-active: #2a2b50;
+
+  /* 文字色 */
+  --mcla-text-primary: #e8eaf6;
+  --mcla-text-secondary: #9fa3c7;
+  --mcla-text-tertiary: #6b6f9a;
+  --mcla-text-muted: #4a4e72;
+  --mcla-text-inverse: #0f172a;
+
+  /* 边框色 */
+  --mcla-border-color: #2d2f4e;
+  --mcla-border-strong: #3d3f66;
+
+  /*
+   * ===== 主色系统（色阶 + 渐变）=====
+   * 改 --mcla-primary 即可全局换肤
+   * 下面的色阶和渐变会自动跟随
+   */
+  --mcla-primary: #6366f1;              /* 主色 - 靛蓝 */
+  --mcla-primary-light: #e0e7ff;        /* 主色浅色背景 */
+  --mcla-primary-hover: #4f46e5;         /* 主色悬停 */
+  --mcla-primary-active: #4338ca;        /* 主色激活 */
+  --mcla-primary-muted: #a5b4fc;         /* 主色弱化 */
+
+  /* 主色色阶（用于 Badge、Table hover 等） */
+  --mcla-primary-50: #eef2ff;
+  --mcla-primary-100: #e0e7ff;
+  --mcla-primary-200: #c7d2fe;
+  --mcla-primary-300: #a5b4fc;
+  --mcla-primary-400: #818cf8;
+  --mcla-primary-500: #6366f1;
+  --mcla-primary-600: #4f46e5;
+  --mcla-primary-700: #4338ca;
+  --mcla-primary-800: #3730a3;
+  --mcla-primary-900: #312e81;
+
+  /* ★ 核心渐变色（改主色后这些也要手动同步，或用 JS 自动计算）★ */
+  --mcla-gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --mcla-gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  --mcla-gradient-success: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+  --mcla-gradient-warning: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  --mcla-gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --mcla-gradient-info: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+
+  /* 功能色 */
+  --mcla-success: #22c55e;
+  --mcla-success-bg: #dcfce7;
+
+  --mcla-warning: #f59e0b;
+  --mcla-warning-bg: #fef3c7;
+
+  --mcla-error: #ef4444;
+  --mcla-error-bg: #fee2e2;
+
+  --mcla-info: #0ea5e9;
+  --mcla-info-bg: #e0f2fe;
+
+  /* ===== 组件特定颜色 ===== */
+  /* 按钮 */
+  --mcla-btn-primary-bg: var(--mcla-gradient-primary);    /* 渐变！不是纯色 */
+  --mcla-btn-primary-color: #ffffff;
+  --mcla-btn-primary-hover: brightness(1.05);
+
+  --mcla-btn-ghost-bg: transparent;
+  --mcla-btn-ghost-hover-bg: var(--mcla-primary-light);
+
+  /* 输入框 */
+  --mcla-input-bg: var(--mcla-bg-primary);
+  --mcla-input-border: var(--mcla-border-color);
+  --mcla-input-focus-border: var(--mcla-primary-400);
+  --mcla-input-focus-shadow: 0 0 0 3px rgba(99, 102, 234, 0.15);
+
+  /* 卡片 */
+  --mcla-card-bg: var(--mcla-bg-elevated);
+  --mcla-card-border: var(--mcla-border-color);
+
+  /* 标签页 */
+  --mcla-tab-active-color: var(--mcla-primary-500);
+  --mcla-tab-active-border: var(--mcla-gradient-primary);     /* 渐变下划线 */
+
+  /* 进度条 */
+  --mcla-progress-bg: var(--mcla-gradient-primary);          /* 渐变填充 */
+
+  /* 侧边导航 */
+  --mcla-nav-active-color: var(--mcla-primary-500);
+  --mcla-nav-active-indicator: var(--mcla-primary-500);
+
+  /* 标题栏 */
+  --mcla-titlebar-bg: var(--mcla-bg-secondary);
+  --mcla-titlebar-border: var(--mcla-border-color);
+
+  /* ===== 简写别名（兼容 SettingsPage / DownloadsPage）===== */
+  --mcla-text: var(--mcla-text-primary);
+  --mcla-bg: var(--mcla-bg-primary);
+  --mcla-border: var(--mcla-border-color);
+  --mcla-border-light: var(--mcla-border-color);
+  --mcla-blue: #6366f1;          /* 匹配主色 */
+  --pcl-blue: #6366f1;
+}
+
+/* ===== 暗色主题 ===== */
+[data-theme="dark"] {
+  --mcla-bg-primary: #0c1222;
+  --mcla-bg-secondary: #131c31;
+  --mcla-bg-tertiary: #1a2744;
+  --mcla-bg-elevated: #162033;
+  --mcla-bg-hover: #1a2744;
+  --mcla-bg-active: #1e2d52;
+
+  --mcla-text-primary: #e2e8f0;
+  --mcla-text-secondary: #94a3b8;
+  --mcla-text-tertiary: #64748b;
+  --mcla-text-muted: #475569;
+  --mcla-text-inverse: #0c1222;
+
+  --mcla-border-color: #1e2d52;
+  --mcla-border-strong: #2d3f66;
+
+  --mcla-primary-50: #151f38;
+  --mcla-primary-100: #1a2744;
+  --mcla-primary-200: #223355;
+  --mcla-primary-300: #2d3f66;
+  --mcla-primary-400: #3b51a0;
+  --mcla-primary-500: #818cf8;
+  --mcla-primary-600: #a5b4fc;
+  --mcla-primary-700: #c7d2fe;
+  --mcla-primary-800: #ddd6fe;
+  --mcla-primary-900: #ede9fe;
+
+  --mcla-primary: #818cf8;
+  --mcla-primary-light: rgba(99, 102, 234, 0.15);
+  --mcla-primary-hover: #a5b4fc;
+  --mcla-primary-active: #c7d2fe;
+  --mcla-primary-muted: #6366f1;
+
+  --mcla-gradient-primary: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  --mcla-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --mcla-gradient-success: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  --mcla-gradient-warning: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  --mcla-gradient-error: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  --mcla-gradient-info: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%());
+
+  --mcla-input-focus-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+
+  --mcla-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --mcla-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --mcla-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  --mcla-shadow-glow-primary: 0 4px 20px rgba(99, 102, 234, 0.45);
+  --mcla-shadow-glow-secondary: 0 4px 20px rgba(240, 147, 251, 0.45);
+  --mcla-shadow-glow-success: 0 4px 20px rgba(74, 222, 128, 0.45);
+  --mcla-shadow-glow-warning: 0 4px 20px rgba(251, 191, 36, 0.45);
+  --mcla-shadow-glow-error: 0 4px 20px rgba(248, 113, 113, 0.45);
+  --mcla-shadow-glow-info: 0 4px 20px rgba(56, 189, 248, 0.45);
+
+  --mcla-titlebar-bg: var(--mcla-bg-secondary);
+  --mcla-titlebar-border: var(--mcla-border-color);
+}
+
+/* ==========================================================================
+   2. 基础重置 & 工具类
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--mcla-font-sans);
+  font-size: var(--mcla-text-base);
+  line-height: 1.6;
+  color: var(--mcla-text-primary);
+  background-color: var(--mcla-bg-primary);
+}
+
+/* ---- Icon ---- */
+.mcla-icon,
+svg[class*="mcla-icon"] {
+  position: relative;
+  z-index: 9999 !important;
+  display: inline-block;
+  vertical-align: middle;
+  color: currentColor;
+}
+.mcla-icon { width: 20px; height: 20px; }
+.mcla-icon-sm { width: 16px; height: 16px; }
+.mcla-icon-md { width: 20px; height: 20px; }
+.mcla-icon-lg { width: 28px; height: 28px; }
+.mcla-icon-xl { width: 36px; height: 36px; }
+
+/* ---- 间距工具类 ---- */
+.m-m-0 { margin: 0 !important; }
+.m-m-1 { margin: var(--mcla-space-1) !important; }
+.m-m-2 { margin: var(--mcla-space-2) !important; }
+.m-m-3 { margin: var(--mcla-space-3) !important; }
+.m-m-4 { margin: var(--mcla-space-4) !important; }
+
+.m-p-0 { padding: 0 !important; }
+.m-p-1 { padding: var(--mcla-space-1) !important; }
+.m-p-2 { padding: var(--mcla-space-2) !important; }
+.m-p-3 { padding: var(--mcla-space-3) !important; }
+.m-p-4 { padding: var(--mcla-space-4) !important; }
+
+/* ---- Flex/Grid/文字工具类 ---- */
+.m-flex { display: flex; }
+.m-flex-col { flex-direction: column; }
+.m-flex-wrap { flex-wrap: wrap; }
+.m-items-center { align-items: center; }
+.m-items-start { align-items: flex-start; }
+.m-items-end { align-items: flex-end; }
+.m-justify-center { justify-content: center; }
+.m-justify-between { justify-content: space-between; }
+.m-gap-1 { gap: var(--mcla-space-1); }
+.m-gap-2 { gap: var(--mcla-space-2); }
+.m-gap-3 { gap: var(--mcla-space-3); }
+.m-gap-4 { gap: var(--mcla-space-4); }
+.m-grid { display: grid; }
+
+.m-text-center { text-align: center; }
+.m-text-left { text-align: left; }
+.m-text-right { text-align: right; }
+.m-text-xs { font-size: var(--mcla-text-xs); }
+.m-text-sm { font-size: var(--mcla-text-sm); }
+.m-text-base { font-size: var(--mcla-text-base); }
+.m-text-lg { font-size: var(--mcla-text-lg); }
+.m-text-muted { color: var(--mcla-text-tertiary); }
+.m-font-medium { font-weight: var(--mcla-font-medium); }
+.m-font-semibold { font-weight: var(--mcla-font-semibold); }
+.m-font-bold { font-weight: var(--mcla-font-bold); }
+
+.m-w-full { width: 100%; }
+.m-h-full { height: 100%; }
+.m-hidden { display: none !important; }
+.m-visible { visibility: visible; }
+.m-invisible { visibility: hidden; }
+
+/* ==========================================================================
+   3. 按钮 (Button) — 渐变风格
+   ========================================================================== */
+
+.mcla-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mcla-space-2);
+  padding: var(--mcla-space-2) var(--mcla-space-4);
+  font-family: var(--mcla-font-sans);
+  font-size: var(--mcla-text-sm);
+  font-weight: var(--mcla-font-semibold);
+  line-height: 1.5;
+  border: none;
+  border-radius: var(--mcla-radius-md);
+  cursor: pointer;
+  transition: all var(--mcla-transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.mcla-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--mcla-shadow-md);
+}
+.mcla-btn:active { transform: translateY(0); box-shadow: none; }
+.mcla-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Primary — 渐变主按钮 */
+.mcla-btn-primary {
+  background: var(--mcla-btn-primary-bg);
+  color: var(--mcla-btn-primary-color);
+  box-shadow: var(--mcla-shadow-glow-primary);
+}
+.mcla-btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 25px rgba(99, 102, 234, 0.45);
+}
+
+/* Secondary — 渐变次要按钮（粉红系） */
+.mcla-btn-secondary {
+  background: var(--mcla-gradient-secondary);
+  color: #fff;
+  box-shadow: var(--mcla-shadow-glow-secondary);
+}
+
+/* 功能色按钮 — 全部渐变 */
+.mcla-btn-success { background: var(--mcla-gradient-success); color: #fff; box-shadow: var(--mcla-shadow-glow-success); }
+.mcla-btn-warning { background: var(--mcla-gradient-warning); color: #fff; box-shadow: var(--mcla-shadow-glow-warning); }
+.mcla-btn-danger { background: var(--mcla-gradient-error); color: #fff; box-shadow: var(--mcla-shadow-glow-error); }
+.mcla-btn-info { background: var(--mcla-gradient-info); color: #fff; box-shadow: var(--mcla-shadow-glow-info); }
+
+/* Ghost 幽灵按钮 */
+.mcla-btn-ghost {
+  background: var(--mcla-btn-ghost-bg);
+  color: var(--mcla-primary);
+  border: 1px solid transparent;
+}
+.mcla-btn-ghost:hover { background: var(--mcla-btn-ghost-hover-bg); }
+
+/* Outline 线框按钮 */
+.mcla-btn-outline {
+  background: transparent;
+  color: var(--mcla-primary-500);
+  border: 1px solid var(--mcla-primary-300);
+}
+.mcla-btn-outline:hover { background: var(--mcla-primary-50); }
+
+/* 尺寸 */
+.mcla-btn-sm { padding: var(--mcla-space-1) var(--mcla-space-3); font-size: var(--mcla-text-xs); border-radius: var(--mcla-radius-sm); }
+.mcla-btn-lg { padding: var(--mcla-space-3) var(--mcla-space-6); font-size: var(--mcla-text-base); border-radius: var(--mcla-radius-lg); }
+
+/* 图标按钮 */
+.mcla-btn-icon { padding: var(--mcla-space-2); aspect-ratio: 1; border-radius: var(--mcla-radius-md); }
+.mcla-btn-circle { border-radius: var(--mcla-radius-full); }
+
+/* 按钮组 */
+.mcla-btn-group { display: inline-flex; border-radius: var(--mcla-radius-md); overflow: hidden; }
+.mcla-btn-group .mcla-btn { border-radius: 0; margin-right: -1px; }
+.mcla-btn-group .mcla-btn:first-child { border-radius: var(--mcla-radius-md) 0 0 var(--mcla-radius-md); }
+.mcla-btn-group .mcla-btn:last-child { border-radius: 0 var(--mcla-radius-md) var(--mcla-radius-md) 0; }
+
+/* ==========================================================================
+   4. 输入框 (Input)
+   ========================================================================== */
+
+.mcla-input-wrapper { position: relative; display: flex; align-items: center; }
+.mcla-input-prefix,
+.mcla-input-suffix { display: flex; align-items: center; color: var(--mcla-text-tertiary); padding: 0 var(--mcla-space-2); }
+
+.mcla-input {
+  width: 100%;
+  padding: var(--mcla-space-2) var(--mcla-space-3);
+  font-family: var(--mcla-font-sans);
+  font-size: var(--mcla-text-sm);
+  line-height: 1.5;
+  color: var(--mcla-text-primary);
+  background: var(--mcla-input-bg);
+  border: 1px solid var(--mcla-input-border);
+  border-radius: var(--mcla-radius-md);
+  outline: none;
+  transition: all var(--mcla-transition-fast);
+}
+.mcla-input::placeholder { color: var(--mcla-text-tertiary); }
+.mcla-input:focus { border-color: var(--mcla-input-focus-border); box-shadow: var(--mcla-input-focus-shadow); }
+.mcla-input:disabled { background: var(--mcla-bg-tertiary); cursor: not-allowed; color: var(--mcla-text-tertiary); }
+.mcla-input-error { border-color: var(--mcla-error); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+.mcla-input-success { border-color: var(--mcla-success); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
+
+.mcla-textarea { min-height: 80px; resize: vertical; }
+
+.mcla-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* ==========================================================================
+   5. 复选框 & 单选框 & 开关
+   ========================================================================== */
+
+.mcla-checkbox { display: inline-flex; align-items: center; gap: var(--mcla-space-2); cursor: pointer; user-select: none; }
+.mcla-checkbox input { position: absolute; opacity: 0; width: 0; height: 0; }
+.mcla-checkbox-box {
+  width: 18px; height: 18px; border: 2px solid var(--mcla-border-strong);
+  border-radius: var(--mcla-radius-xs);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--mcla-transition-fast); flex-shrink: 0;
+  background: var(--mcla-bg-primary);
+}
+.mcla-checkbox input:checked + .mcla-checkbox-box {
+  background: var(--mcla-gradient-primary);   /* 渐变！*/
+  border-color: transparent;
+}
+.mcla-checkbox input:checked + .mcla-checkbox-box svg { display: block; }
+.mcla-checkbox-box svg { display: none; color: #fff; width: 12px; height: 12px; }
+.mcla-checkbox input:focus-visible + .mcla-checkbox-box { box-shadow: var(--mcla-input-focus-shadow); }
+
+.mcla-radio { display: inline-flex; align-items: center; gap: var(--mcla-space-2); cursor: pointer; user-select: none; }
+.mcla-radio input { position: absolute; opacity: 0; width: 0; height: 0; }
+.mcla-radio-dot {
+  width: 18px; height: 18px; border: 2px solid var(--mcla-border-strong);
+  border-radius: var(--mcla-radius-full); display: flex; align-items: center;
+  justify-content: center; transition: all var(--mcla-transition-fast); flex-shrink: 0;
+  background: var(--mcla-bg-primary);
+}
+.mcla-radio input:checked + .mcla-radio-dot { border-color: var(--mcla-primary-500); }
+.mcla-radio input:checked + .mcla-radio-dot::after {
+  content: ''; width: 10px; height: 10px; border-radius: var(--mcla-radius-full);
+  background: var(--mcla-gradient-primary);   /* 渐变！*/
+}
+.mcla-radio input:focus-visible + .mcla-radio-dot { box-shadow: var(--mcla-input-focus-shadow); }
+
+.mcla-switch { display: inline-flex; align-items: center; gap: var(--mcla-space-2); cursor: pointer; user-select: none; }
+.mcla-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.mcla-switch-track {
+  width: 44px; height: 24px; background: var(--mcla-border-strong);
+  border-radius: var(--mcla-radius-full); position: relative; transition: all var(--mcla-transition-fast);
+}
+.mcla-switch-track::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  background: #fff; border-radius: var(--mcla-radius-full); transition: all var(--mcla-transition-fast);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.mcla-switch input:checked + .mcla-switch-track { background: var(--mcla-gradient-primary); }  /* 渐变！*/
+.mcla-switch input:checked + .mcla-switch-track::after { left: 22px; }
+.mcla-switch input:focus-visible + .mcla-switch-track { box-shadow: var(--mcla-input-focus-shadow); }
+
+/* ==========================================================================
+   6. 卡片 (Card) — 含渐变边框变体
+   ========================================================================== */
+
+.mcla-card {
+  background: var(--mcla-card-bg);
+  border: 1px solid var(--mcla-card-border);
+  border-radius: var(--mcla-radius-lg);
+  padding: var(--mcla-space-4);
+  box-shadow: var(--mcla-shadow-sm);
+  transition: all var(--mcla-transition-normal);
+}
+.mcla-card:hover { transform: translateY(-2px); box-shadow: var(--mcla-shadow-lg); border-color: var(--mcla-primary-300); }
+.mcla-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--mcla-space-3); }
+.mcla-card-title { font-size: var(--mcla-text-lg); font-weight: var(--mcla-font-semibold); color: var(--mcla-text-primary); }
+.mcla-card-body { color: var(--mcla-text-secondary); }
+.mcla-card-footer { margin-top: var(--mcla-space-4); padding-top: var(--mcla-space-3); border-top: 1px solid var(--mcla-border-color); }
+
+/* 渐变边框卡片（Gradient 版特色） */
+.mcla-card-gradient {
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image:
+    linear-gradient(var(--mcla-bg-elevated), var(--mcla-bg-elevated)),
+    var(--mcla-gradient-primary);
+}
+
+/* ==========================================================================
+   7. 徽章 (Badge)
+   ========================================================================== */
+
+.mcla-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px;
+  font-size: var(--mcla-text-xs); font-weight: var(--mcla-font-medium);
+  border-radius: var(--mcla-radius-full); white-space: nowrap;
+}
+.mcla-badge-primary { background: var(--mcla-primary-100); color: var(--mcla-primary-700); }
+.mcla-badge-success { background: var(--mcla-success-bg); color: #166534; }
+.mcla-badge-warning { background: var(--mcla-warning-bg); color: #92400e; }
+.mcla-badge-error { background: var(--mcla-error-bg); color: #991b1b; }
+.mcla-badge-info { background: var(--mcla-info-bg); color: #075985; }
+.mcla-badge-dot { width: 8px; height: 8px; border-radius: var(--mcla-radius-full); display: inline-block; background: var(--mcla-primary); }
+
+/* 渐变徽章 */
+.mcla-badge-gradient {
+  background: var(--mcla-gradient-primary);
+  color: #fff;
+}
+
+/* ==========================================================================
+   8. 头像 (Avatar)
+   ========================================================================== */
+
+.mcla-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: var(--mcla-radius-full);
+  background: var(--mcla-gradient-primary);   /* 渐变！*/
+  color: #fff; font-weight: var(--mcla-font-semibold); flex-shrink: 0;
+}
+.mcla-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mcla-avatar-sm { width: 32px; height: 32px; font-size: var(--mcla-text-xs); }
+.mcla-avatar-md { width: 40px; height: 40px; font-size: var(--mcla-text-sm); }
+.mcla-avatar-lg { width: 56px; height: 56px; font-size: var(--mcla-text-lg); }
+.mcla-avatar-xl { width: 72px; height: 72px; font-size: var(--mcla-text-xl); }
+.mcla-avatar-square { border-radius: var(--mcla-radius-md); }
+.mcla-avatar-group { display: flex; }
+.mcla-avatar-group .mcla-avatar:not(:first-child) { margin-left: -10px; border: 2px solid var(--mcla-bg-primary); }
+
+/* ==========================================================================
+   9. 提示/警告框 (Alert)
+   ========================================================================== */
+
+.mcla-alert { display: flex; gap: var(--mcla-space-3); padding: var(--mcla-space-3) var(--mcla-space-4); border-radius: var(--mcla-radius-md); border-left: 4px solid; font-size: var(--mcla-text-sm); }
+.mcla-alert-info { background: var(--mcla-info-bg); border-color: var(--mcla-info); color: var(--mcla-text-primary); }
+.mcla-alert-success { background: var(--mcla-success-bg); border-color: var(--mcla-success); color: var(--mcla-text-primary); }
+.mcla-alert-warning { background: var(--mcla-warning-bg); border-color: var(--mcla-warning); color: var(--mcla-text-primary); }
+.mcla-alert-error { background: var(--mcla-error-bg); border-color: var(--mcla-error); color: var(--mcla-text-primary); }
+
+[data-theme="dark"] .mcla-alert-info { background: rgba(14,165,233,0.15); color: #7dd3fc; }
+[data-theme="dark"] .mcla-alert-success { background: rgba(34,197,94,0.15); color: #86efac; }
+[data-theme="dark"] .mcla-alert-warning { background: rgba(245,158,11,0.15); color: #fcd34d; }
+[data-theme="dark"] .mcla-alert-error { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+/* ==========================================================================
+   10. 标签页 (Tabs) — 渐变下划线
+   ========================================================================== */
+
+.mcla-tabs { display: flex; border-bottom: 1px solid var(--mcla-border-color); gap: var(--mcla-space-1); }
+.mcla-tab {
+  padding: var(--mcla-space-2) var(--mcla-space-4); font-size: var(--mcla-text-sm);
+  font-weight: var(--mcla-font-medium); color: var(--mcla-text-secondary);
+  border: none; background: none; cursor: pointer; position: relative;
+  transition: all var(--mcla-transition-fast);
+}
+.mcla-tab:hover { color: var(--mcla-text-primary); }
+.mcla-tab-active { color: var(--mcla-tab-active-color); font-weight: var(--mcla-font-semibold); }
+.mcla-tab-active::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px;
+  background: var(--mcla-tab-active-border);   /* 渐变下划线！*/
+  border-radius: 2px 2px 0 0;
+}
+/* Pill 胶囊模式 */
+.mcla-tabs-pill .mcla-tab { border-radius: var(--mcla-radius-full); }
+.mcla-tabs-pill .mcla-tab-active { background: var(--mcla-gradient-primary); color: #fff; }  /* 渐变！*/
+.mcla-tabs-pill .mcla-tab-active::after { display: none; }
+
+/* ==========================================================================
+   11. 导航栏 (Navbar)
+   ========================================================================== */
+
+.mcla-navbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--mcla-space-3) var(--mcla-space-4);
+  background: var(--mcla-bg-elevated);
+  border-bottom: 1px solid var(--mcla-border-color);
+  position: sticky; top: 0; z-index: 9998;
+}
+.mcla-navbar-brand {
+  display: flex; align-items: center; gap: var(--mcla-space-2);
+  font-size: var(--mcla-text-lg); font-weight: var(--mcla-font-bold);
+  color: var(--mcla-text-primary); text-decoration: none;
+}
+.mcla-navbar-brand span {
+  background: var(--mcla-gradient-primary);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.mcla-navbar-nav { display: flex; align-items: center; gap: var(--mcla-space-1); }
+.mcla-nav-link {
+  padding: var(--mcla-space-1) var(--mcla-space-3); font-size: var(--mcla-text-sm);
+  font-weight: var(--mcla-font-medium); color: var(--mcla-text-secondary);
+  text-decoration: none; border-radius: var(--mcla-radius-sm); transition: all var(--mcla-transition-fast);
+}
+.mcla-nav-link:hover, .mcla-nav-link-active { color: var(--mcla-primary-500); background: var(--mcla-primary-50); }
+
+/* ==========================================================================
+   12. 侧边导航 (Sidebar) — MCLA 启动器专用
+   ========================================================================== */
+
+.mcla-sidebar {
+  width: var(--mcla-sidebar-width);
+  background: var(--mcla-bg-elevated);
+  border-right: 1px solid var(--mcla-border-color);
+  display: flex; flex-direction: column;
+  padding: var(--mcla-space-sm) 0; flex-shrink: 0;
+}
+
+.mcla-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: var(--mcla-space-sm) 0; cursor: pointer;
+  color: var(--mcla-text-secondary); transition: all var(--mcla-transition-fast);
+  position: relative; border: none; background: none; width: 100%; font-family: inherit;
+
+  &:hover {
+    color: var(--mcla-text-primary); background: var(--mcla-bg-hover);
+    &::before {
+      content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+      width: 3px; background: var(--mcla-nav-active-indicator); border-radius: 0 2px 2px 0;
+    }
+  }
+
+  &.active {
+    color: var(--mcla-nav-active-color); background: var(--mcla-bg-active);
+    &::before {
+      content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+      width: 3px; background: var(--mcla-nav-active-indicator); border-radius: 0 2px 2px 0;
+    }
+  }
+
+  .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-label { font-size: 10px; line-height: 1; white-space: nowrap; letter-spacing: 0.02em; }
+}
+
+/* ==========================================================================
+   13. 自定义标题栏 (Titlebar) — Electron 专用
+   ========================================================================== */
+
+.mcla-titlebar {
+  height: var(--mcla-titlebar-height);
+  background: var(--mcla-titlebar-bg);
+  border-bottom: 1px solid var(--mcla-titlebar-border);
+  display: flex; align-items: center; justify-content: space-between;
+  -webkit-app-region: drag; user-select: none; flex-shrink: 0;
+}
+
+.mcla-titlebar-brand {
+  display: flex; align-items: center; gap: var(--mcla-space-sm);
+  padding-left: var(--mcla-space-md);
+  &-logo {
+    width: 18px; height: 18px; background: var(--mcla-gradient-primary);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mcla-font-pixel); font-size: 10px; border-radius: var(--mcla-radius-xs);
+  }
+  &-text {
+    font-size: var(--mcla-text-sm); font-weight: var(--mcla-font-bold);
+    color: var(--mcla-text-primary); letter-spacing: 1.5px;
+    background: var(--mcla-gradient-primary);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+}
+
+.mcla-window-controls {
+  display: flex; -webkit-app-region: no-drag;
+  .wc-btn {
+    width: 40px; height: var(--mcla-titlebar-height); border: none; background: transparent;
+    color: var(--mcla-text-secondary); cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s; line-height: 1;
+    &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
+    &.wc-close:hover { background: #e81123; color: #fff; }
+  }
+}
+
+/* ==========================================================================
+   14. 面包屑 (Breadcrumb)
+   ========================================================================== */
+
+.mcla-breadcrumb { display: flex; align-items: center; gap: var(--mcla-space-2); font-size: var(--mcla-text-sm); color: var(--mcla-text-tertiary); }
+.mcla-breadcrumb a { color: var(--mcla-text-secondary); text-decoration: none; transition: color var(--mcla-transition-fast); }
+.mcla-breadcrumb a:hover { color: var(--mcla-primary-500); }
+.mcla-breadcrumb-separator { color: var(--mcla-text-tertiary); }
+.mcla-breadcrumb-current { color: var(--mcla-text-primary); font-weight: var(--mcla-font-medium); }
+
+/* ==========================================================================
+   15. 分页 (Pagination) — 渐变当前页
+   ========================================================================== */
+
+.mcla-pagination { display: flex; align-items: center; gap: var(--mcla-space-1); }
+.mcla-page-item {
+  min-width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: var(--mcla-text-sm); font-weight: var(--mcla-font-medium);
+  color: var(--mcla-text-secondary); border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-sm); background: var(--mcla-bg-primary);
+  cursor: pointer; text-decoration: none; transition: all var(--mcla-transition-fast);
+}
+.mcla-page-item:hover { border-color: var(--mcla-primary-300); color: var(--mcla-primary-500); }
+.mcla-page-active { background: var(--mcla-gradient-primary); color: #fff; border-color: transparent; }  /* 渐变！*/
+.mcla-page-disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ==========================================================================
+   16. 进度条 (Progress) — 渐变填充
+   ========================================================================== */
+
+.mcla-progress { width: 100%; height: 8px; background: var(--mcla-bg-tertiary); border-radius: var(--mcla-radius-full); overflow: hidden; }
+.mcla-progress-bar { height: 100%; background: var(--mcla-progress-bg); border-radius: var(--mcla-radius-full); transition: width var(--mcla-transition-slow); }
+.mcla-progress-bar-animated {
+  animation: mcla-stripes 1s linear infinite;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255,255,255,.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255,255,255,.15) 50%,
+    rgba(255,255,255,.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+@keyframes mcla-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
+.mcla-progress-sm { height: 4px; }
+.mcla-progress-lg { height: 12px; }
+
+/* 进度条带文字标签 */
+.mcla-progress-labeled {
+  display: flex; align-items: center; gap: var(--mcla-space-3);
+  .progress-text {
+    font-size: var(--mcla-text-xs); color: var(--mcla-text-secondary);
+    white-space: nowrap; min-width: 40px; text-align: right;
+  }
+}
+
+/* ==========================================================================
+   17. 加载动画 (Loading)
+   ========================================================================== */
+
+.mcla-spinner { width: 24px; height: 24px; border: 3px solid var(--mcla-border-color); border-top-color: var(--mcla-primary-500); border-radius: var(--mcla-radius-full); animation: mcla-spin 0.8s linear infinite; }
+.mcla-spinner-sm { width: 16px; height: 16px; border-width: 2px; }
+.mcla-spinner-lg { width: 36px; height: 36px; border-width: 4px; }
+@keyframes mcla-spin { to { transform: rotate(360deg); } }
+
+.mcla-dots { display: flex; gap: 6px; }
+.mcla-dots span { width: 8px; height: 8px; border-radius: var(--mcla-radius-full); background: var(--mcla-primary-500); animation: mcla-bounce 1.4s ease-in-out infinite both; }
+.mcla-dots span:nth-child(1) { animation-delay: -0.32s; }
+.mcla-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes mcla-bounce { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+.mcla-skeleton {
+  background: linear-gradient(90deg, var(--mcla-bg-tertiary) 25%, var(--mcla-bg-secondary) 50%, var(--mcla-bg-tertiary) 75%);
+  background-size: 200% 100%; animation: mcla-sk 1.5s ease-in-out infinite; border-radius: var(--mcla-radius-sm);
+}
+@keyframes mcla-sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ==========================================================================
+   18. 表格 (Table)
+   ========================================================================== */
+
+.mcla-table-wrapper { overflow-x: auto; border-radius: var(--mcla-radius-md); border: 1px solid var(--mcla-border-color); }
+.mcla-table { width: 100%; border-collapse: collapse; font-size: var(--mcla-text-sm); }
+.mcla-table th {
+  padding: var(--mcla-space-3) var(--mcla-space-4); text-align: left;
+  font-weight: var(--mcla-font-semibold); color: var(--mcla-text-secondary);
+  background: var(--mcla-bg-secondary); border-bottom: 2px solid var(--mcla-border-color); white-space: nowrap;
+}
+.mcla-table td { padding: var(--mcla-space-3) var(--mcla-space-4); border-bottom: 1px solid var(--mcla-border-color); color: var(--mcla-text-primary); }
+.mcla-table tbody tr:hover { background: var(--mcla-bg-secondary); }
+.mcla-table tbody tr:last-child td { border-bottom: none; }
+.mcla-table-stripe tbody tr:nth-child(even) { background: var(--mcla-bg-secondary); }
+
+/* ==========================================================================
+   19. 下拉菜单 (Dropdown)
+   ========================================================================== */
+
+.mcla-dropdown { position: relative; display: inline-block; }
+.mcla-dropdown-menu {
+  position: absolute; top: 100%; left: 0; margin-top: var(--mcla-space-1);
+  min-width: 180px; background: var(--mcla-bg-elevated); border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md); box-shadow: var(--mcla-shadow-lg);
+  padding: var(--mcla-space-1) 0; z-index: 10000;
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: all var(--mcla-transition-fast);
+}
+.mcla-dropdown-open .mcla-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.mcla-dropdown-item {
+  display: flex; align-items: center; gap: var(--mcla-space-2);
+  padding: var(--mcla-space-2) var(--mcla-space-3); font-size: var(--mcla-text-sm);
+  color: var(--mcla-text-secondary); cursor: pointer; transition: all var(--mcla-transition-fast);
+  border: none; background: none; width: 100%; text-align: left;
+}
+.mcla-dropdown-item:hover { background: var(--mcla-primary-50); color: var(--mcla-primary-500); }
+.mcla-dropdown-divider { height: 1px; background: var(--mcla-border-color); margin: var(--mcla-space-1) 0; }
+
+/* ==========================================================================
+   20. 工具提示 (Tooltip)
+   ========================================================================== */
+
+.mcla-tooltip { position: relative; display: inline-block; }
+.mcla-tooltip-text {
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px); padding: 6px 12px;
+  font-size: var(--mcla-text-xs); font-weight: var(--mcla-font-medium); color: #fff;
+  background: #1e293b; border-radius: var(--mcla-radius-sm); white-space: nowrap;
+  opacity: 0; visibility: hidden; transition: all var(--mcla-transition-fast);
+  z-index: 10001; pointer-events: none;
+}
+.mcla-tooltip-text::after {
+  content: ''; position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%); border: 5px solid transparent; border-top-color: #1e293b;
+}
+.mcla-tooltip:hover .mcla-tooltip-text { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+/* ==========================================================================
+   21. Modal 对话框
+   ========================================================================== */
+
+.mcla-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 10002;
+  opacity: 0; visibility: hidden; transition: all var(--mcla-transition-normal);
+}
+.mcla-modal-overlay-open { opacity: 1; visibility: visible; }
+.mcla-modal {
+  background: var(--mcla-bg-elevated); border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-lg); max-width: 480px; width: 90%; max-height: 85vh;
+  overflow-y: auto; box-shadow: var(--mcla-shadow-xl); transform: scale(0.95);
+  transition: all var(--mcla-transition-normal);
+}
+.mcla-modal-overlay-open .mcla-modal { transform: scale(1); }
+.mcla-modal-header { display: flex; align-items: center; justify-content: space-between; padding: var(--mcla-space-4) var(--mcla-space-4) 0; }
+.mcla-modal-header h3 { font-size: var(--mcla-text-lg); font-weight: var(--mcla-font-semibold); }
+.mcla-modal-close {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer; border-radius: var(--mcla-radius-sm);
+  color: var(--mcla-text-tertiary); transition: all var(--mcla-transition-fast);
+}
+.mcla-modal-close:hover { background: var(--mcla-bg-tertiary); color: var(--mcla-text-primary); }
+.mcla-modal-body { padding: var(--mcla-space-4); color: var(--mcla-text-secondary); font-size: var(--mcla-text-sm); }
+.mcla-modal-footer { display: flex; justify-content: flex-end; gap: var(--mcla-space-2); padding: 0 var(--mcla-space-4) var(--mcla-space-4); }
+
+/* ==========================================================================
+   22. 分割线 & 空状态
+   ========================================================================== */
+
+.mcla-divider { border: none; height: 1px; background: var(--mcla-border-color); margin: var(--mcla-space-4) 0; }
+.mcla-divider-text { display: flex; align-items: center; gap: var(--mcla-space-3); color: var(--mcla-text-tertiary); font-size: var(--mcla-text-sm); }
+.mcla-divider-text::before, .mcla-divider-text::after { content: ''; flex: 1; height: 1px; background: var(--mcla-border-color); }
+
+.mcla-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--mcla-space-12) var(--mcla-space-4); text-align: center; }
+.mcla-empty-icon { width: 80px; height: 80px; color: var(--mcla-text-tertiary); margin-bottom: var(--mcla-space-4); }
+.mcla-empty-title { font-size: var(--mcla-text-lg); font-weight: var(--mcla-font-semibold); color: var(--mcla-text-primary); margin-bottom: var(--mcla-space-2); }
+.mcla-empty-desc { font-size: var(--mcla-text-sm); color: var(--mcla-text-tertiary); max-width: 320px; margin-bottom: var(--mcla-space-4); }
+
+/* ==========================================================================
+   23. MCLA 专用组件
+   ========================================================================== */
+
+/* ---- 实例卡片 ---- */
+.mcla-instance-card {
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-lg);
+  overflow: hidden;
+  transition: all var(--mcla-transition-normal);
+  cursor: pointer;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--mcla-shadow-lg);
+    border-color: var(--mcla-primary-300);
+  }
+
+  &-thumb {
+    width: 100%; aspect-ratio: 16/9;
+    background: var(--mcla-bg-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: var(--mcla-text-tertiary);
+  }
+  &-info {
+    padding: var(--mcla-space-3) var(--mcla-space-4);
+  }
+  &-name {
+    font-size: var(--mcla-text-base); font-weight: var(--mcla-font-semibold);
+    color: var(--mcla-text-primary); margin-bottom: 2px;
+  }
+  &-meta {
+    font-size: var(--mcla-text-xs); color: var(--mcla-text-tertiary);
+    display: flex; align-items: center; gap: var(--mcla-space-2);
+  }
+  &-actions {
+    padding: 0 var(--mcla-space-4) var(--mcla-space-3);
+    display: flex; gap: var(--mcla-space-2);
+  }
+}
+
+/* ---- 下载项 ---- */
+.mcla-download-item {
+  display: flex; align-items: center; gap: var(--mcla-space-3);
+  padding: var(--mcla-space-3) var(--mcla-space-4);
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  transition: all var(--mcla-transition-fast);
+  &:hover { border-color: var(--mcla-primary-300); }
+
+  &-icon {
+    width: 40px; height: 40px; border-radius: var(--mcla-radius-sm);
+    background: var(--mcla-bg-tertiary); display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 18px;
+  }
+  &-info { flex: 1; min-width: 0; }
+  &-name {
+    font-size: var(--mcla-text-sm); font-weight: var(--mcla-font-medium);
+    color: var(--mcla-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  &-meta { font-size: var(--mcla-text-xs); color: var(--mcla-text-tertiary); margin-top: 2px; }
+  &-progress { width: 120px; flex-shrink: 0; }
+  &-status {
+    font-size: var(--mcla-text-xs); padding: 2px 8px;
+    border-radius: var(--mcla-radius-full); flex-shrink: 0; white-space: nowrap;
+    &--downloading { background: var(--mcla-primary-100); color: var(--mcla-primary-700); }
+    &--completed { background: var(--mcla-success-bg); color: #166534; }
+    &--paused { background: var(--mcla-warning-bg); color: #92400e; }
+    &--error { background: var(--mcla-error-bg); color: #991b1b; }
+  }
+  &-actions { display: flex; gap: var(--mcla-space-1); flex-shrink: 0; }
+}
+
+/* ---- Hero 区域（首页）---- */
+.mcla-hero {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+  padding: var(--mcla-space-3xl) var(--mcla-space-lg);
+  min-height: 360px; position: relative; overflow: hidden;
+  &-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(99, 102, 234, 0.08) 0%, transparent 70%);
+    z-index: 0;
+  }
+  &-content {
+    position: relative; z-index: 1;
+  }
+  &-title {
+    font-size: 48px; font-weight: 800; letter-spacing: -0.5px;
+    background: var(--mcla-gradient-primary);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin: 0 0 var(--mcla-space-sm) 0;
+  }
+  &-subtitle {
+    font-size: var(--mcla-text-lg); color: var(--mcla-text-tertiary);
+    font-weight: var(--mcla-font-normal); margin: 0 0 var(--mcla-space-lg) 0;
+    letter-spacing: 2px;
+  }
+  &-cta {
+    display: inline-flex; align-items: center; gap: var(--mcla-space-2);
+    padding: var(--mcla-space-3) var(--mcla-space-6);
+    font-size: var(--mcla-text-base); font-weight: var(--mcla-font-bold);
+    background: var(--mcla-gradient-primary); color: #fff;
+    border: none; border-radius: var(--mcla-radius-lg);
+    cursor: pointer; box-shadow: var(--mcla-shadow-glow-primary);
+    transition: all var(--mcla-transition-normal);
+    &:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 8px 30px rgba(99, 102, 234, 0.5);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* ---- 统计数字 ---- */
+.mcla-stat {
+  text-align: center;
+  &-value {
+    font-size: var(--mcla-text-3xl); font-weight: var(--mcla-font-bold);
+    background: var(--mcla-gradient-primary);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1.2;
+  }
+  &-label {
+    font-size: var(--mcla-text-xs); color: var(--mcla-text-tertiary);
+    margin-top: var(--mcla-space-1);
+  }
+}
+
+/* ==========================================================================
+   24. 动画关键帧
+   ========================================================================== */
+
+@keyframes mcla-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mcla-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mcla-fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mcla-fade-down { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mcla-slide-left { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes mcla-slide-right { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes mcla-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes mcla-bounce-in { 0% { opacity: 0; transform: scale(0.3); } 50% { transform: scale(1.05); } 70% { transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes mcla-spin-steps { 0% { transform: rotate(0deg); } 12.5% { transform: rotate(45deg); } 25% { transform: rotate(90deg); } 37.5% { transform: rotate(135deg); } 50% { transform: rotate(180deg); } 62.5% { transform: rotate(225deg); } 75% { transform: rotate(270deg); } 87.5% { transform: rotate(315deg); } 100% { transform: rotate(360deg); } }
+@keyframes mcla-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes mcla-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.04); opacity: 0.85; } }
+@keyframes mcla-pop { 0% { transform: scale(1); } 30% { transform: scale(0.93); } 50% { transform: scale(1.05); } 70% { transform: scale(0.97); } 100% { transform: scale(1); } }
+@keyframes mcla-shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); } 20%, 40%, 60%, 80% { transform: translateX(4px); } }
+@keyframes mcla-glitch-1 { 0%, 100% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } }
+@keyframes mcla-glitch-2 { 0%, 100% { transform: translate(0); } 20% { transform: translate(2px, -2px); } 40% { transform: translate(2px, 2px); } 60% { transform: translate(-2px, -2px); } 80% { transform: translate(-2px, 2px); } }
+
+/* ---- 动画工具类 ---- */
+.animate-fade-in { animation: mcla-fade-in var(--mcla-transition-normal) ease forwards; }
+.animate-fade-up { animation: mcla-fade-up var(--mcla-transition-normal) ease forwards; }
+.animate-fade-down { animation: mcla-fade-down var(--mcla-transition-normal) ease forwards; }
+.animate-scale-in { animation: mcla-scale-in var(--mcla-transition-normal) ease forwards; }
+.animate-bounce-in { animation: mcla-bounce-in 0.5s ease forwards; }
+.animate-spin { animation: mcla-spin-steps 1s steps(8) infinite; }  /* 步进式旋转，保留像素味 */
+.animate-blink { animation: mcla-blink 1s step-end infinite; }
+.animate-pulse { animation: mcla-pulse 2s ease-in-out infinite; }
+.animate-pop { animation: mcla-pop 0.3s ease; }
+.animate-shake { animation: mcla-shake 0.5s ease; }
+.animate-glitch { position: relative; &::before, &::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; } &::before { animation: mcla-glitch-1 0.3s infinite; color: #ff00ff; z-index: -1; } &::after { animation: mcla-glitch-2 0.3s infinite; color: #00ffff; z-index: -2; } }
+
+/* ---- 延迟工具类 ---- */
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+.animate-delay-4 { animation-delay: 0.4s; }
+.animate-delay-5 { animation-delay: 0.5s; }
+
+/* ==========================================================================
+   25. 减少动效支持
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
