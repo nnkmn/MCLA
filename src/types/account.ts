@@ -16,6 +16,7 @@ export interface Account {
   refreshToken: string | null
   expiresAt: string | null   // token 过期时间 (ISO)
   isActive: number           // 1 = 当前活跃, 0 = 非活跃
+  skin_url: string | null    // 皮肤 URL
   createdAt: string
   updatedAt: string
 }

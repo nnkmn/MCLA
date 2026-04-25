@@ -96,10 +96,14 @@ function createTables(): void {
       refresh_token TEXT,
       expires_at TEXT,
       is_active INTEGER DEFAULT 0,
+      skin_url TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `)
+
+  // 迁移：给已有账户添加 skin_url 列
+  try { db.exec("ALTER TABLE accounts ADD COLUMN skin_url TEXT") } catch { /* 列已存在 */ }
 
   // 配置表（键值对）
   db.exec(`

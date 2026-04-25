@@ -1,50 +1,73 @@
-# 依赖
+# ============================================
+# MCLA 项目 .gitignore
+# Electron + Vue 3 + TypeScript
+# ============================================
+
+# ========== 依赖 ==========
 node_modules/
 
-# 构建输出
+# ========== 构建输出 ==========
 out/
 dist/
+build/                          # electron-builder 打包产物（NSIS / unpacked）
 
-# 开发文件
+# ========== 开发日志 ==========
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+build-log.txt                   # 本地构建日志
 
-# IDE
+# ========== IDE / 编辑器 ==========
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.c9/
+.settings/
 
-# 系统文件
+# ========== 系统文件 ==========
 .DS_Store
 Thumbs.db
 Desktop.ini
+*.bak
+*.tmp
+*.temp
+.cache/
 
-# Vite/Vue 类型声明
+# ========== Vite/Vue 类型声明 ==========
 auto-imports.d.ts
 components.d.ts
 
-# 环境变量（不要提交！）
+# ========== 环境变量（绝不可提交！）==========
 .env
 .env.local
 .env.*.local
 
-# 调试文件
+# ========== 调试符号 ==========
 *.pdb
 *.map
 
-# 测试覆盖率
+# ========== 测试覆盖率 ==========
 coverage/
 *.lcov
 
-# WorkBuddy（开发工具数据）
+# ========== WorkBuddy（开发工具数据）==========
 .workbuddy/
 
-# 临时文件
-*.tmp
-*.temp
-.cache/
+# ========== Electron 专属 ==========
+electron-builder.yml.bak        # electron-builder 备份
+electron-builder.env           # 构建环境变量缓存
+release/                        # 手动构建输出
+
+# ========== 图像资源（非源文件）==========
+*.ico                           # 可由 png 自动生成
+40348278.jpg                    # 截图等临时图片
+
+# ========== 操作系统 ==========
+$RECYCLE.BIN/
+*.lnk

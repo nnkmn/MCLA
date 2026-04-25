@@ -1,13 +1,42 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import * as path from 'path';
+import axios from 'axios';
 import { GameInstance, ModLoader } from '../types/adapter.types';
+
+// Fabric API 端点
+const FABRIC_META_BASE = 'https://meta.fabricmc.net/v2'
+const FABRIC_DOWNLOAD_BASE = 'https://maven.fabricmc.net'
+const FORGE_MAVEN = 'https://maven.minecraftforge.net'
+const NEOFORGE_MAVEN = 'https://maven.neoforged.net/releases'
+
+export interface LoaderVersion {
+  loader: string
+  installer: string
+}
+
+export interface InstallationProgress {
+  stage: 'downloading' | 'installing' | 'verifying' | 'complete' | 'error'
+  progress: number
+  message: string
+}
 
 export class ModLoaderService {
   private modLoaders: Map<string, ModLoaderInfo> = new Map();
+  private progressCallback?: (progress: InstallationProgress) => void;
 
   constructor() {
     this.initializeModLoaders();
+  }
+
+  setProgressCallback(callback: (progress: InstallationProgress) => void) {
+    this.progressCallback = callback;
+  }
+
+  private reportProgress(progress: InstallationProgress) {
+    if (this.progressCallback) {
+      this.progressCallback(progress);
+    }
   }
 
   /**
@@ -57,6 +86,188 @@ export class ModLoaderService {
         linux: 'https://maven.neoforged.net/releases/net/neoforged/neoforge-installer/{version}/neoforge-installer-{version}.jar'
       }
     });
+  }
+
+  /**
+   * 获取 Fabric 可用版本列表（从 Fabric Meta API）
+   */
+  async getFabricVersions(): Promise<Array<{ gameVersion: string; loaderVersion: string; installerVersion: string }>> {
+    try {
+      const response = await axios.get(`${FABRIC_META_BASE}/versions`);
+      const data = response.data;
+
+      const results: Array<{ gameVersion: string; loaderVersion: string; installerVersion: string }> = [];
+      
+      for (const version of data.versions || []) {
+        if (version.stable) {
+          results.push({
+            gameVersion: version.gameVersion,
+            loaderVersion: version.loader.version,
+            installerVersion: version.installer.version
+          });
+        }
+      }
+
+      return results.sort((a, b) => this.compareVersions(b.gameVersion, a.gameVersion));
+    } catch (error) {
+      console.error('[ModLoaderService] 获取 Fabric 版本失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 获取指定 Minecraft 版本的 Fabric 版本
+   */
+  async getFabricVersionForMinecraft(mcVersion: string): Promise<LoaderVersion | null> {
+    try {
+      const response = await axios.get(`${FABRIC_META_BASE}/versions/loader/${mcVersion}`);
+      const data = response.data;
+
+      if (data.length > 0) {
+        // 返回最新稳定版本
+        const latest = data[0];
+        return {
+          loader: latest.loader.version,
+          installer: latest.installer.version
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error(`[ModLoaderService] 获取 ${mcVersion} 的 Fabric 版本失败:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 安装 Fabric
+   */
+  async installFabric(gameDir: string, mcVersion: string): Promise<void> {
+    this.reportProgress({ stage: 'downloading', progress: 0, message: '获取 Fabric 版本信息...' });
+
+    const versionInfo = await this.getFabricVersionForMinecraft(mcVersion);
+    if (!versionInfo) {
+      throw new Error(`不支持 Minecraft ${mcVersion} 版本的 Fabric`);
+    }
+
+    // 下载 Fabric 安装器
+    this.reportProgress({ stage: 'downloading', progress: 10, message: '下载 Fabric 安装器...' });
+    
+    const installerUrl = `${FABRIC_DOWNLOAD_BASE}/net/fabricmc/fabric-installer/${versionInfo.installer}/fabric-installer-${versionInfo.installer}.jar`;
+    const installerPath = path.join(gameDir, 'temp', `fabric-installer-${versionInfo.installer}.jar`);
+
+    // 确保目录存在
+    await fs.mkdir(path.dirname(installerPath), { recursive: true });
+
+    // 下载安装器
+    await this.downloadFile(installerUrl, installerPath, (progress) => {
+      this.reportProgress({ 
+        stage: 'downloading', 
+        progress: 10 + progress * 0.3, 
+        message: `下载中... ${Math.round(progress * 100)}%` 
+      });
+    });
+
+    this.reportProgress({ stage: 'installing', progress: 40, message: '安装 Fabric...' });
+
+    // 运行安装器
+    await this.runFabricInstaller(installerPath, gameDir, mcVersion);
+
+    // 清理临时文件
+    try {
+      await fs.unlink(installerPath);
+    } catch {}
+
+    this.reportProgress({ stage: 'verifying', progress: 90, message: '验证安装...' });
+
+    // 验证安装
+    const loaderDir = path.join(gameDir, 'mods', 'fabric');
+    try {
+      await fs.access(loaderDir);
+    } catch {
+      // 尝试其他可能的位置
+      const altDir = path.join(gameDir, 'libraries', 'net', 'fabricmc', 'fabric-loader');
+      await fs.access(altDir);
+    }
+
+    this.reportProgress({ stage: 'complete', progress: 100, message: 'Fabric 安装完成！' });
+  }
+
+  /**
+   * 下载文件（带进度回调）
+   */
+  private async downloadFile(url: string, destPath: string, onProgress: (progress: number) => void): Promise<void> {
+    const response = await axios({
+      method: 'get',
+      url,
+      responseType: 'stream',
+      timeout: 300000 // 5分钟超时
+    });
+
+    const totalSize = parseInt(response.headers['content-length'] || '0', 10);
+    let downloaded = 0;
+
+    const writer = await fs.open(destPath, 'w');
+    
+    response.data.on('data', (chunk: Buffer) => {
+      downloaded += chunk.length;
+      if (totalSize > 0) {
+        onProgress(downloaded / totalSize);
+      }
+    });
+
+    response.data.pipe(writer.createWriteStream());
+    
+    return new Promise((resolve, reject) => {
+      response.data.on('end', () => {
+        writer.close();
+        resolve();
+      });
+      response.data.on('error', reject);
+    });
+  }
+
+  /**
+   * 运行 Fabric 安装器
+   */
+  private async runFabricInstaller(installerPath: string, gameDir: string, mcVersion: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const args = [
+        '-jar', installerPath,
+        'install', 'server',
+        mcVersion,
+        '-dir', gameDir,
+        '-noprofile'
+      ];
+
+      const child = spawn('java', args, {
+        stdio: 'inherit'
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Fabric 安装器退出码: ${code}`));
+        }
+      });
+
+      child.on('error', reject);
+    });
+  }
+
+  /**
+   * 版本比较
+   */
+  private compareVersions(a: string, b: string): number {
+    const partsA = a.split('.').map(Number);
+    const partsB = b.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const numA = partsA[i] || 0;
+      const numB = partsB[i] || 0;
+      if (numA !== numB) return numB - numA;
+    }
+    return 0;
   }
 
   /**

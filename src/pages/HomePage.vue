@@ -38,7 +38,7 @@
             <span class="ri-icon">{{ inst.name[0] }}</span>
             <div class="ri-info">
               <p class="ri-name">{{ inst.name }}</p>
-              <p class="ri-meta">{{ inst.version }} · {{ inst.loader || '原版' }}</p>
+              <p class="ri-meta">{{ inst.mcVersion }} · {{ getLoaderLabel(inst) }}</p>
             </div>
             <span class="ri-time">{{ formatTime(inst.lastPlayed) }}</span>
           </div>
@@ -49,23 +49,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useInstancesStore } from '../stores'
 
-interface Instance { id: string; name: string; version: string; loader?: string; lastPlayed?: number }
+interface Instance { id: string; name: string; mcVersion: string; loaderType?: string; lastPlayed?: string }
 
-const recentInstances = ref<Instance[]>([
-  { id: '1', name: '生存冒险', version: '1.20.1', loader: 'Fabric', lastPlayed: Date.now() - 3600000 },
-  { id: '2', name: '建筑服', version: '1.20.4', loader: 'Forge 49', lastPlayed: Date.now() - 86400000 },
-])
+const instancesStore = useInstancesStore()
 
-function formatTime(ts: number): string {
+// 最近实例（从 Store 获取）
+const recentInstances = computed(() => {
+  return instancesStore.recentInstances.map((inst: any) => ({
+    id: inst.id,
+    name: inst.name,
+    mcVersion: inst.mcVersion || inst.mc_version || '未知',
+    loaderType: inst.loaderType || inst.loader_type || '',
+    lastPlayed: inst.lastPlayed || inst.last_played,
+  }))
+})
+
+function formatTime(dateStr?: string | null): string {
+  if (!dateStr) return '从未启动'
+  const ts = new Date(dateStr).getTime()
+  if (isNaN(ts)) return '未知'
   const diff = Date.now() - ts
   const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '刚刚'
   if (mins < 60) return `${mins}分钟前`
   const hours = Math.floor(mins / 60)
   if (hours < 24) return `${hours}小时前`
   return `${Math.floor(hours / 24)}天前`
 }
+
+function getLoaderLabel(inst: Instance): string {
+  if (!inst.loaderType || inst.loaderType === 'vanilla') return '原版'
+  return inst.loaderType.charAt(0).toUpperCase() + inst.loaderType.slice(1)
+}
+
+onMounted(() => {
+  instancesStore.fetchInstances()
+})
 </script>
 
 <style scoped lang="scss">

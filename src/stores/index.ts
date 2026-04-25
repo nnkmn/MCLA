@@ -12,3 +12,5 @@ export { useAccountsStore } from './accounts.store'
 export { useDownloadStore } from './download.store'
 
 export { useModsStore } from './mods.store'
+
+export { useVersionsStore } from './versions.store'

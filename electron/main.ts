@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, nativeImage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initDatabase } from './services/database'
@@ -7,12 +7,22 @@ import { initializeModLoaderService, getModLoaderService } from './services/modl
 import { DownloadService } from './services/download.service'
 import { initializeContentService } from './services/content.ipc'
 import { registerAllIpcHandlers } from './ipc'
+import { CrashService } from './services/crash.service'
+import { ModService } from './services/mod.service'
 
 // ── 服务实例（模块级，供 IPC 使用）──────────────────────────
 let versionsService: VersionsService
 let modLoaderService: ReturnType<typeof getModLoaderService>
+let crashService: CrashService
+let modService: ModService
 
 function createWindow(): BrowserWindow {
+  // process.resourcesPath 永远指向 resources/ 目录（asar 外面）
+  const resPath = process.resourcesPath
+
+  // 用 nativeImage 加载图标（确保 Windows 正确识别）
+  const appIcon = nativeImage.createFromPath(join(resPath, 'icons', 'icon.ico'))
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 780,
@@ -23,7 +33,7 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hidden',
     title: 'MCLA',
     backgroundColor: '#0D0D1A',
-    icon: join(__dirname, '../../resources/icons/icon.ico'),
+    icon: appIcon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -36,6 +46,11 @@ function createWindow(): BrowserWindow {
     mainWindow.show()
   })
 
+  // Windows：强制设置任务栏图标
+  if (appIcon && !appIcon.isEmpty()) {
+    appIcon.setTemplateImage?.(false) // 标记非模板图
+  }
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -43,8 +58,20 @@ function createWindow(): BrowserWindow {
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow.webContents.openDevTools()
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(resPath, 'renderer', 'index.html'))
+    // 生产环境错误监听（静默记录，不影响性能）
+    mainWindow.webContents.on('console-message', (_event, level, message) => {
+      const prefix = level === 3 ? '[ERROR]' : level === 2 ? '[WARN]' : '[LOG]'
+      console.log(`${prefix} renderer: ${message}`)
+    })
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDesc, _url) => {
+      console.error(`[FATAL] Renderer load failed: code=${errorCode} desc=${errorDesc}`)
+    })
+    mainWindow.webContents.on('render-process-gone', (_event, details) => {
+      console.error(`[FATAL] Render process gone: reason=${details.reason}`)
+    })
   }
 
   return mainWindow
@@ -55,6 +82,8 @@ function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerAllIpcHandlers(mainWindow, {
     versionsService,
     modLoaderService,
+    crashService,
+    modService,
   })
 }
 
@@ -78,6 +107,12 @@ app.whenReady().then(() => {
     'MCLA-Launcher/1.0',
     downloadService
   )
+
+  // 初始化崩溃分析服务
+  crashService = new CrashService()
+
+  // 初始化 Mod 管理服务
+  modService = new ModService()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

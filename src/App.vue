@@ -54,36 +54,39 @@
 
             <!-- ===== 正版模式 ===== -->
             <div v-if="accountMode === 'online'" class="auth-online">
-              <!-- 头像：未登录时人形占位，登录后用户头像 -->
+              <!-- 头像 -->
               <div class="avatar-default-icon">
-                <!-- 已登录：用户头像 -->
-                <img
-                  v-if="avatarUrl"
-                  :src="avatarUrl"
-                  class="avatar-img"
-                  :alt="userName"
-                />
-                <!-- 未登录：人形占位图标 -->
+                <img v-if="avatarUrl" :src="avatarUrl" class="avatar-img" :alt="userName" />
+                <span v-else-if="userName" class="avatar-letter">{{ userName[0]?.toUpperCase() }}</span>
                 <svg v-else width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="4"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                 </svg>
               </div>
 
-              <!-- 账号选择 + 登录 -->
+              <!-- 账号选择 -->
               <div class="login-row">
-                <select class="account-select" @change="showAccountManager = true">
+                <select class="account-select" @change="onAccountSelect($event)">
                   <option value="">选择账号...</option>
-                  <option v-if="userName" :value="userName">{{ userName }} (已登录)</option>
+                  <option
+                    v-for="acc in filteredAccounts"
+                    :key="acc.id"
+                    :value="acc.id"
+                    :selected="acc.isActive === 1"
+                  >{{ acc.name }} ({{ acc.type === 'microsoft' ? '微软' : '离线' }})</option>
                   <option value="add">+ 添加新账号</option>
                 </select>
-                <button class="btn-login" @click="showAccountManager = true">账户管理</button>
               </div>
 
-              <!-- 链接 -->
-              <div class="auth-links">
-                <a href="#" class="auth-link">» 购买正版</a>
-                <a href="#" class="auth-link">» 前往官网</a>
+              <!-- 外链入口 -->
+              <div class="auth-external-links">
+                <a class="auth-ext-btn" href="https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj" target="_blank" rel="noopener">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                  购买正版
+                </a>
+                <a class="auth-ext-btn" href="https://www.minecraft.net/zh-hans" target="_blank" rel="noopener">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                  前往官网
+                </a>
               </div>
             </div>
 
@@ -113,20 +116,23 @@
                 </svg>
               </div>
 
-              <!-- 游戏用户名输入框 -->
-              <div class="offline-input-wrap">
-                <label class="offline-label">游戏用户名</label>
-                <input
-                  ref="offlineNameInput"
-                  v-model="offlineName"
-                  class="offline-input"
-                  placeholder="输入玩家名称"
-                  maxlength="20"
-                  @blur="saveOfflineName"
-                  @keydown.enter="($event.target as HTMLElement).blur()"
-                />
+              <!-- 离线账号选择 -->
+              <div class="login-row">
+                <select class="account-select" @change="onAccountSelect($event)">
+                  <option value="">选择账号...</option>
+                  <option
+                    v-for="acc in offlineAccounts"
+                    :key="acc.id"
+                    :value="acc.id"
+                    :selected="acc.isActive === 1"
+                  >{{ acc.name }}</option>
+                  <option value="add">+ 添加离线账号</option>
+                </select>
               </div>
             </div>
+
+            <!-- 账户管理 -->
+            <button class="btn-account-manage" @click="showAccountManager = true">账户管理</button>
 
             <!-- 启动区域 -->
             <div class="sb-launch-area">
@@ -271,21 +277,100 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, provide } from 'vue'
+import { ref, computed, onMounted, provide, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import VersionSettings from './components/VersionSettings.vue'
 import VersionSelect from './components/VersionSelect.vue'
 import AccountManager from './components/AccountManager.vue'
+import { useVersionsStore, useAccountsStore } from './stores'
 
 const route = useRoute()
 const router = useRouter()
 const currentRoute = computed(() => route.path)
 const isElectron = ref(false)
+const versionsStore = useVersionsStore()
+const accountsStore = useAccountsStore()
 
-// 账户状态
-const accountMode = ref<'online' | 'offline'>('offline')
+// 账户状态 - 从 store 获取
+const userName = computed(() => accountsStore.activeAccount?.name || '')
 const avatarUrl = ref('')
-const userName = ref('')
+
+// 加载玩家皮肤
+async function loadSkin() {
+  const account = accountsStore.activeAccount
+  if (!account?.uuid) {
+    avatarUrl.value = ''
+    return
+  }
+
+  try {
+    const result = await window.electronAPI?.account.getSkinDataUrl(account.uuid)
+    if (result?.ok && result.data) {
+      // 裁剪出头部
+      avatarUrl.value = await cropSkinHead(result.data)
+    } else {
+      console.warn('[App] 皮肤加载失败:', result?.error)
+      avatarUrl.value = ''
+    }
+  } catch (e) {
+    console.warn('[App] 皮肤加载异常:', e)
+    avatarUrl.value = ''
+  }
+}
+
+/** 从完整皮肤图中裁剪头像区域（8x8 头部像素） */
+async function cropSkinHead(skinDataUrl: string): Promise<string> {
+  console.log('[cropSkinHead] called, dataUrl length:', skinDataUrl.length)
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      console.log('[cropSkinHead] img loaded, naturalWidth:', img.naturalWidth, 'naturalHeight:', img.naturalHeight)
+      const canvas = document.createElement('canvas')
+      const SIZE = 8
+      const canvasSize = 48
+      canvas.width = canvasSize
+      canvas.height = canvasSize
+      const ctx = canvas.getContext('2d')!
+      ctx.imageSmoothingEnabled = false
+      // Minecraft 皮肤脸部在 (8, 8) 位置，8x8 像素
+      ctx.drawImage(img, 8, 8, SIZE, SIZE, 0, 0, canvasSize, canvasSize)
+      const result = canvas.toDataURL('image/png')
+      console.log('[cropSkinHead] canvas result length:', result.length)
+      resolve(result)
+    }
+    img.onerror = (e) => {
+      console.error('[cropSkinHead] img load error:', e)
+      resolve(skinDataUrl)
+    }
+    img.src = skinDataUrl
+  })
+}
+
+// 正版/离线模式切换（初始值，空字符串，后续由 watch 更新）
+const accountMode = ref<'online' | 'offline'>('offline')
+
+// 初始化模式
+function syncAccountMode() {
+  accountMode.value = accountsStore.activeAccount?.type === 'microsoft' ? 'online' : 'offline'
+}
+
+// 监听活跃账号变化，自动切换模式 + 加载皮肤
+watch(() => accountsStore.activeAccount, async () => {
+  syncAccountMode()
+  await loadSkin()
+}, { immediate: true })
+
+// 根据当前模式过滤账号列表
+const filteredAccounts = computed(() => {
+  if (accountMode.value === 'online') {
+    return accountsStore.accounts.filter(a => a.type === 'microsoft')
+  } else {
+    return accountsStore.accounts.filter(a => a.type === 'offline')
+  }
+})
+
+// 离线账号列表（始终显示）
+const offlineAccounts = computed(() => accountsStore.accounts.filter(a => a.type === 'offline'))
 
 // 离线名称（localStorage 持久化）
 const OFFLINE_NAME_KEY = 'mcla_offline_name'
@@ -305,9 +390,22 @@ const showVersionSelectModal = ref(false)
 const isLaunching = ref(false)
 const showVersionSelect = ref(false)
 const selectedVersionId = ref('')
-const selectedVersion = ref('1.20.1-Fabric 0.16.9')
+const selectedVersion = ref('选择版本')
+
 interface VersionItem { id: string; name: string; loader?: string }
+
+// 本地版本列表（从 Store 获取真实数据）
 const versions = ref<VersionItem[]>([])
+// Store 版本变化时同步到 versions
+watch(() => versionsStore.versions, (storeVersions) => {
+  if (storeVersions.length) {
+    versions.value = storeVersions.slice(0, 20).map(v => ({
+      id: v.id,
+      name: v.name,
+      loader: '',
+    }))
+  }
+}, { immediate: true })
 
 // 下载页分类
 const dlActiveCat = ref('vanilla')
@@ -328,14 +426,24 @@ const moreCategories = [
 onMounted(() => {
   isElectron.value = !!window.electronAPI
 
-  versions.value = [
-    { id: '1', name: '1.20.1', loader: 'Fabric 0.16.9' },
-    { id: '2', name: '1.20.4', loader: 'Forge 49.0' },
-    { id: '3', name: '1.21', loader: '' },
-    { id: '4', name: '1.20.2', loader: 'NeoForge 47.1' },
-  ]
-  if (versions.value.length) {
-    selectedVersionId.value = versions.value[0].id
+  // 加载版本列表
+  versionsStore.fetchVersions()
+
+  // 加载账号列表
+  accountsStore.fetchAccounts()
+
+  // 设置默认版本列表（用于没有数据时显示）
+  if (!versionsStore.versions.length) {
+    versions.value = [
+      { id: '1.20.4', name: '1.20.4', loader: '' },
+      { id: '1.20.1', name: '1.20.1', loader: 'Fabric 0.16.9' },
+      { id: '1.20.2', name: '1.20.2', loader: 'NeoForge 47.1' },
+      { id: '1.19.2', name: '1.19.2', loader: 'Forge 45.2' },
+    ]
+    if (versions.value.length) {
+      selectedVersionId.value = versions.value[0].id
+      selectedVersion.value = `${versions.value[0].name}${versions.value[0].loader ? '-' + versions.value[0].loader : ''}`
+    }
   }
 })
 
@@ -359,6 +467,23 @@ function selectVersion(ver: VersionItem) {
   selectedVersionId.value = ver.id
   selectedVersion.value = `${ver.name}${ver.loader ? '-' + ver.loader : ''}`
   showVersionSelect.value = false
+}
+
+// 账号选择处理
+async function onAccountSelect(event: Event) {
+  const select = event.target as HTMLSelectElement
+  const value = select.value
+
+  if (value === 'add') {
+    showAccountManager.value = true
+    select.value = '' // 重置选择
+    return
+  }
+
+  if (value && accountsStore.accounts.find(a => a.id === value)) {
+    await accountsStore.setActive(value)
+  }
+  select.value = accountsStore.activeAccount?.id || ''
 }
 
 function onVersionSelect(version: { id: string; name: string }) {
@@ -415,8 +540,8 @@ const settingsCategories = [
   { id: 'other', label: '其他', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
 ]
 
-function minimizeWindow() { window.electronAPI?.windowMinimize?.() }
-function closeWindow() { window.electronAPI?.windowClose?.() }
+function minimizeWindow() { window.electronAPI?.window?.minimize?.() }
+function closeWindow() { window.electronAPI?.window?.close?.() }
 </script>
 
 <style scoped lang="scss">
@@ -575,6 +700,27 @@ function closeWindow() { window.electronAPI?.windowClose?.() }
   overflow: hidden;
 }
 
+/* 账户管理按钮 */
+.btn-account-manage {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  background: var(--mcla-bg-elevated);
+  color: var(--mcla-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--mcla-transition-fast);
+  margin: 8px 0;
+  text-align: center;
+
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary-400);
+  }
+}
+
 /* 启动区域：始终贴底 */
 .sb-launch-area {
   width: 100%;
@@ -624,7 +770,7 @@ function closeWindow() { window.electronAPI?.windowClose?.() }
 
 .avatar-default-icon {
   width: 72px; height: 72px;
-  border-radius: 50%;
+  border-radius: 4px;
   background: transparent;
   border: none;
   display: flex; align-items: center; justify-content: center;
@@ -636,7 +782,21 @@ function closeWindow() { window.electronAPI?.windowClose?.() }
   .avatar-img {
     width: 100%; height: 100%;
     object-fit: cover;
-    border-radius: 50%;
+    border-radius: 4px;
+    image-rendering: pixelated;
+  }
+
+  .avatar-letter {
+    width: 100%; height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #00a4ef, #0078d4);
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
   }
 }
 
@@ -676,6 +836,39 @@ function closeWindow() { window.electronAPI?.windowClose?.() }
 
     &:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(99,102,234,0.35); transform: translateY(-1px); }
     &:active { transform: translateY(0); }
+  }
+}
+
+.auth-external-links {
+  display: flex;
+  gap: 8px;
+  padding: 0 4px;
+  margin-top: 8px;
+}
+
+.auth-ext-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mcla-text-muted);
+  text-decoration: none;
+  background: var(--mcla-bg-elevated);
+  transition: all 0.15s;
+
+  svg { flex-shrink: 0; opacity: 0.6; }
+
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary);
+    background: var(--mcla-primary-bg);
+    svg { opacity: 1; }
   }
 }
 
@@ -917,6 +1110,7 @@ function closeWindow() { window.electronAPI?.windowClose?.() }
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--mcla-bg-secondary);
+  height: 100%;
 
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }

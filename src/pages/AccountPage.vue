@@ -20,10 +20,15 @@
       <!-- 已登录状态 -->
       <div class="section-body" v-if="msAccount">
         <div class="profile-row">
-          <div class="profile-avatar placeholder">{{ msAccount.name[0]?.toUpperCase() }}</div>
+          <img v-if="skinDataUrl" :src="skinDataUrl" class="profile-avatar" alt="皮肤" />
+          <div v-else-if="skinError" class="profile-avatar placeholder skin-error" :title="skinError">{{ msAccount.name[0]?.toUpperCase() }}</div>
+          <div v-else class="profile-avatar placeholder loading-skin">
+            <span>{{ msAccount.name[0]?.toUpperCase() }}</span>
+          </div>
           <div class="profile-info">
             <p class="profile-name">{{ msAccount.name }}</p>
             <p class="profile-uuid">{{ msAccount.uuid }}</p>
+            <p v-if="skinError" class="skin-error-text">皮肤: {{ skinError }}</p>
           </div>
         </div>
         <button class="btn-outline btn-sm btn-danger" @click="logoutMicrosoft">退出登录</button>
@@ -88,6 +93,18 @@
       <span>离线模式无法加入需要正版验证的服务器，但可以玩单人模式和部分服务器。</span>
     </aside>
 
+    <!-- 外链入口 -->
+    <div class="external-links">
+      <a class="ext-link-btn" href="https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        购买正版
+      </a>
+      <a class="ext-link-btn" href="https://www.minecraft.net/zh-hans" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        前往官网
+      </a>
+    </div>
+
     <!-- ===== Microsoft OAuth Device Flow 弹窗 ===== -->
     <Teleport to="body">
       <div class="modal-overlay" v-if="loginState !== 'idle'" @click.self="cancelLogin">
@@ -104,15 +121,12 @@
             <!-- 等待用户访问链接阶段 -->
             <template v-if="loginState === 'waiting_user'">
               <div class="device-flow">
-                <p class="device-flow-hint">请在浏览器中打开以下链接并输入代码：</p>
-                <a class="device-flow-link" :href="deviceCodeInfo.verificationUri" target="_blank">
-                  {{ deviceCodeInfo.verificationUri }}
-                </a>
+                <p class="device-flow-hint">浏览器已自动打开验证页面，请在页面中输入下方代码：</p>
                 <div class="device-code-box">
                   <span class="device-code">{{ deviceCodeInfo.userCode }}</span>
-                  <button class="btn-ghost btn-sm" @click="copyCode">{{ codeCopied ? '已复制' : '复制' }}</button>
+                  <button class="btn-ghost btn-sm" @click="copyCode">{{ codeCopied ? '已复制' : '复制并打开浏览器' }}</button>
                 </div>
-                <p class="device-flow-tip">输入代码后点「下一步」并完成微软登录，此窗口会自动更新。</p>
+                <p class="device-flow-tip">输入代码后完成微软登录，此窗口会自动更新。</p>
                 <div class="loader-row">
                   <span class="loader"></span>
                   <span class="loader-text">等待授权...</span>
@@ -179,6 +193,8 @@ const accountsStore = useAccountsStore()
 
 // ====== 微软账户状态 ======
 const msAccount = ref(accountsStore.activeAccount?.type === 'microsoft' ? accountsStore.activeAccount : null)
+const skinDataUrl = ref<string | null>(null)
+const skinError = ref<string | null>(null)
 
 // ====== 登录流程状态 ======
 type LoginState = 'idle' | 'waiting_user' | 'processing' | 'done' | 'error'
@@ -200,7 +216,7 @@ let progressUnlisten: (() => void) | null = null
 
 onMounted(async () => {
   await accountsStore.fetchAccounts()
-  syncMsAccount()
+  await syncMsAccount()
 
   // 监听来自主进程的登录进度
   progressUnlisten = window.electronAPI?.account.onLoginProgress((payload) => {
@@ -212,9 +228,49 @@ onUnmounted(() => {
   progressUnlisten?.()
 })
 
-function syncMsAccount() {
+async function syncMsAccount() {
   const active = accountsStore.accounts.find(a => a.isActive === 1)
   msAccount.value = active?.type === 'microsoft' ? (active as any) : null
+  skinDataUrl.value = null
+  skinError.value = null
+  if (msAccount.value?.uuid) {
+    const result = await window.electronAPI?.account.getSkinDataUrl(msAccount.value.uuid)
+    if (result?.ok) {
+      // 裁剪出皮肤头部，放大显示
+      skinDataUrl.value = await cropSkinHead(result.data)
+    } else if (result?.error) {
+      skinError.value = result.error
+      console.warn('[AccountPage] 皮肤加载失败:', result.error)
+    }
+  }
+}
+
+/** 从完整皮肤图中裁剪头像区域（8x8 头部像素） */
+async function cropSkinHead(skinDataUrl: string): Promise<string> {
+  console.log('[cropSkinHead] called, dataUrl length:', skinDataUrl.length)
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      console.log('[cropSkinHead] img loaded, naturalWidth:', img.naturalWidth, 'naturalHeight:', img.naturalHeight)
+      const canvas = document.createElement('canvas')
+      const SIZE = 8
+      const canvasSize = 48
+      canvas.width = canvasSize
+      canvas.height = canvasSize
+      const ctx = canvas.getContext('2d')!
+      ctx.imageSmoothingEnabled = false
+      // Minecraft 皮肤脸部在 (8, 8) 位置，8x8 像素
+      ctx.drawImage(img, 8, 8, SIZE, SIZE, 0, 0, canvasSize, canvasSize)
+      const result = canvas.toDataURL('image/png')
+      console.log('[cropSkinHead] canvas result length:', result.length)
+      resolve(result)
+    }
+    img.onerror = (e) => {
+      console.error('[cropSkinHead] img load error:', e)
+      resolve(skinDataUrl)
+    }
+    img.src = skinDataUrl
+  })
 }
 
 // ====== 处理进度事件 ======
@@ -288,7 +344,7 @@ async function startMicrosoftLogin() {
     newAccountName.value = result.data.name || '新账户'
     loginState.value = 'done'
     await accountsStore.fetchAccounts()
-    syncMsAccount()
+    await syncMsAccount()
   } else if (result?.error === 'LOGIN_CANCELLED') {
     loginState.value = 'idle'
   } else if (loginState.value !== 'error') {
@@ -314,15 +370,17 @@ async function logoutMicrosoft() {
   msAccount.value = null
 }
 
-// ====== 复制设备码 ======
+// ====== 复制设备码并打开浏览器 ======
 async function copyCode() {
   try {
     await navigator.clipboard.writeText(deviceCodeInfo.value.userCode)
     codeCopied.value = true
     setTimeout(() => { codeCopied.value = false }, 2000)
   } catch {
-    // 不支持 clipboard，忽略
+    // 不支持 clipboard，继续打开浏览器
   }
+  // 直接用 window.open 打开浏览器，不依赖主进程
+  window.open(deviceCodeInfo.value.verificationUri, '_blank')
 }
 
 // ====== 保存离线账户 ======
@@ -418,28 +476,58 @@ function generateUUID(): string {
   align-items: center;
   gap: 12px;
   margin-bottom: 14px;
+}
 
-  .profile-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 
-    &.placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #00a4ef, #0078d4);
-      color: #fff;
-      font-size: 20px;
-      font-weight: 700;
-    }
+  &.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #00a4ef, #0078d4);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
   }
+}
 
-  .profile-info {
-    .profile-name { margin: 0; font-size: 14px; font-weight: 600; }
-    .profile-uuid { margin: 2px 0 0; font-size: 11px; color: var(--mcla-text-muted); font-family: monospace; }
-  }
+.loading-skin span {
+  animation: pulse 1s ease-in-out infinite;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.skin-error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  cursor: help;
+}
+
+.skin-error-text {
+  margin: 2px 0 0 !important;
+  font-size: 10px !important;
+  color: #ef4444 !important;
+}
+
+img.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--mcla-border-color);
+  image-rendering: pixelated; /* 像素风皮肤不要模糊 */
+  background: #8B5E3C; /* 默认 Steve 棕色底 */
+}
+
+.profile-info {
+  .profile-name { margin: 0; font-size: 14px; font-weight: 600; }
+  .profile-uuid { margin: 2px 0 0; font-size: 11px; color: var(--mcla-text-muted); font-family: monospace; }
 }
 
 /* ====== 表单 ====== */
@@ -696,6 +784,39 @@ function generateUUID(): string {
 
   &.success p { color: #137333; }
   &.error-box p { color: var(--mcla-error, #ea4335); font-size: 13px; font-weight: 400; }
+}
+
+/* ====== 外链入口 ====== */
+.external-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ext-link-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mcla-text-secondary);
+  text-decoration: none;
+  transition: all 0.15s;
+
+  svg { flex-shrink: 0; opacity: 0.7; }
+
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary);
+    background: var(--mcla-primary-bg);
+    svg { opacity: 1; }
+  }
 }
 
 /* ====== Loading Spinner ====== */

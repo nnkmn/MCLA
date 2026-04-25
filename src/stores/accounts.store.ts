@@ -114,6 +114,7 @@ function mapRawToAccount(raw: any): Account {
     refreshToken: raw.refresh_token ?? null,
     expiresAt: raw.expires_at ?? null,
     isActive: raw.is_active,
+    skin_url: raw.skin_url ?? null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   }

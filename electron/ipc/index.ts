@@ -14,6 +14,8 @@ import { registerGameHandlers, setGameDependencies } from './game.ipc'
 import { registerJavaHandlers } from './java.ipc'
 import { registerContentHandlers } from './content.ipc'
 import { registerDialogHandlers } from './dialog.ipc'
+import { registerCrashIpcHandlers } from './crash.ipc'
+import { registerModIpcHandlers } from './mod.ipc'
 
 /**
  * 注册所有 IPC 处理器
@@ -22,7 +24,12 @@ import { registerDialogHandlers } from './dialog.ipc'
  */
 export function registerAllIpcHandlers(
   mainWindow: BrowserWindow,
-  deps?: { versionsService?: any; modLoaderService?: any }
+  deps?: { 
+    versionsService?: any; 
+    modLoaderService?: any;
+    crashService?: any;
+    modService?: any;
+  }
 ): void {
   // 注入游戏依赖
   if (deps) {
@@ -39,6 +46,16 @@ export function registerAllIpcHandlers(
   registerJavaHandlers()                // Java 管理
   registerContentHandlers()             // 内容平台
   registerDialogHandlers(mainWindow)   // 对话框 + 路径
+  
+  // 崩溃分析
+  if (deps?.crashService) {
+    registerCrashIpcHandlers(deps.crashService)
+  }
+  
+  // Mod 管理
+  if (deps?.modService) {
+    registerModIpcHandlers(deps.modService)
+  }
 
   console.log('[IPC] All handlers registered')
 }

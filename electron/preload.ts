@@ -39,6 +39,8 @@ const api = {
     delete: (id: string) => ipcRenderer.invoke('account:delete', id),
     setActive: (id: string) => ipcRenderer.invoke('account:set-active', id),
     refreshToken: (id: string) => ipcRenderer.invoke('account:refresh-token', id),
+    openVerificationUrl: () => ipcRenderer.invoke('account:open-verification-url'),
+    getSkinDataUrl: (uuid: string) => ipcRenderer.invoke('account:get-skin-data-url', uuid),
     onLoginProgress: (callback: (payload: { stage: string; detail?: string }) => void) => {
       const listener = (_event: any, payload: any) => callback(payload)
       ipcRenderer.on('account:login-progress', listener)
@@ -108,6 +110,42 @@ const api = {
   path: {
     getMinecraft: () => ipcRenderer.invoke('path:minecraft'),
     exists: (p: string) => ipcRenderer.invoke('path:exists', p)
+  },
+
+  // 崩溃分析
+  crash: {
+    parse: (logPath: string, instanceId: string) =>
+      ipcRenderer.invoke('crash:parse', { logPath, instanceId }),
+    diagnose: (logPath: string, instanceId: string) =>
+      ipcRenderer.invoke('crash:diagnose', { logPath, instanceId }),
+    list: (gameDir: string) =>
+      ipcRenderer.invoke('crash:list', { gameDir }),
+    latest: (gameDir: string) =>
+      ipcRenderer.invoke('crash:latest', { gameDir }),
+    onCrash: (callback: (data: { reason: string; crashReportPath?: string }) => void) => {
+      const listener = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('crash:detected', listener)
+      return () => ipcRenderer.removeListener('crash:detected', listener)
+    }
+  },
+
+  // Mod 管理
+  mod: {
+    list: (gameDir: string) => ipcRenderer.invoke('mod:list', { gameDir }),
+    install: (sourcePath: string, gameDir: string) =>
+      ipcRenderer.invoke('mod:install', { sourcePath, gameDir }),
+    uninstall: (modPath: string) =>
+      ipcRenderer.invoke('mod:uninstall', { modPath }),
+    enable: (modPath: string) =>
+      ipcRenderer.invoke('mod:enable', { modPath }),
+    disable: (modPath: string) =>
+      ipcRenderer.invoke('mod:disable', { modPath }),
+    installBatch: (sourcePaths: string[], gameDir: string) =>
+      ipcRenderer.invoke('mod:install-batch', { sourcePaths, gameDir }),
+    checkCompat: (mods: any[], targetVersion: string, loader?: string) =>
+      ipcRenderer.invoke('mod:check-compat', { mods, targetVersion, loader }),
+    ensureDir: (gameDir: string) =>
+      ipcRenderer.invoke('mod:ensure-dir', { gameDir })
   }
 }
 

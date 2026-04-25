@@ -14,6 +14,7 @@ export interface Account {
   refresh_token: string | null
   expires_at: string | null
   is_active: number
+  skin_url: string | null
   created_at: string
   updated_at: string
 }
@@ -54,7 +55,7 @@ export function createOfflineAccount(name: string, uuid?: string): Account {
 }
 
 // 创建微软账户
-export function createMicrosoftAccount(name: string, uuid: string, accessToken: string, refreshToken: string, expiresIn: number): Account {
+export function createMicrosoftAccount(name: string, uuid: string, accessToken: string, refreshToken: string, expiresIn: number, skinUrl?: string): Account {
   const db = getDatabase()
   const id = `acct_${Date.now()}`
   const now = new Date().toISOString()
@@ -64,9 +65,9 @@ export function createMicrosoftAccount(name: string, uuid: string, accessToken: 
   db.prepare('UPDATE accounts SET is_active = 0').run()
 
   db.prepare(`
-    INSERT INTO accounts (id, type, name, uuid, access_token, refresh_token, expires_at, is_active, created_at, updated_at)
-    VALUES (?, 'microsoft', ?, ?, ?, ?, ?, 1, ?, ?)
-  `).run(id, name, uuid, accessToken, refreshToken, expiresAt, now, now)
+    INSERT INTO accounts (id, type, name, uuid, access_token, refresh_token, expires_at, is_active, skin_url, created_at, updated_at)
+    VALUES (?, 'microsoft', ?, ?, ?, ?, ?, 1, ?, ?, ?)
+  `).run(id, name, uuid, accessToken, refreshToken, expiresAt, skinUrl || null, now, now)
 
   return getAccountById(id)!
 }

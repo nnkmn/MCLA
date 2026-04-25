@@ -35,7 +35,7 @@
               </div>
               <div class="app-info">
                 <div class="app-name">MCLA</div>
-                <div class="app-version">当前版本：0.1.0</div>
+                <div class="app-version">当前版本：0.2.0</div>
               </div>
               <a href="https://github.com/nnkmn/MCLA" target="_blank" class="app-btn">查看源代码</a>
             </div>
@@ -191,6 +191,7 @@ const copyEmail = async () => {
 
 const credits = [
   { name: '龙腾猫跃', tag: '参考项目', desc: 'PCL2 作者。MCLA 参考了其部分内容和实现思路。', avatar: '/hex-dragon-avatar.png' },
+  { name: 'StarLight.Core', tag: '核心参考', desc: '星光核心。MCLA 参考了其模块化架构设计理念和部分功能实现。', avatar: '/starlight-logo.png' },
   { name: 'Mojang Studios', tag: '游戏开发', desc: 'Minecraft 游戏的创造者，提供了这个令人惊叹的沙盒世界。' },
   { name: 'Vue.js', tag: '前端框架', desc: '渐进式 JavaScript 框架，让构建现代化 Web 应用变得简单。' },
   { name: 'Anthony Fu', tag: '开源贡献', desc: 'Vue / Vite / Iconify 等众多优质开源项目的作者。' },
@@ -207,6 +208,7 @@ const openSourceLibs = [
   { name: 'Axios', version: '1.7.x', license: 'MIT', url: 'https://github.com/axios/axios' },
   { name: 'Electron Vite', version: '2.3.x', license: 'MIT', url: 'https://github.com/alex8088/electron-vite' },
   { name: 'Electron Log', version: '5.x', license: 'MIT', url: 'https://github.com/megahertz/electron-log' },
+  { name: 'StarLight.Core', version: 'Latest', license: 'MIT', url: 'https://github.com/Ink-Marks/StarLight.Core' },
 ]
 
 const faqList = [
@@ -220,8 +222,9 @@ const faqList = [
 
 <style lang="scss" scoped>
 .more-page {
-  padding: 24px 32px 48px;
-  max-width: 900px;
+  padding: 24px 48px 48px;
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -405,7 +408,7 @@ const faqList = [
 /* ===== 鸣谢 ===== */
 .credits-section { margin-bottom: 32px; }
 
-.credits-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.credits-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 
 .credit-item {
   padding: 14px 16px;
@@ -521,7 +524,7 @@ const faqList = [
 /* ===== 反馈 ===== */
 .feedback-section {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
 }
 

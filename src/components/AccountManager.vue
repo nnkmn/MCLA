@@ -25,29 +25,47 @@
                   <text x="5" y="17.5" font-size="14" font-weight="bold" fill="#fff">M</text>
                 </svg>
                 <span class="acc-section-title">微软账户</span>
-                <span class="acc-badge" :class="msAccount ? 'success' : 'default'">
-                  {{ msAccount ? '已登录' : '未登录' }}
-                </span>
+                <span class="acc-badge">{{ msAccounts.length }} 个</span>
               </div>
 
-              <!-- 已登录 -->
-              <div class="acc-section-body" v-if="msAccount">
-                <div class="acc-profile">
-                  <div class="acc-avatar">{{ msAccount.name[0]?.toUpperCase() }}</div>
+              <!-- 已保存的微软账户列表 -->
+              <div class="acc-section-body" v-if="msAccounts.length > 0">
+                <div
+                  v-for="acc in msAccounts"
+                  :key="acc.id"
+                  class="acc-profile"
+                  :class="{ 'acc-profile-active': acc.isActive === 1 }"
+                >
+                  <div class="acc-avatar" style="background:#00a4ef">{{ acc.name[0]?.toUpperCase() }}</div>
                   <div class="acc-profile-info">
-                    <p class="acc-name">{{ msAccount.name }}</p>
-                    <p class="acc-uuid">{{ msAccount.uuid }}</p>
+                    <p class="acc-name">{{ acc.name }}</p>
+                    <p class="acc-uuid">{{ acc.uuid }}</p>
+                  </div>
+                  <div class="acc-profile-actions">
+                    <button
+                      v-if="acc.isActive !== 1"
+                      class="acc-btn-ghost"
+                      @click="switchMsAccount(acc.id)"
+                    >使用</button>
+                    <span v-else class="acc-badge success">当前</span>
+                    <button
+                      class="acc-btn-ghost acc-btn-danger"
+                      @click="removeMicrosoftAccount(acc.id)"
+                    >删除</button>
                   </div>
                 </div>
-                <button class="acc-btn acc-btn-danger" @click="logoutMicrosoft">退出登录</button>
               </div>
 
-              <!-- 未登录 -->
+              <!-- 无账户提示 -->
               <div class="acc-section-body acc-empty" v-else>
                 <p class="acc-empty-hint">使用微软账户登录以访问多人游戏服务器</p>
+              </div>
+
+              <!-- 添加新账户 -->
+              <div class="acc-section-body">
                 <button class="acc-btn-primary" @click="startMicrosoftLogin" :disabled="loginState !== 'idle'">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#00a4ef"><rect width="24" height="24" rx="4"/><text x="5" y="17.5" font-size="14" font-weight="bold" fill="#fff">M</text></svg>
-                  登录微软账户
+                  {{ msAccounts.length > 0 ? '添加另一个微软账户' : '登录微软账户' }}
                 </button>
               </div>
             </section>
@@ -59,8 +77,40 @@
                   <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                 </svg>
                 <span class="acc-section-title">离线账户</span>
+                <span class="acc-badge">{{ offlineAccounts.length }} 个</span>
               </div>
 
+              <!-- 已保存的离线账户列表 -->
+              <div class="acc-section-body" v-if="offlineAccounts.length > 0">
+                <div
+                  v-for="acc in offlineAccounts"
+                  :key="acc.id"
+                  class="acc-profile"
+                  :class="{ 'acc-profile-active': acc.isActive === 1 }"
+                >
+                  <div class="acc-avatar" style="background:#8B5E3C">{{ acc.name[0]?.toUpperCase() }}</div>
+                  <div class="acc-profile-info">
+                    <p class="acc-name">{{ acc.name }}</p>
+                    <p class="acc-uuid">{{ acc.uuid }}</p>
+                  </div>
+                  <div class="acc-profile-actions">
+                    <button
+                      v-if="acc.isActive !== 1"
+                      class="acc-btn-ghost"
+                      @click="switchToAccount(acc.id)"
+                      title="切换到此账号"
+                    >使用</button>
+                    <span v-else class="acc-badge success">当前</span>
+                    <button
+                      class="acc-btn-ghost acc-btn-danger"
+                      @click="deleteOffline(acc.id)"
+                      title="删除账号"
+                    >删除</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 添加新离线账户 -->
               <div class="acc-section-body">
                 <div class="acc-form-group">
                   <label class="acc-label">玩家名称</label>
@@ -87,7 +137,7 @@
                 <div class="acc-form-actions">
                   <span v-if="offlineError" class="acc-error">{{ offlineError }}</span>
                   <button class="acc-btn-primary" @click="saveOffline" :disabled="savingOffline">
-                    {{ savingOffline ? '保存中...' : '保存离线账户' }}
+                    {{ savingOffline ? '保存中...' : '添加离线账户' }}
                   </button>
                 </div>
               </div>
@@ -165,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAccountsStore } from '../stores/accounts.store'
 
 const props = defineProps<{ visible: boolean }>()
@@ -173,12 +223,34 @@ const emit = defineEmits<{ 'update:visible': [val: boolean] }>()
 
 const accountsStore = useAccountsStore()
 
-// ====== 微软账户状态 ======
-const msAccount = ref<any>(null)
+// ====== 微软账户列表 ======
+const msAccounts = computed(() => accountsStore.accounts.filter((a: any) => a.type === 'microsoft'))
 
-function syncMsAccount() {
-  const active = accountsStore.accounts.find((a: any) => a.isActive === 1)
-  msAccount.value = active?.type === 'microsoft' ? active : null
+// ====== 离线账户列表 ======
+const offlineAccounts = computed(() => accountsStore.accounts.filter((a: any) => a.type === 'offline'))
+
+// 切换微软账户
+async function switchMsAccount(id: string) {
+  await accountsStore.setActive(id)
+  await accountsStore.fetchAccounts()
+}
+
+// 切换离线账户
+async function switchToAccount(id: string) {
+  await accountsStore.setActive(id)
+  await accountsStore.fetchAccounts()
+}
+
+// 删除离线账户
+async function deleteOffline(id: string) {
+  await accountsStore.deleteAccount(id)
+  await accountsStore.fetchAccounts()
+}
+
+// 删除微软账户
+async function removeMicrosoftAccount(id: string) {
+  await accountsStore.deleteAccount(id)
+  await accountsStore.fetchAccounts()
 }
 
 // ====== 登录流程状态 ======
@@ -201,7 +273,6 @@ let progressUnlisten: (() => void) | null = null
 
 onMounted(async () => {
   await accountsStore.fetchAccounts()
-  syncMsAccount()
 
   progressUnlisten = window.electronAPI?.account.onLoginProgress((payload: any) => {
     handleLoginProgress(payload.stage, payload.detail)
@@ -215,7 +286,6 @@ onUnmounted(() => {
 watch(() => props.visible, async (val) => {
   if (val) {
     await accountsStore.fetchAccounts()
-    syncMsAccount()
   }
 })
 
@@ -292,7 +362,6 @@ async function startMicrosoftLogin() {
     newAccountName.value = result.data.name || '新账户'
     loginState.value = 'done'
     await accountsStore.fetchAccounts()
-    syncMsAccount()
   } else if (result?.error === 'LOGIN_CANCELLED') {
     loginState.value = 'idle'
   } else if (loginState.value !== 'error') {
@@ -308,13 +377,6 @@ async function cancelLogin() {
 
 function closeOAuthModal() {
   loginState.value = 'idle'
-}
-
-async function logoutMicrosoft() {
-  if (!msAccount.value) return
-  await accountsStore.deleteAccount(msAccount.value.id)
-  msAccount.value = null
-  await accountsStore.fetchAccounts()
 }
 
 async function copyCode() {
@@ -337,7 +399,6 @@ async function saveOffline() {
     const result = await window.electronAPI?.account.loginOffline(name)
     if (result?.ok) {
       await accountsStore.fetchAccounts()
-      syncMsAccount()
     } else {
       offlineError.value = result?.error || '保存失败'
     }
@@ -365,6 +426,7 @@ function generateUUID(): string {
   background: rgba(0, 0, 0, 0.45);
   z-index: 9000;
   backdrop-filter: blur(1px);
+  overflow: hidden;
 }
 
 .acc-window {
@@ -373,11 +435,12 @@ function generateUUID(): string {
   top: 0;
   bottom: 0;
   width: 420px;
+  max-width: 100%;
   background: var(--mcla-bg-elevated, #1a1a2e);
   border-left: 1px solid var(--mcla-border-color, rgba(255,255,255,0.08));
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -437,7 +500,8 @@ function generateUUID(): string {
 /* ===== 主体 ===== */
 .acc-body {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -449,7 +513,8 @@ function generateUUID(): string {
   background: var(--mcla-bg-primary, rgba(255,255,255,0.03));
   border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.06));
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
+  min-width: 0;
 }
 
 .acc-section-header {
@@ -467,11 +532,14 @@ function generateUUID(): string {
 }
 
 .acc-badge {
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 600;
-  &.success { background: #e6f4ea; color: #137333; }
+  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.1));
+  background: rgba(255,255,255,0.04);
+  color: var(--mcla-text-muted);
+  &.success { background: rgba(255,255,255,0.06); color: var(--mcla-text-secondary); }
   &.default { background: rgba(255,255,255,0.06); color: var(--mcla-text-muted); }
 }
 
@@ -492,17 +560,23 @@ function generateUUID(): string {
 .acc-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  &.acc-profile-active {
+    border-color: #22c55e;
+  }
 }
 
 .acc-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, #00a4ef, #0078d4);
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -511,8 +585,32 @@ function generateUUID(): string {
 }
 
 .acc-profile-info {
-  .acc-name { margin: 0; font-size: 14px; font-weight: 600; }
-  .acc-uuid { margin: 2px 0 0; font-size: 11px; color: var(--mcla-text-muted); font-family: monospace; }
+  flex: 1;
+  min-width: 0;
+  .acc-name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .acc-uuid {
+    margin: 2px 0 0;
+    font-size: 10px;
+    color: var(--mcla-text-muted);
+    font-family: monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.acc-profile-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* ===== 表单 ===== */

@@ -167,7 +167,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-// 实例类型（与数据库一致）
+// 实例类型（统一使用 camelCase）
 interface Instance {
   id: string
   name: string
@@ -322,7 +322,8 @@ async function confirmDeleteInstance(inst: Instance) {
   }
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return '从未启动'
   const ts = new Date(dateStr).getTime()
   if (isNaN(ts)) return '未知'
   const diff = Date.now() - ts
