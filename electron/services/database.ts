@@ -8,17 +8,22 @@ import Database from 'better-sqlite3'
 import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
+import { logger } from '../utils/logger'
+const log = logger.child('DB')
 
 let db: Database.Database | null = null
 
 // 获取数据库路径（userData 目录）
 function getDbPath(): string {
   const userDataPath = app.getPath('userData')
+  log.info('[DB] app.getPath(userData) =', userDataPath)
   const dbDir = join(userDataPath, 'data')
   if (!existsSync(dbDir)) {
     mkdirSync(dbDir, { recursive: true })
   }
-  return join(dbDir, 'mcla.db')
+  const fullPath = join(dbDir, 'mcla.db')
+  log.info('[DB] 数据库完整路径:', fullPath)
+  return fullPath
 }
 
 // 初始化数据库连接
@@ -35,7 +40,7 @@ export function initDatabase(): Database.Database {
   // 创建表结构
   createTables()
 
-  console.log(`[DB] 数据库已初始化: ${dbPath}`)
+  log.info(`[DB] 数据库已初始化: ${dbPath}`)
   return db
 }
 
@@ -52,7 +57,7 @@ export function closeDatabase(): void {
   if (db) {
     db.close()
     db = null
-    console.log('[DB] 数据库已关闭')
+    log.info('[DB] 数据库已关闭')
   }
 }
 
@@ -97,6 +102,7 @@ function createTables(): void {
       expires_at TEXT,
       is_active INTEGER DEFAULT 0,
       skin_url TEXT,
+      xuid TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
@@ -104,6 +110,8 @@ function createTables(): void {
 
   // 迁移：给已有账户添加 skin_url 列
   try { db.exec("ALTER TABLE accounts ADD COLUMN skin_url TEXT") } catch { /* 列已存在 */ }
+  // 迁移：给已有账户添加 xuid 列（Xbox/XSTS 认证后的用户 ID）
+  try { db.exec("ALTER TABLE accounts ADD COLUMN xuid TEXT") } catch { /* 列已存在 */ }
 
   // 配置表（键值对）
   db.exec(`
@@ -147,8 +155,39 @@ function createTables(): void {
     )
   `)
 
-  console.log('[DB] 表结构检查完成')
+  log.info('[DB] 表结构检查完成')
 }
 
 // 导出工具函数
 export { getDbPath }
+
+// ====== 配置存取 ======
+
+/**
+ * 读取配置值
+ */
+export function getConfig(key: string): string | null {
+  if (!db) return null
+  try {
+    const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined
+    return row?.value ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 保存配置值
+ */
+export function setConfig(key: string, value: string): void {
+  if (!db) return
+  try {
+    db.prepare(`
+      INSERT INTO configs (key, value, updated_at)
+      VALUES (?, ?, datetime('now'))
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+    `).run(key, value)
+  } catch (err) {
+    log.error(`[DB] setConfig 失败: ${key}`, err)
+  }
+}

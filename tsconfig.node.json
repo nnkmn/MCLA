@@ -11,7 +11,8 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "downlevelIteration": true
   },
   "include": [
     "electron.vite.config.ts",

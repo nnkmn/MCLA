@@ -36,10 +36,10 @@ export type IpcResponse<T = void> = IpcOk<T> | IpcError
 
 // ==================== 窗口控制 ====================
 
-export interface WindowMinimizeArgs { void }
-export interface WindowMaximizeArgs { void }
-export interface WindowCloseArgs { void }
-export interface WindowIsMaximizedArgs { void }
+export interface WindowMinimizeArgs {}
+export interface WindowMaximizeArgs {}
+export interface WindowCloseArgs {}
+export interface WindowIsMaximizedArgs {}
 export type WindowIsMaximizedReturn = boolean
 
 // ==================== 配置管理 ====================
@@ -55,7 +55,7 @@ export type ConfigGetReturn = unknown
 
 // ==================== 实例管理 ====================
 
-export interface InstanceListArgs { void }
+export interface InstanceListArgs {}
 export interface InstanceCreateArgs extends Partial<GameInstance> {
   /** 必填：实例名称 */
   name: string
@@ -95,8 +95,8 @@ export interface AccountData {
   lastUsedAt?: number
 }
 
-export interface AccountListArgs { void }
-export interface AccountLoginMicrosoftArgs { void }
+export interface AccountListArgs {}
+export interface AccountLoginMicrosoftArgs {}
 export interface AccountLoginOfflineArgs {
   username: string
 }
@@ -113,13 +113,17 @@ export type AccountLoginOfflineReturn = AccountData
 // ==================== 下载管理 ====================
 
 export interface SearchModsArgs {
-  query: string
-  source: 'curseforge' | 'modrinth'
+  query?: string
+  source?: 'curseforge' | 'modrinth'
   category?: string
   gameVersion?: string
   loaderType?: ModLoaderType
+  loader?: string
+  projectType?: string
   page?: number
   pageSize?: number
+  offset?: number
+  limit?: number
 }
 export interface GetProjectArgs {
   projectId: string
@@ -132,15 +136,22 @@ export interface GetFilesArgs {
   loaderType?: ModLoaderType
 }
 export interface DownloadFileArgs {
-  fileId: string
-  source: 'curseforge' | 'modrinth'
+  id: string
+  fileName: string
+  url: string
+  gameVersions: string[]
+  loaders: string[]
+  releaseType: 'release' | 'beta' | 'alpha'
+  datePublished: string
+  size: number
+  downloads?: number
   destination: string
 }
 export interface CancelDownloadArgs {
   taskId: string
 }
-export interface DownloadGetActiveArgs { void }
-export interface DownloadGetQueueArgs { void }
+export interface DownloadGetActiveArgs {}
+export interface DownloadGetQueueArgs {}
 export type SearchModsResultItem = {
   id: string
   title: string
@@ -168,14 +179,14 @@ export interface JavaInfoEntry {
   vendor?: string
   architecture?: string
 }
-export interface JavaDetectArgs { void }
-export interface JavaGetDefaultArgs { void }
+export interface JavaDetectArgs {}
+export interface JavaGetDefaultArgs {}
 export type JavaDetectReturn = JavaInfoEntry[]
 export type JavaGetDefaultReturn = string | null
 
 // ==================== 版本管理 ====================
 
-export interface VersionListArgs { void }
+export interface VersionListArgs {}
 export interface VersionListLoadersArgs {
   minecraftVersion: string
 }
@@ -270,7 +281,7 @@ export interface ContentCategory {
   slug: string
 }
 
-export interface ContentGetPlatformsArgs { void }
+export interface ContentGetPlatformsArgs {}
 export interface ContentGetCategoriesArgs {
   platformId: string
 }
@@ -289,7 +300,7 @@ export type SelectFolderReturn = string | null
 
 // ==================== 路径工具 ====================
 
-export interface PathMinecraftArgs { void }
+export interface PathMinecraftArgs {}
 export interface PathExistsArgs {
   path: string
 }

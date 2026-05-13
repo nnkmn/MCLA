@@ -240,18 +240,15 @@ async function syncMsAccount() {
       skinDataUrl.value = await cropSkinHead(result.data)
     } else if (result?.error) {
       skinError.value = result.error
-      console.warn('[AccountPage] 皮肤加载失败:', result.error)
     }
   }
 }
 
 /** 从完整皮肤图中裁剪头像区域（8x8 头部像素） */
 async function cropSkinHead(skinDataUrl: string): Promise<string> {
-  console.log('[cropSkinHead] called, dataUrl length:', skinDataUrl.length)
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
-      console.log('[cropSkinHead] img loaded, naturalWidth:', img.naturalWidth, 'naturalHeight:', img.naturalHeight)
       const canvas = document.createElement('canvas')
       const SIZE = 8
       const canvasSize = 48
@@ -262,11 +259,9 @@ async function cropSkinHead(skinDataUrl: string): Promise<string> {
       // Minecraft 皮肤脸部在 (8, 8) 位置，8x8 像素
       ctx.drawImage(img, 8, 8, SIZE, SIZE, 0, 0, canvasSize, canvasSize)
       const result = canvas.toDataURL('image/png')
-      console.log('[cropSkinHead] canvas result length:', result.length)
       resolve(result)
     }
     img.onerror = (e) => {
-      console.error('[cropSkinHead] img load error:', e)
       resolve(skinDataUrl)
     }
     img.src = skinDataUrl

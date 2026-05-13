@@ -59,7 +59,7 @@ defineProps<{
   mod: ModSearchResult
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'click', mod: ModSearchResult): void
   (e: 'download', mod: ModSearchResult): void
 }>()
@@ -130,6 +130,8 @@ function formatNum(n: number): string {
   color: var(--mcla-text-secondary);
   margin: 0 0 10px;
   display: -webkit-box;
+  display: box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

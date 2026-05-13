@@ -4,6 +4,7 @@
 
 export type DownloadStatus =
   | 'pending'
+  | 'queued'
   | 'downloading'
   | 'paused'
   | 'completed'
@@ -29,11 +30,11 @@ export interface DownloadTask {
 }
 
 export interface DownloadConfig {
-  maxConcurrent: number     // 最大并发数
-  speedLimit: number        // 限速 bytes/s，0 = 不限速
-  retryCount: number        // 失败重试次数
-  savePath: string          // 默认保存路径
-  verifyHash: boolean       // 下载后校验 SHA1
+  maxConcurrentDownloads: number  // 最大并发下载数
+  downloadPath: string            // 默认下载路径
+  retryAttempts: number           // 失败重试次数
+  timeout: number                 // 超时时间（毫秒）
+  chunkSize: number               // 分块大小（字节）
 }
 
 export interface DownloadProgress {

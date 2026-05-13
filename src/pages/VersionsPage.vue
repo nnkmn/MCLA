@@ -79,12 +79,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useInstancesStore } from '../stores/instances.store'
 import type { VersionInfo, ModLoader } from '../types/versions'
 
 const versions = ref<VersionInfo[]>([])
 const loaders = ref<ModLoader[]>([])
 const selectedVersion = ref('')
 const selectedLoader = ref('')
+const instancesStore = useInstancesStore()
 
 // 获取版本列表
 async function fetchVersions() {
@@ -92,7 +94,6 @@ async function fetchVersions() {
     const result = await window.electronAPI.versions.list()
     versions.value = result
   } catch (error) {
-    console.error('Failed to fetch versions:', error)
   }
 }
 
@@ -102,7 +103,6 @@ async function fetchLoaders() {
     const result = await window.electronAPI.modloader.list()
     loaders.value = result
   } catch (error) {
-    console.error('Failed to fetch loaders:', error)
   }
 }
 
@@ -120,11 +120,18 @@ function selectVersion(versionId: string) {
 async function installModLoader() {
   if (!selectedVersion || !selectedLoader) return
 
+  const currentInstance = instancesStore.currentInstance
+  if (!currentInstance) {
+    alert('请先在实例管理选择一个实例')
+    return
+  }
+
   try {
     await window.electronAPI.modloader.install(
-      'current-instance', // TODO: 从实例管理获取当前实例
+      currentInstance.id,
       selectedLoader.value,
-      selectedVersion.value
+      selectedVersion.value,
+      currentInstance.path
     )
     alert('ModLoader 安装开始，请查看日志')
   } catch (error) {

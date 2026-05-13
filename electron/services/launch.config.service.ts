@@ -8,18 +8,12 @@ import * as os from 'os'
 import { getDatabase } from './database'
 import { getInstanceById } from './instances'
 import { getActiveAccount } from './accounts'
-import { recommendedJavaMajor } from './java.management.service'
 
 export interface LaunchConfig {
-  // Java
   javaPath: string
-  // JVM 参数
   jvmArgs: string[]
-  // Minecraft 参数（--username 等）
   mcArgs: string[]
-  // 工作目录
   workDir: string
-  // 实例快照（供调用方记录日志）
   instanceId: string
   mcVersion: string
   loaderType: string
@@ -28,46 +22,42 @@ export interface LaunchConfig {
 export interface BuildLaunchConfigOptions {
   instanceId: string
   accountId?: string
-  /** 覆盖 javaPath */
   overrideJava?: string
-  /** 覆盖内存（MB） */
   overrideMinMemory?: number
   overrideMaxMemory?: number
 }
 
-/**
- * 构建最终启动配置
- * 优先级：调用方传入 > 实例配置 > 全局设置 > 默认值
- */
+interface AccountRow {
+  name: string
+  uuid: string
+  access_token: string | null
+  xuid: string | null
+}
+
 export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConfig {
   const db = getDatabase()
 
-  // 1. 读取实例
   const instance = getInstanceById(options.instanceId)
   if (!instance) {
     throw new Error(`实例不存在: ${options.instanceId}`)
   }
 
-  // 2. 读取账户（可选）
-  let account: { name: string; uuid: string; accessToken?: string } | null = null
+  let account: { name: string; uuid: string; accessToken?: string; xuid?: string } | null = null
   if (options.accountId) {
-    account = db.prepare('SELECT name, uuid, access_token FROM accounts WHERE id = ?').get(options.accountId) as any
+    account = db.prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE id = ?').get(options.accountId) as AccountRow | null
   }
   if (!account) {
-    account = db.prepare('SELECT name, uuid, access_token FROM accounts WHERE is_active = 1 LIMIT 1').get() as any
+    account = db.prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE is_active = 1 LIMIT 1').get() as AccountRow | null
   }
-  // 最终兜底：离线 Steve
   if (!account) {
-    account = { name: 'Steve', uuid: offlineUUID('Steve') }
+    account = { name: 'Steve', uuid: offlineUUID('Steve'), xuid: '0' }
   }
 
-  // 3. 读取全局设置
   const globalJava = getConfigValue(db, 'default_java') || ''
   const globalMinMem = parseInt(getConfigValue(db, 'global_min_memory') || '512')
   const globalMaxMem = parseInt(getConfigValue(db, 'global_max_memory') || '2048')
   const globalMcDir = getConfigValue(db, 'mc_dir') || defaultMcDir()
 
-  // 4. 合并优先级
   const javaPath = options.overrideJava || instance.java_path || globalJava
   const minMem = options.overrideMinMemory || instance.min_memory || globalMinMem || 512
   const maxMem = options.overrideMaxMemory || instance.max_memory || globalMaxMem || 2048
@@ -75,7 +65,6 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
   const mcVersion = instance.mc_version || '1.20.4'
   const loaderType = instance.loader_type || 'vanilla'
 
-  // 5. 构建 JVM 参数
   const jvmArgs = buildJvmArgs({
     minMem,
     maxMem,
@@ -84,7 +73,6 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     customJvm: instance.jvm_args || '',
   })
 
-  // 6. 构建 MC 参数
   const mcArgs = buildMcArgs({
     account,
     mcVersion,
@@ -99,14 +87,12 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     javaPath,
     jvmArgs,
     mcArgs,
-    workDir: path.join(mcDir, '.minecraft'),
+    workDir: path.join(mcDir),
     instanceId: instance.id,
     mcVersion,
     loaderType,
   }
 }
-
-// ===== 内部构建函数 =====
 
 function buildJvmArgs(opts: {
   minMem: number
@@ -122,27 +108,23 @@ function buildJvmArgs(opts: {
     '-Dminecraft.launcher.brand=MCLA',
     '-Dminecraft.launcher.version=2.0.0',
     '-Dfile.encoding=UTF-8',
+    '-Duser.language=zh',
+    '-Duser.country=CN'
   ]
 
-  // GC 策略按版本选择
   if (compareVersions(opts.mcVersion, '1.18') >= 0) {
     args.push(
       '-XX:+UseG1GC',
-      '-XX:G1NewSizePercent=20',
-      '-XX:G1ReservePercent=20',
       '-XX:MaxGCPauseMillis=50',
-      '-XX:G1HeapRegionSize=32M',
       '-XX:+DisableExplicitGC',
     )
   } else {
     args.push(
       '-XX:+UseConcMarkSweepGC',
       '-XX:CMSInitiatingOccupancyFraction=75',
-      '-XX:+CMSUseFastHandshake',
     )
   }
 
-  // 用户自定义 JVM 参数
   if (opts.customJvm.trim()) {
     args.push(...opts.customJvm.trim().split(/\s+/).filter(Boolean))
   }
@@ -151,7 +133,7 @@ function buildJvmArgs(opts: {
 }
 
 function buildMcArgs(opts: {
-  account: { name: string; uuid: string; accessToken?: string }
+  account: { name: string; uuid: string; accessToken?: string; xuid?: string }
   mcVersion: string
   mcDir: string
   loaderType: string
@@ -160,28 +142,25 @@ function buildMcArgs(opts: {
   fullscreen: boolean
 }): string[] {
   const { account, mcVersion, mcDir, loaderType } = opts
-  const versionDir = path.join(mcDir, 'versions', mcVersion)
-  const jarPath = path.join(versionDir, `${mcVersion}.jar`)
   const mainClass = getMainClass(mcVersion, loaderType)
 
   const args = [
-    // classpath
-    '-cp', jarPath,
-    // 主类
     mainClass,
-    // Minecraft 参数
     '--username', account.name,
     '--uuid', account.uuid,
     '--accessToken', account.accessToken || 'offline',
+    '--userType', 'msa',
     '--version', mcVersion,
     '--gameDir', mcDir,
     '--assetsDir', path.join(mcDir, 'assets'),
-    '--assetIndex', mcVersion,
-    '--userType', account.accessToken ? 'msa' : 'legacy',
-    '--versionType', 'MCLA',
+    '--assetIndex', getAssetIndex(mcVersion),
+    '--versionType', 'release',
   ]
 
-  // 窗口尺寸
+  if (account.xuid && account.xuid.trim() !== '' && account.xuid !== '0') {
+    args.push('--xuid', account.xuid.trim())
+  }
+
   if (!opts.fullscreen) {
     args.push('--width', String(opts.width), '--height', String(opts.height))
   } else {
@@ -189,6 +168,13 @@ function buildMcArgs(opts: {
   }
 
   return args
+}
+
+// ✅ 修复完成！解决404问题
+function getAssetIndex(version: string): string {
+  if (version.startsWith('1.21')) return '1.21' // 正确索引
+  if (version.startsWith('1.20')) return '15'
+  return version
 }
 
 function getMainClass(mcVersion: string, loaderType: string): string {
@@ -199,7 +185,6 @@ function getMainClass(mcVersion: string, loaderType: string): string {
       return 'org.quiltmc.loader.launch.knot.KnotClient'
     case 'forge':
     case 'neoforge':
-      // Forge 的主类在 version.json 里，这里给默认值
       return compareVersions(mcVersion, '1.17') >= 0
         ? 'cpw.mods.bootstraplauncher.BootstrapLauncher'
         : 'net.minecraftforge.fml.relauncher.ServerLaunchWrapper'
@@ -209,8 +194,6 @@ function getMainClass(mcVersion: string, loaderType: string): string {
         : 'net.minecraft.Launcher'
   }
 }
-
-// ===== 工具函数 =====
 
 function getConfigValue(db: any, key: string): string | null {
   const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined

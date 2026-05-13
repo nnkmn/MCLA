@@ -9,6 +9,8 @@ import * as os from 'os'
 import { shell } from 'electron'
 import { getDatabase } from './database'
 import { getInstanceById, createInstance, updateInstance, deleteInstance, Instance } from './instances'
+import { logger } from '../utils/logger'
+const log = logger.child('InstanceEnhanced')
 
 export interface CreateInstanceInput {
   name: string
@@ -18,8 +20,11 @@ export interface CreateInstanceInput {
   /** 自定义游戏目录，不填则自动在 mcDir 下建 */
   customPath?: string
   javaPath?: string
+  jvmArgs?: string
   minMemory?: number
   maxMemory?: number
+  width?: number
+  height?: number
   icon?: string
 }
 
@@ -74,7 +79,7 @@ export function deleteInstanceWithDir(id: string, deleteFiles = false): boolean 
     try {
       fs.rmSync(instance.path, { recursive: true, force: true })
     } catch (e) {
-      console.error(`[InstanceEnhanced] 删除目录失败: ${e}`)
+      log.error(`[InstanceEnhanced] 删除目录失败: ${e}`)
     }
   }
 

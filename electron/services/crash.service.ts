@@ -1,5 +1,7 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import { logger } from '../utils/logger'
+const log = logger.child('CrashService')
 
 /**
  * 崩溃报告结构
@@ -228,7 +230,7 @@ export class CrashService {
       const content = await fs.readFile(logPath, 'utf-8');
       return this.parseCrashContent(content, instanceId, logPath);
     } catch (error) {
-      console.error('[CrashService] 读取崩溃日志失败:', error);
+      log.error('[CrashService] 读取崩溃日志失败:', error);
       return null;
     }
   }

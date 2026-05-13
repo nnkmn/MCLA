@@ -3,6 +3,8 @@
  */
 import { ipcMain } from 'electron'
 import { getContentService } from '../services/content.ipc'
+import { ContentPlatform } from '../services/content.service'
+import type { ContentFile } from '../services/content.service'
 
 export function registerDownloadHandlers(): void {
   ipcMain.handle('download:search-mods', async (_event, params) => {
@@ -23,9 +25,30 @@ export function registerDownloadHandlers(): void {
     return { success: true, data: result }
   })
 
-  ipcMain.handle('download:file', async (_event, file, destination) => {
+  ipcMain.handle('download:file', async (_event, fileData: Record<string, unknown>, destination: string) => {
     const service = getContentService()
-    const result = await service.downloadFile(file, destination)
+
+    // 将前端传来的数据转换为 ContentFile 格式
+    const platform = (fileData.platform as ContentPlatform) ||
+      (fileData.source === 'curseforge' ? ContentPlatform.CURSEFORGE : ContentPlatform.MODRINTH)
+
+    const contentFile: ContentFile = {
+      id: String(fileData.id || ''),
+      platform,
+      projectId: String(fileData.projectId || fileData.id || ''),
+      name: String(fileData.fileName || fileData.displayName || ''),
+      fileName: String(fileData.fileName || fileData.displayName || ''),
+      version: '',
+      size: Number(fileData.size || 0),
+      downloadUrl: String(fileData.url || fileData.downloadUrl || ''),
+      gameVersions: Array.isArray(fileData.gameVersions) ? fileData.gameVersions : [],
+      loaders: Array.isArray(fileData.loaders) ? fileData.loaders : [],
+      releaseType: (fileData.releaseType as 'release' | 'beta' | 'alpha') || 'release',
+      datePublished: String(fileData.datePublished || ''),
+      downloads: Number(fileData.downloads || 0),
+    }
+
+    const result = await service.downloadFile(contentFile, destination)
     return { success: true, data: result }
   })
 

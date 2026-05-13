@@ -19,7 +19,7 @@ export type DownloadStatus =
 export type SearchSortBy =
   | 'relevance'     // 相关度
   | 'downloads'     // 下载量
-  | 'follows'       | 关注数
+  | 'follows'       // 关注数 / 点赞数
   | 'newest'        // 最新发布
   | 'updated'       // 最近更新
 
@@ -54,13 +54,15 @@ export interface ModSearchResult {
 export interface ProjectFile {
   id: string
   filename: string
+  fileName?: string                // 兼容文件名（部分API返回）
   displayName: string
   size: number                     // 字节
   downloadUrl: string
-  gameVersion: string[]
+  gameVersions: string[]
   loaders: string[]
   releaseType: 'release' | 'beta' | 'alpha'
   datePublished: string
+  downloads?: number               // 下载次数
 }
 
 /** 下载任务 */
@@ -83,4 +85,36 @@ export interface DownloadQueueState {
   active: DownloadTask[]           // 正在下载的
   queued: DownloadTask[]           // 排队中的
   completed: DownloadTask[]         // 已完成的
+}
+
+// ====== MC 版本下载任务 ======
+
+/** MC 版本下载阶段 */
+export type VersionDownloadPhase =
+  | 'idle'           // 未开始
+  | 'resolving'      // 解析版本清单
+  | 'resolving_ok'
+  | 'downloading_json' // 下载版本 JSON
+  | 'downloading_json_ok'
+  | 'downloading_jar'  // 下载 client.jar
+  | 'completed'
+  | 'failed'
+
+/** MC 版本下载任务 */
+export interface VersionDownloadTask {
+  id: string                      // 版本号，如 '1.21.4'
+  name: string                    // 显示名称，如 '1.21.4'
+  phase: VersionDownloadPhase     // 当前阶段
+  progress: number               // 0-100 总体进度
+  /** 各阶段进度描述 */
+  phaseLabel: string              // 如 '下载版本 JSON...'
+  /** 总体速度（bytes/s），JSON 阶段为 0 */
+  speed: number
+  downloadedSize: number
+  totalSize: number
+  error?: string
+  targetFolder: string            // 下载目标文件夹
+  /** 当前时间戳（用于计算速度） */
+  _lastBytes?: number
+  _lastTime?: number
 }

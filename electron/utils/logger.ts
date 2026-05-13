@@ -18,15 +18,23 @@ let currentLevel: LogLevel = process.env.NODE_ENV === 'development' ? 'DEBUG' : 
 /** 是否写入文件 */
 let fileLogging = true
 
-const LOG_DIR = process.env['MCLA_LOG_DIR'] || join(app.getPath('userData'), 'logs')
-
-// 确保日志目录存在
-try {
-  if (!existsSync(LOG_DIR)) {
-    mkdirSync(LOG_DIR, { recursive: true })
+/** 日志目录（延迟初始化，避免 Electron app 未 ready 时调用 getPath） */
+let _logDir: string | null = null
+function getLogDirLazy(): string {
+  if (!_logDir) {
+    const dir =
+      process.env['MCLA_LOG_DIR'] || join(app.getPath('userData'), 'logs')
+    // 确保日志目录存在
+    try {
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true })
+      }
+    } catch {
+      // 忽略目录创建失败（某些沙箱环境）
+    }
+    _logDir = dir
   }
-} catch {
-  // 忽略目录创建失败（某些沙箱环境）
+  return _logDir
 }
 
 function getTimestamp(): string {
@@ -49,14 +57,23 @@ function formatMessage(level: LogLevel, module: string, ...args: unknown[]): str
     }
     return String(a)
   }).join(' ')
-  return `${prefix} ${rest}`
+  const safe = redactSensitive(rest)
+  return `${prefix} ${safe}`
+}
+
+function redactSensitive(text: string): string {
+  // 脱敏 JWT（三段 base64，access_token / refresh_token）
+  let s = text.replace(/\b[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, '[REDACTED-JWT]')
+  // 脱敏独立长 hex 字符串（32+ 位，前后非 hex 字符，避免误伤 UUID）
+  s = s.replace(/(^|[^0-9a-fA-F])[0-9a-fA-F]{32,}(?=[^0-9a-fA-F]|$)/g, '$1[REDACTED-HEX]')
+  return s
 }
 
 function writeToFile(message: string): void {
   if (!fileLogging) return
   try {
     const date = new Date().toISOString().slice(0, 10)
-    appendFileSync(join(LOG_DIR, `${date}.log`), message + '\n', 'utf-8')
+    appendFileSync(join(getLogDirLazy(), `${date}.log`), message + '\n', 'utf-8')
   } catch {
     // 文件写入失败静默忽略，不影响主流程
   }
@@ -117,5 +134,5 @@ export function setFileLogging(enabled: boolean): void {
 
 /** 获取日志目录 */
 export function getLogDir(): string {
-  return LOG_DIR
+  return getLogDirLazy()
 }

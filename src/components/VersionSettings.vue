@@ -68,9 +68,11 @@
                     </select>
                   </div>
                   <div class="form-btns">
-                    <button class="form-action-btn">修改版本名</button>
-                    <button class="form-action-btn">修改版本描述</button>
-                    <button class="form-action-btn">加入收藏夹</button>
+                    <button class="form-action-btn" @click="editVersionName">修改版本名</button>
+                    <button class="form-action-btn" @click="editVersionDescription">修改版本描述</button>
+                    <button class="form-action-btn" :class="{ active: isFavorited }" @click="toggleFavorite">
+                      {{ isFavorited ? '★ 已收藏' : '☆ 加入收藏夹' }}
+                    </button>
                   </div>
                 </section>
 
@@ -78,9 +80,9 @@
                 <section class="vs-section">
                   <h3 class="sec-title">快捷方式</h3>
                   <div class="form-btns">
-                    <button class="form-action-btn">版本文件夹</button>
-                    <button class="form-action-btn">存档文件夹</button>
-                    <button class="form-action-btn">Mod 文件夹</button>
+                    <button class="form-action-btn" @click="openFolder('')">版本文件夹</button>
+                    <button class="form-action-btn" @click="openFolder('saves')">存档文件夹</button>
+                    <button class="form-action-btn" @click="openFolder('mods')">Mod 文件夹</button>
                   </div>
                 </section>
 
@@ -88,9 +90,9 @@
                 <section class="vs-section">
                   <h3 class="sec-title">高级管理</h3>
                   <div class="form-btns">
-                    <button class="form-action-btn outline">导出启动脚本</button>
-                    <button class="form-action-btn outline">补全文件</button>
-                    <button class="form-action-btn danger">删除版本</button>
+                    <button class="form-action-btn outline" @click="exportScript">导出启动脚本</button>
+                    <button class="form-action-btn outline" @click="completeFiles">补全文件</button>
+                    <button class="form-action-btn danger" @click="deleteVersion">删除版本</button>
                   </div>
                 </section>
               </template>
@@ -240,59 +242,7 @@
 
               <!-- ===== Mod 管理 ===== -->
               <template v-if="activeTab === 'mods'">
-                <!-- 搜索栏 -->
-                <div class="mod-search-card">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                  <input type="text" class="mod-search-input" placeholder="搜索 Mod 名称 / 描述 / 标签" v-model="modSearchText" />
-                </div>
-
-                <!-- 操作按钮栏 -->
-                <div class="mod-toolbar">
-                  <button class="form-action-btn primary-outline">打开文件夹</button>
-                  <button class="form-action-btn">从文件安装</button>
-                  <button class="form-action-btn">下载新 Mod</button>
-                  <button class="form-action-btn">全选</button>
-                </div>
-
-                <!-- 分类筛选 -->
-                <div class="mod-tabs">
-                  <button
-                    v-for="tab in modFilterTabs"
-                    :key="tab.key"
-                    class="mod-tab"
-                    :class="{ active: modFilter === tab.key }"
-                    @click="modFilter = tab.key"
-                  >{{ tab.label }} <span class="mod-tab-count">({{ tab.count }})</span></button>
-                </div>
-
-                <!-- Mod 列表卡片 -->
-                <div class="vs-section mod-list-section">
-                  <div v-if="filteredMods.length" class="mod-list-new">
-                    <div v-for="mod in filteredMods" :key="mod.name" class="mod-item-new" @mouseenter="mod.hovered = true" @mouseleave="mod.hovered = false">
-                      <img :src="mod.icon" class="mod-icon-img" alt="" @error="(e: Event) => (e.target as HTMLImageElement).src = ''" />
-                      <div class="mod-info-main">
-                        <div class="mod-name-row">
-                          <span class="mod-name-text">{{ mod.name }}</span>
-                          <span class="mod-ver-text">{{ mod.version }}</span>
-                          <a v-if="mod.link" href="#" class="mod-link-icon" title="来源">⛓</a>
-                        </div>
-                        <p class="mod-desc-text">
-                          <span v-if="mod.category" class="mod-tag">{{ mod.category }}</span>
-                          {{ mod.description }}
-                        </p>
-                      </div>
-                      <div class="mod-actions-hover" :class="{ visible: mod.hovered }">
-                        <button class="mod-action-icon" title="信息">ℹ️</button>
-                        <button class="mod-action-icon" title="打开文件夹">📁</button>
-                        <button class="mod-action-icon danger" title="移除" @click.stop="removeMod(mod.name)">🗑</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="empty-state">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--pcl-text-muted)" stroke-width="1.5"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM9 17v-5l-2 2-2-2v5"/></svg>
-                    <p>暂无符合条件的 Mod</p>
-                  </div>
-                </div>
+                <ModManager :gameDir="gameDir" />
               </template>
 
               <!-- ===== 导出 ===== -->
@@ -400,19 +350,156 @@
         </div>
       </div>
     </transition>
+
+    <!-- 补全文件弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showCompleteModal" class="ver-settings-overlay" @click.self="showCompleteModal = false">
+        <div class="ver-settings-window" style="width:520px;">
+          <header class="vs-header">
+            <button class="vs-back" @click="showCompleteModal = false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <span class="vs-title">补全文件</span>
+            <div class="vs-wc">
+              <button class="vs-wc-btn vs-close" @click="showCompleteModal = false">
+                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <div class="vs-body" style="padding:20px;max-height:70vh;overflow-y:auto;">
+
+            <!-- 检测中 -->
+            <div v-if="completeState === 'checking'" class="complete-status checking">
+              <div class="complete-spinner"></div>
+              <p class="complete-status-text">正在检测缺失文件...</p>
+              <p class="complete-status-sub">{{ completeTarget }}</p>
+            </div>
+
+            <!-- 检测完成：文件完整 -->
+            <div v-else-if="completeState === 'complete'" class="complete-status success">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              <p class="complete-status-text">所有文件完整，无需补全</p>
+              <p class="complete-status-sub">{{ completeTarget }} · 共检测 {{ completeTotal }} 个库文件</p>
+            </div>
+
+            <!-- 检测完成：有缺失 -->
+            <div v-else-if="completeState === 'missing'" class="complete-status warning">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p class="complete-status-text">发现 <strong>{{ missingFiles.length }}</strong> 个缺失文件</p>
+              <p class="complete-status-sub">即将从 BMCLAPI 下载补全</p>
+
+              <!-- 缺失文件列表（仅显示前 10 个） -->
+              <div v-if="missingFiles.length" class="missing-file-list">
+                <div v-for="f in missingFiles.slice(0, 10)" :key="f" class="missing-file-item">
+                  <span class="missing-file-dot"></span>
+                  <span class="missing-file-path">{{ f }}</span>
+                </div>
+                <div v-if="missingFiles.length > 10" class="missing-file-more">
+                  还有 {{ missingFiles.length - 10 }} 个文件...
+                </div>
+              </div>
+
+              <!-- 下载按钮 -->
+              <button class="form-action-btn" style="margin-top:16px;width:100%;" @click="startDownloadMissing">
+                开始下载
+              </button>
+            </div>
+
+            <!-- 下载中 -->
+            <div v-else-if="completeState === 'downloading'" class="complete-status downloading">
+              <p class="complete-status-text">正在下载缺失文件...</p>
+              <p class="complete-status-sub">{{ completeTarget }}</p>
+              <div class="dl-progress-wrap">
+                <div class="dl-progress-bar">
+                  <div class="dl-progress-fill" :style="{ width: dlProgress + '%' }"></div>
+                </div>
+                <p class="dl-progress-text">{{ dlCurrent }} / {{ dlTotal }}</p>
+                <p class="dl-progress-file">{{ dlCurrentFile }}</p>
+              </div>
+            </div>
+
+            <!-- 下载完成 -->
+            <div v-else-if="completeState === 'done'" class="complete-status success">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              <p class="complete-status-text">补全完成！</p>
+              <p class="complete-status-sub">已补全 {{ dlTotal }} 个文件</p>
+              <button class="form-action-btn" style="margin-top:16px;" @click="showCompleteModal = false">完成</button>
+            </div>
+
+            <!-- 错误 -->
+            <div v-else-if="completeState === 'error'" class="complete-status error">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <p class="complete-status-text">补全失败</p>
+              <p class="complete-status-sub" style="color:#ef4444;">{{ completeError }}</p>
+              <button class="form-action-btn" style="margin-top:16px;" @click="completeFiles">重试</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 输入弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showInputModal" class="ver-settings-overlay" @click.self="cancelInputModal">
+        <div class="ver-settings-window input-modal-win">
+          <header class="vs-header">
+            <button class="vs-back" @click="cancelInputModal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <span class="vs-title">{{ inputModalTitle }}</span>
+            <div class="vs-wc">
+              <button class="vs-wc-btn vs-close" @click="cancelInputModal">
+                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+              </button>
+            </div>
+          </header>
+          <div class="vs-body" style="padding:20px;flex-direction:column;gap:12px;">
+            <input
+              v-if="!inputModalMultiline"
+              v-model="inputModalValue"
+              type="text"
+              class="form-input"
+              :placeholder="inputModalPlaceholder"
+              @keydown.enter="confirmInputModal"
+              @keydown.esc="cancelInputModal"
+              style="width:100%;"
+            />
+            <textarea
+              v-else
+              v-model="inputModalValue"
+              class="form-textarea"
+              :placeholder="inputModalPlaceholder"
+              rows="4"
+              style="width:100%;resize:vertical;min-height:80px;"
+              @keydown.esc="cancelInputModal"
+            />
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+              <button class="form-action-btn" @click="cancelInputModal">取消</button>
+              <button class="form-action-btn primary" @click="confirmInputModal">确定</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import ModManager from './ModManager.vue'
 
 const props = defineProps<{
   visible: boolean
   versionName: string
+  gameDir: string
+  instanceId: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:visible', val: boolean): void
+  (e: 'version-deleted'): void
 }>()
 
 const activeTab = ref('overview')
@@ -430,6 +517,133 @@ const loaderInfo = computed(() => {
 // 示例数据
 const playerName = ref('Steve')
 const playerUuid = ref('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
+const isFavorited = ref(false)
+
+// 输入弹窗状态
+const showInputModal = ref(false)
+const inputModalTitle = ref('')
+const inputModalValue = ref('')
+const inputModalPlaceholder = ref('')
+const inputModalMultiline = ref(false)
+let inputModalResolve: ((value: string | null) => void) | null = null
+
+function openInputModal(title: string, value: string, placeholder: string, multiline = false): Promise<string | null> {
+  return new Promise((resolve) => {
+    inputModalTitle.value = title
+    inputModalValue.value = value
+    inputModalPlaceholder.value = placeholder
+    inputModalMultiline.value = multiline
+    inputModalResolve = resolve
+    showInputModal.value = true
+  })
+}
+
+function confirmInputModal() {
+  inputModalResolve?.(inputModalValue.value)
+  showInputModal.value = false
+}
+
+function cancelInputModal() {
+  inputModalResolve?.(null)
+  showInputModal.value = false
+}
+
+// ====== 快捷方式：打开文件夹 ======
+// 始终从主进程获取 .minecraft 根目录（尊重自定义路径设置）
+async function resolveMinecraftRoot(): Promise<string> {
+  const api = window.electronAPI
+  if (!api?.path) {
+    // 兜底：从 gameDir 推导
+    const parts = props.gameDir.split(/[\\/]/)
+    const idx = parts.indexOf('.minecraft')
+    return idx >= 0 ? parts.slice(0, idx + 1).join('/') : props.gameDir
+  }
+  const custom = await api.path.getCustom()
+  if (custom) return custom
+  return await api.path.getMinecraft()
+}
+
+async function openFolder(subPath: string) {
+  const api = window.electronAPI
+  if (!api?.shell) return
+
+  const mcRoot = await resolveMinecraftRoot()
+
+  if (!subPath) {
+    // 版本文件夹：打开 versions/<版本名>
+    const versionFolderName = props.gameDir.split(/[\\/]/).pop() || ''
+    const target = `${mcRoot}/versions/${versionFolderName}`
+    await api.shell.openPath(target)
+    return
+  }
+
+  // saves / mods：优先打开版本隔离目录，不存在则回退全局
+  if (subPath === 'saves' || subPath === 'mods') {
+    const versionFolderName = props.gameDir.split(/[\\/]/).pop() || ''
+    const isolated = `${mcRoot}/versions/${versionFolderName}/${subPath}`
+    const isolatedExists = await api.path.exists(isolated)
+    if (isolatedExists) {
+      await api.shell.openPath(isolated)
+      return
+    }
+    // 回退全局目录
+    const globalTarget = `${mcRoot}/${subPath}`
+    await api.shell.openPath(globalTarget)
+    return
+  }
+
+  // 其他路径（如果有）直接拼全局
+  const target = `${mcRoot}/${subPath}`
+  await api.shell.openPath(target)
+}
+
+// ====== 个性化 ======
+async function editVersionName() {
+  const newName = await openInputModal('修改版本名称', props.versionName, '输入新名称')
+  if (!newName || newName === props.versionName) return
+  await window.electronAPI?.instance.updateName(props.instanceId, newName)
+  emit('update:visible', false)
+}
+
+async function editVersionDescription() {
+  const newDesc = await openInputModal('修改版本描述', '', '输入描述（支持多行）', true)
+  if (newDesc === null) return
+  await window.electronAPI?.instance.updateDescription(props.instanceId, newDesc)
+}
+
+async function toggleFavorite() {
+  if (!props.instanceId) return
+  isFavorited.value = !isFavorited.value
+  await window.electronAPI?.instance.toggleFavorite(props.instanceId)
+}
+
+// ====== 导出启动脚本 ======
+async function exportScript() {
+  const name = props.versionName.replace(/[^a-zA-Z0-9_\-]/g, '_')
+  const script = [
+    '@echo off',
+    `title ${props.versionName}`,
+    'cd /d "%~dp0"',
+    `start javaw -jar "${name}.jar"`,
+  ].join('\r\n')
+
+  const blob = new Blob([script], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${name}.bat`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ====== 删除版本 ======
+async function deleteVersion() {
+  if (!props.instanceId) return
+  if (!confirm(`确定要删除版本「${props.versionName}」吗？\n这将删除版本文件夹及其所有文件，无法恢复！`)) return
+  if (!confirm('再次确认：此操作不可逆！')) return
+  await window.electronAPI?.instance.delete(props.instanceId, true)
+  emit('version-deleted')
+}
 
 // 设置页状态
 const showTip = ref(true)
@@ -441,60 +655,96 @@ const totalMem = ref('15.4')
 const gameMem = ref('2.8')
 const useHighPerformanceGPU = ref(false)
 
-// Mod 管理数据
-const modSearchText = ref('')
-const modFilter = ref('all')
-const modFilterTabs = [
-  { key: 'all', label: '全部', count: 120 },
-  { key: 'enabled', label: '启用', count: 119 },
-  { key: 'disabled', label: '禁用', count: 1 },
-  { key: 'updatable', label: '可更新', count: 77 },
-]
-
-const installedMods = ref([
-  { name: 'Debugify', version: '1.20.1+2.0', category: '实用', description: '性能优化 | [bug修复] Debugify-1.20.1+2.0: Fixes Minecraft bugs found on the bug tracker', icon: '', link: true, hovered: false },
-  { name: 'Cloth Config API', version: '11.1.118', category: '支持库', description: '[cloth前置] cloth-config-11.1.118-fabric: Configuration Library for Minecraft Mods', icon: '', link: false, hovered: false },
-  { name: '方块实体优化', version: '0.9+1.20', category: '实用', description: '性能优化 | [EBE实体方块优化] enhancedblockentities-0.9+1.20: Reduce block entity FPS lag with almost no com...', icon: '', link: false, hovered: false },
-  { name: '实体模型特性', version: '1.2.1', category: '生物', description: '实用 | [EMF 实体模型支持] entity_model_features_fabric_1.20.1-1.2.1: EMF is an OptiFine format, Custom Entity...', icon: '', link: false, hovered: false },
-  { name: '实体纹理特性', version: '5.1.2', category: '实用', description: '实用 | [ETF模型支持] entity_texture_features_fabric_1.20.1-5.1.2: Emissive, Random & Custo...', icon: '', link: false, hovered: false },
-  { name: '铁氧体芯蕊', version: '6.0.1', category: '性能', description: '性能优化 | (FC) 铁氧体芯蕊Ferritecore-6.0.1-fabric: Memory usage optimizations', icon: '', link: false, hovered: false },
-  { name: 'Forge Config API Port', version: 'v8.0.0', category: '支持库', description: '支持库 | Forge的clofn前置 | ForgeConfigAPIPort-v8.0.0-1.20.1-Fabric: NeoForge s & Forge s config systems provided...', icon: '', link: false, hovered: false },
-  { name: 'Puzzles Lib', version: 'v8.1.11', category: '支持库', description: '支持库 | PuzzlesLib前置 | PuzzlesLib-v8.1.11-1.20.1-Fabric: Why it s called Puzzles, you ask? That s the puzzle!', icon: '', link: false, hovered: false },
-  { name: '伽玛工具', version: '17.16', category: 'UI工具', description: '实用 | [Gamma调整] Gamma-Utils-1.7.16-mc1.20.1: Gamma / Brightness / Night Vision mod, making it easy to see in...', icon: '', link: false, hovered: false },
-  { name: 'Exordium', version: '1.20.1', category: '性能', description: '性能能化 | [GUI渲染优化] exordium-fabric-1.2.1-mc1.20.1: Render the GUI and screens at a lower framerate to speed...', icon: '', link: false, hovered: false },
-  { name: '游戏内账号切换', version: '8.0.2', category: '实用', description: '实用 | [AIS) 游戏内账号切换|In-Game Account Switcher-Fabric-1.20-8.0.2: This mod allows you to change your logged in...', icon: '', link: false, hovered: false },
-  { name: 'JEI 物品管理器', version: '15.2.0.27', category: '工具', description: '支持库 | [JE]物品管理器| jei-1.20.1-fabric-15.2.0.27: View Items and Recipes', icon: '', link: false, hovered: false },
-])
-
 // 导出页状态
 const showExportAdvanced = ref(false)
 
-// 计算属性：过滤后的 Mod 列表
-const filteredMods = computed(() => {
-  let list = installedMods.value
-  if (modFilter.value === 'enabled') {
-    // 演示用：除了第一个都算启用
-    list = list.slice(1)
-  } else if (modFilter.value === 'disabled') {
-    list = [list[0]]
-  }
-  if (modSearchText.value.trim()) {
-    const kw = modSearchText.value.toLowerCase()
-    list = list.filter(m => m.name.toLowerCase().includes(kw) || m.description.toLowerCase().includes(kw))
-  }
-  return list
-})
+// ===== 补全文件 =====
+type CompleteState = 'idle' | 'checking' | 'complete' | 'missing' | 'downloading' | 'done' | 'error'
 
-function close() {
-  emit('update:visible', false)
+const showCompleteModal = ref(false)
+const completeState = ref<CompleteState>('idle')
+const completeError = ref('')
+const completeTarget = ref('')
+const completeTotal = ref(0)
+const missingFiles = ref<string[]>([])
+const dlProgress = ref(0)
+const dlCurrent = ref(0)
+const dlTotal = ref(0)
+const dlCurrentFile = ref('')
+let dlProgressUnsubscribe: (() => void) | null = null
+
+async function completeFiles() {
+  // 从 gameDir 提取版本 ID（gameDir 格式: .../.minecraft/versions/1.20.1-Fabric）
+  const parts = props.gameDir.split(/[/\\]/)
+  const versionsIdx = parts.findIndex(p => p === 'versions')
+  const versionId = versionsIdx >= 0 ? parts[versionsIdx + 1] : props.versionName
+  // 找到 .minecraft 目录
+  const mcIdx = parts.findIndex(p => p === '.minecraft')
+  const gameDir = mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
+
+  showCompleteModal.value = true
+  completeState.value = 'checking'
+  completeError.value = ''
+  completeTarget.value = versionId
+  missingFiles.value = []
+
+  // 监听下载进度
+  dlProgressUnsubscribe = window.electronAPI?.versions.onDownloadProgress?.((data) => {
+    if (data.versionId !== versionId) return
+    dlCurrent.value = data.current
+    dlTotal.value = data.total
+    dlProgress.value = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0
+    dlCurrentFile.value = data.file
+  })
+
+  try {
+    const result = await window.electronAPI?.versions.validate(versionId, gameDir)
+    if (!result?.ok) {
+      completeState.value = 'error'
+      completeError.value = result?.error || '检测失败'
+      return
+    }
+
+    const { missing, total } = result.data
+    completeTotal.value = total
+    missingFiles.value = missing
+
+    if (!missing.length) {
+      completeState.value = 'complete'
+    } else {
+      completeState.value = 'missing'
+    }
+  } catch (e: any) {
+    completeState.value = 'error'
+    completeError.value = e.message
+  }
 }
 
-function minimize() {
-  // Electron 最小化窗口逻辑
-}
+async function startDownloadMissing() {
+  const parts = props.gameDir.split(/[/\\]/)
+  const versionsIdx = parts.findIndex(p => p === 'versions')
+  const versionId = versionsIdx >= 0 ? parts[versionsIdx + 1] : props.versionName
+  const mcIdx = parts.findIndex(p => p === '.minecraft')
+  const gameDir = mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
 
-function removeMod(name: string) {
-  installedMods.value = installedMods.value.filter(m => m.name !== name)
+  dlCurrent.value = 0
+  dlTotal.value = missingFiles.value.length || 1
+  dlProgress.value = 0
+  completeState.value = 'downloading'
+
+  try {
+    const result = await window.electronAPI?.versions.downloadMissing(versionId, gameDir)
+    if (result?.ok) {
+      dlTotal.value = result.data.downloaded
+      completeState.value = 'done'
+    } else {
+      completeState.value = 'error'
+      completeError.value = result?.error || '下载失败'
+    }
+  } catch (e: any) {
+    completeState.value = 'error'
+    completeError.value = e.message
+  }
 }
 
 const navItems = [
@@ -522,30 +772,14 @@ const navItems = [
 </script>
 
 <style scoped lang="scss">
-/* ====== PCL2 变量（本地定义，Teleport 到 body 后脱离 .mcla-app 作用域）====== */
-.ver-settings-overlay {
-  --pcl-blue: #1565C0;
-  --pcl-blue-dark: #0D47A1;
-  --pcl-blue-light: #E3F2FD;
-  --pcl-blue-hover: #1976D2;
-  --pcl-text: #212121;
-  --pcl-text-secondary: #616161;
-  --pcl-text-muted: #9E9E9E;
-  --pcl-bg: #E8F4FD;
-  --pcl-surface: #FFFFFF;
-  --pcl-border: #E0E0E0;
-  --pcl-border-light: #EEEEEE;
-  --pcl-green: #43A047;
-  --pcl-red: #E53935;
-  --pcl-orange: #FB8C00;
-}
+/* ====== MCLA Design System ====== */
 
 /* ---- 遮罩层 ---- */
 .ver-settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(2px);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -558,18 +792,20 @@ const navItems = [
   max-width: 90vw;
   height: 560px;
   max-height: 85vh;
-  background: var(--pcl-bg);
-  border-radius: 10px;
+  background: var(--mcla-bg-elevated);
+  border-radius: var(--mcla-radius-xl);
+  border: 1px solid var(--mcla-border-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1);
+  box-shadow: var(--mcla-shadow-xl);
 }
 
 /* ---- 标题栏 ---- */
 .vs-header {
   height: 42px;
-  background: var(--pcl-blue);
+  background: var(--mcla-bg-secondary);
+  border-bottom: 1px solid var(--mcla-border-color);
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -580,17 +816,17 @@ const navItems = [
 
 .vs-back {
   width: 30px; height: 30px; border: none; background: transparent;
-  color: rgba(255,255,255,0.85); cursor: pointer;
+  color: var(--mcla-text-secondary); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 6px; transition: all 0.12s;
+  border-radius: var(--mcla-radius-sm); transition: all 0.12s;
   -webkit-app-region: no-drag;
-  &:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
 }
 
 .vs-title {
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--mcla-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -604,9 +840,9 @@ const navItems = [
   .vs-wc-btn {
     width: 42px; height: 42px; border: none; background: transparent;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.8); transition: background 0.12s;
-    &:hover { background: rgba(255,255,255,0.1); }
-    &.vs-close:hover { background: var(--pcl-red); color: #fff; }
+    color: var(--mcla-text-tertiary); transition: background 0.12s;
+    &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
+    &.vs-close:hover { background: rgba(239,68,68,0.15); color: var(--mcla-error); }
   }
 }
 
@@ -620,8 +856,8 @@ const navItems = [
 /* ---- 左侧导航 ---- */
 .vs-nav {
   width: 160px;
-  background: var(--pcl-surface);
-  border-right: 1px solid var(--pcl-border);
+  background: var(--mcla-bg-secondary);
+  border-right: 1px solid var(--mcla-border-color);
   padding: 10px 0;
   flex-shrink: 0;
   display: flex;
@@ -636,26 +872,26 @@ const navItems = [
   padding: 10px 18px;
   border: none;
   background: transparent;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--pcl-text-secondary);
+  color: var(--mcla-text-secondary);
   cursor: pointer;
   text-align: left;
   transition: all 0.12s;
   position: relative;
 
-  > span { flex-shrink: 0; display: flex; color: var(--pcl-text-muted); }
+  > span { flex-shrink: 0; display: flex; color: var(--mcla-text-muted); }
 
   &:hover {
-    color: var(--pcl-blue);
-    background: var(--pcl-blue-light);
-    > span { color: var(--pcl-blue); }
+    color: var(--mcla-primary-muted);
+    background: rgba(99,102,234,0.08);
+    > span { color: var(--mcla-primary-muted); }
   }
 
   &.active {
-    color: var(--pcl-blue);
-    font-weight: 650;
-    background: linear-gradient(to right, var(--pcl-blue-light), transparent);
+    color: var(--mcla-primary-muted);
+    font-weight: 600;
+    background: rgba(99,102,234,0.06);
 
     &::before {
       content: '';
@@ -664,11 +900,11 @@ const navItems = [
       top: 4px;
       bottom: 4px;
       width: 3px;
-      background: var(--pcl-blue);
+      background: var(--mcla-primary);
       border-radius: 0 2px 2px 0;
     }
 
-    > span { color: var(--pcl-blue); }
+    > span { color: var(--mcla-primary-muted); }
   }
 }
 
@@ -677,11 +913,11 @@ const navItems = [
   flex: 1;
   overflow-y: auto;
   padding: 20px 24px;
-  background: var(--pcl-bg);
+  background: var(--mcla-bg-primary);
 
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--mcla-border-color); border-radius: 3px; }
 }
 
 /* ---- 版本信息卡片 ---- */
@@ -690,45 +926,43 @@ const navItems = [
   align-items: center;
   gap: 14px;
   padding: 16px 18px;
-  background: var(--pcl-surface);
-  border-radius: 8px;
-  border: 1px solid var(--pcl-border-light);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  background: var(--mcla-bg-elevated);
+  border-radius: var(--mcla-radius-lg);
+  border: 1px solid var(--mcla-border-color);
   margin-bottom: 14px;
 
   .ver-icon {
     width: 44px; height: 44px;
-    border-radius: 8px;
-    background: var(--pcl-blue-light);
+    border-radius: var(--mcla-radius-md);
+    background: rgba(99,102,234,0.1);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
 
   .ver-detail {
-    .ver-full-name { margin: 0; font-size: 15px; font-weight: 700; color: var(--pcl-text); }
-    .ver-sub   { margin: 3px 0 0; font-size: 12px; color: var(--pcl-text-muted); }
+    .ver-full-name { margin: 0; font-size: 15px; font-weight: 700; color: var(--mcla-text-primary); }
+    .ver-sub   { margin: 3px 0 0; font-size: 12px; color: var(--mcla-text-muted); }
   }
 }
 
-/* ---- 区块（PCL2 风格：每个区块独立白底卡片）---- */
+/* ---- 区块 ---- */
 .vs-section {
-  background: var(--pcl-surface);
-  border-radius: 8px;
-  border: 1px solid var(--pcl-border-light);
+  background: var(--mcla-bg-elevated);
+  border-radius: var(--mcla-radius-lg);
+  border: 1px solid var(--mcla-border-color);
   padding: 16px 18px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 
   .sec-title {
     margin: 0 0 12px;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
-    color: var(--pcl-text);
+    color: var(--mcla-text-primary);
   }
 
   .desc-text {
-    font-size: 12.5px;
-    color: var(--pcl-text-secondary);
+    font-size: 12px;
+    color: var(--mcla-text-secondary);
     line-height: 1.55;
     margin: 0 0 12px;
   }
@@ -748,7 +982,7 @@ const navItems = [
     min-width: 70px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--pcl-text-secondary);
+    color: var(--mcla-text-secondary);
   }
 }
 
@@ -756,34 +990,34 @@ const navItems = [
 .form-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1.5px solid var(--pcl-border);
-  border-radius: 6px;
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
   font-size: 13px;
-  color: var(--pcl-text);
-  background: #fff;
+  color: var(--mcla-text-primary);
+  background: var(--mcla-bg-primary);
   outline: none;
   transition: border-color 0.14s;
 
-  &:focus { border-color: var(--pcl-blue); box-shadow: 0 0 0 3px rgba(21,101,192,0.08); }
+  &:focus { border-color: var(--mcla-primary); box-shadow: 0 0 0 3px rgba(99,102,234,0.15); }
   &.short { flex: 0 0 80px; }
-  &.mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; }
+  &.mono { font-family: var(--mcla-font-mono); font-size: 12px; }
 }
 
 .form-textarea {
   flex: 1;
   padding: 8px 12px;
-  border: 1.5px solid var(--pcl-border);
-  border-radius: 6px;
-  font-size: 12.5px;
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  font-size: 12px;
   font-family: inherit;
-  color: var(--pcl-text);
-  background: #fff;
+  color: var(--mcla-text-primary);
+  background: var(--mcla-bg-primary);
   outline: none;
   resize: vertical;
   min-height: 60px;
   transition: border-color 0.14s;
 
-  &:focus { border-color: var(--pcl-blue); box-shadow: 0 0 0 3px rgba(21,101,192,0.08); }
+  &:focus { border-color: var(--mcla-primary); box-shadow: 0 0 0 3px rgba(99,102,234,0.15); }
 }
 
 .input-with-btn {
@@ -802,17 +1036,17 @@ const navItems = [
 
 .browse-btn {
   padding: 8px 16px;
-  border: 1.5px solid var(--pcl-border);
-  border-radius: 6px;
-  background: #fff;
-  font-size: 12.5px;
-  color: var(--pcl-text-secondary);
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  background: var(--mcla-bg-elevated);
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.13s;
   flex-shrink: 0;
 
-  &:hover { border-color: var(--pcl-blue); color: var(--pcl-blue); }
+  &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); }
   &.small { padding: 8px 12px; }
 }
 
@@ -823,7 +1057,7 @@ const navItems = [
   gap: 6px;
   font-size: 13px;
   font-weight: normal;
-  color: var(--pcl-text);
+  color: var(--mcla-text-primary);
   min-width: auto !important;
   cursor: pointer;
   margin-right: 16px;
@@ -832,7 +1066,7 @@ const navItems = [
   input[type="checkbox"] {
     width: 15px;
     height: 15px;
-    accent-color: var(--pcl-blue);
+    accent-color: var(--mcla-primary);
     cursor: pointer;
   }
 }
@@ -851,42 +1085,47 @@ const navItems = [
   margin-top: 4px;
 }
 
-/* 独立按钮组（不在 .vs-section 内时，也用卡片底框）*/
+/* 独立按钮组 */
 .vs-content > .form-btns {
-  background: var(--pcl-surface);
-  border-radius: 8px;
-  border: 1px solid var(--pcl-border-light);
+  background: var(--mcla-bg-elevated);
+  border-radius: var(--mcla-radius-lg);
+  border: 1px solid var(--mcla-border-color);
   padding: 14px 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .form-action-btn {
   padding: 8px 18px;
-  border: 1.5px solid var(--pcl-border);
-  border-radius: 6px;
-  background: #fff;
-  font-size: 12.5px;
-  color: var(--pcl-text-secondary);
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  background: var(--mcla-bg-elevated);
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
   cursor: pointer;
   transition: all 0.13s;
 
-  &:hover { border-color: var(--pcl-blue); color: var(--pcl-blue); }
+  &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); }
 
   &.primary {
-    background: var(--pcl-blue);
-    border-color: var(--pcl-blue);
+    background: var(--mcla-gradient-primary);
+    border-color: transparent;
     color: #fff;
-    &:hover { background: var(--pcl-blue-hover); border-color: var(--pcl-blue-hover); }
+    &:hover { filter: brightness(1.1); }
   }
 
   &.outline {
-    &:hover { border-color: var(--pcl-blue); color: var(--pcl-blue); background: var(--pcl-blue-light); }
+    &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); background: rgba(99,102,234,0.06); }
   }
 
   &.danger {
-    border-color: var(--pcl-red);
-    color: var(--pcl-red);
-    &:hover { background: var(--pcl-red); color: #fff; }
+    border-color: rgba(239,68,68,0.5);
+    color: var(--mcla-error);
+    &:hover { background: rgba(239,68,68,0.1); border-color: var(--mcla-error); }
+  }
+
+  &.active {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: rgba(245,158,11,0.08);
   }
 }
 
@@ -900,8 +1139,8 @@ const navItems = [
 }
 
 .memory-sep {
-  font-size: 12.5px;
-  color: var(--pcl-text-muted);
+  font-size: 12px;
+  color: var(--mcla-text-muted);
   user-select: none;
 }
 
@@ -917,28 +1156,28 @@ const navItems = [
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: var(--pcl-surface);
-  border-radius: 6px;
+  background: var(--mcla-bg-elevated);
+  border-radius: var(--mcla-radius-md);
   border: 1px solid transparent;
   transition: all 0.12s;
 
-  &:hover { border-color: var(--pcl-border); }
+  &:hover { border-color: var(--mcla-border-color); }
 
-  .mod-name { flex: 1; font-size: 13.5px; font-weight: 600; color: var(--pcl-text); }
-  .mod-ver { font-size: 11.5px; color: var(--pcl-text-muted); }
+  .mod-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--mcla-text-primary); }
+  .mod-ver { font-size: 11px; color: var(--mcla-text-muted); }
 
   .mod-remove {
     padding: 4px 12px;
-    border: 1px solid var(--pcl-border);
-    border-radius: 4px;
-    background: #fff;
-    font-size: 11.5px;
-    color: var(--pcl-text-secondary);
+    border: 1px solid var(--mcla-border-color);
+    border-radius: var(--mcla-radius-sm);
+    background: var(--mcla-bg-elevated);
+    font-size: 11px;
+    color: var(--mcla-text-secondary);
     cursor: pointer;
     opacity: 0;
     transition: all 0.12s;
 
-    &:hover { border-color: var(--pcl-red); color: var(--pcl-red); }
+    &:hover { border-color: var(--mcla-error); color: var(--mcla-error); }
   }
 
   &:hover .mod-remove { opacity: 1; }
@@ -947,9 +1186,9 @@ const navItems = [
 .empty-state {
   text-align: center;
   padding: 36px 0;
-  color: var(--pcl-text-muted);
+  color: var(--mcla-text-muted);
 
-  p { margin: 10px 0 0; font-size: 13.5px; }
+  p { margin: 10px 0 0; font-size: 13px; }
   svg { opacity: 0.35; }
 }
 
@@ -958,6 +1197,128 @@ const navItems = [
 .modal-fade-leave-active { transition: opacity 0.12s ease; }
 .modal-fade-enter-from,
 .modal-fade-leave-to { opacity: 0; }
+
+/* ---- 补全文件弹窗 ---- */
+.complete-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  gap: 8px;
+
+  &.checking svg,
+  &.downloading svg {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.complete-status-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mcla-text-primary);
+  margin: 4px 0 0;
+}
+
+.complete-status-sub {
+  font-size: 12px;
+  color: var(--mcla-text-muted);
+  margin: 0;
+  word-break: break-all;
+  text-align: center;
+}
+
+.complete-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--mcla-border-color);
+  border-top-color: var(--mcla-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.missing-file-list {
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  padding: 8px 12px;
+  text-align: left;
+  margin-top: 12px;
+}
+
+.missing-file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--mcla-border-color);
+  &:last-child { border-bottom: none; }
+}
+
+.missing-file-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}
+
+.missing-file-path {
+  font-size: 11px;
+  color: var(--mcla-text-secondary);
+  word-break: break-all;
+  font-family: monospace;
+}
+
+.missing-file-more {
+  font-size: 11px;
+  color: var(--mcla-text-muted);
+  text-align: center;
+  padding: 4px 0 0;
+}
+
+.dl-progress-wrap {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.dl-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dl-progress-fill {
+  height: 100%;
+  background: var(--mcla-primary);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.dl-progress-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mcla-text-primary);
+  margin: 8px 0 2px;
+}
+
+.dl-progress-file {
+  font-size: 11px;
+  color: var(--mcla-text-muted);
+  font-family: monospace;
+  word-break: break-all;
+  margin: 0;
+}
 
 .modal-fade-enter-active .ver-settings-window {
   transition: transform 0.2s ease, opacity 0.18s ease;
@@ -975,10 +1336,10 @@ const navItems = [
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: var(--pcl-blue-light);
-  border-radius: 7px;
+  background: rgba(99,102,234,0.08);
+  border-radius: var(--mcla-radius-md);
   font-size: 12px;
-  color: var(--pcl-blue-dark);
+  color: var(--mcla-primary-muted);
   margin-bottom: 14px;
 
   svg { flex-shrink: 0; opacity: 0.7; }
@@ -988,7 +1349,7 @@ const navItems = [
     background: none;
     border: none;
     font-size: 16px;
-    color: var(--pcl-blue);
+    color: var(--mcla-primary-muted);
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
@@ -1009,12 +1370,12 @@ const navItems = [
   gap: 5px;
   font-size: 13px;
   cursor: pointer;
-  color: var(--pcl-text-secondary);
+  color: var(--mcla-text-secondary);
 
-  input { accent-color: var(--pcl-blue); }
+  input { accent-color: var(--mcla-primary); }
 
   &.active {
-    color: var(--pcl-blue);
+    color: var(--mcla-primary-muted);
     font-weight: 600;
   }
 }
@@ -1027,7 +1388,7 @@ const navItems = [
 .mem-slider {
   width: 100%;
   height: 4px;
-  accent-color: var(--pcl-blue);
+  accent-color: var(--mcla-primary);
   cursor: pointer;
 }
 
@@ -1035,7 +1396,7 @@ const navItems = [
 .mem-stats {
   display: flex;
   justify-content: space-between;
-  border-top: 2px solid var(--pcl-blue-light);
+  border-top: 1px solid var(--mcla-border-color);
   padding-top: 8px;
   margin-top: 10px;
 }
@@ -1045,8 +1406,8 @@ const navItems = [
   flex-direction: column;
   gap: 2px;
 
-  .mem-stat-label { font-size: 11px; color: var(--pcl-text-muted); }
-  .mem-stat-value { font-size: 14px; font-weight: 700; color: var(--pcl-text); }
+  .mem-stat-label { font-size: 11px; color: var(--mcla-text-muted); }
+  .mem-stat-value { font-size: 14px; font-weight: 700; color: var(--mcla-text-primary); }
 }
 
 /* 可折叠区块 */
@@ -1062,7 +1423,7 @@ const navItems = [
   cursor: pointer;
   user-select: none;
 
-  &:hover { color: var(--pcl-blue); }
+  &:hover { color: var(--mcla-primary-muted); }
   svg { flex-shrink: 0; }
 }
 
@@ -1105,16 +1466,16 @@ const navItems = [
   width: 100%;
   padding: 11px 0;
   margin-top: 8px;
-  background: var(--pcl-blue);
+  background: var(--mcla-gradient-primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 13.5px;
+  border-radius: var(--mcla-radius-md);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { background: var(--pcl-blue-hover); }
+  &:hover { filter: brightness(1.08); }
 }
 
 /* ====== Mod 管理页专用样式 ====== */
@@ -1125,9 +1486,9 @@ const navItems = [
   align-items: center;
   gap: 8px;
   padding: 9px 14px;
-  background: var(--pcl-surface);
-  border: 1.5px solid var(--pcl-border);
-  border-radius: 8px;
+  background: var(--mcla-bg-primary);
+  border: 1.5px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
   margin-bottom: 10px;
 
   svg { flex-shrink: 0; }
@@ -1137,10 +1498,10 @@ const navItems = [
     border: none;
     outline: none;
     font-size: 13px;
-    color: var(--pcl-text);
+    color: var(--mcla-text-primary);
     background: transparent;
 
-    &::placeholder { color: var(--pcl-text-muted); }
+    &::placeholder { color: var(--mcla-text-muted); }
   }
 }
 
@@ -1153,9 +1514,9 @@ const navItems = [
 }
 
 .form-action-btn.primary-outline {
-  border-color: var(--pcl-blue);
-  color: var(--pcl-blue);
-  &:hover { background: var(--pcl-blue-light); }
+  border-color: var(--mcla-primary);
+  color: var(--mcla-primary);
+  &:hover { background: rgba(99,102,234,0.06); }
 }
 
 /* 筛选标签 */
@@ -1169,19 +1530,19 @@ const navItems = [
   padding: 5px 12px;
   border: none;
   background: transparent;
-  font-size: 12.5px;
-  color: var(--pcl-text-secondary);
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--mcla-radius-md);
   transition: all 0.13s;
 
   &.active {
-    background: var(--pcl-blue);
+    background: var(--mcla-gradient-primary);
     color: #fff;
     font-weight: 600;
   }
 
-  &:hover:not(.active) { background: rgba(21,101,192,0.08); color: var(--pcl-blue); }
+  &:hover:not(.active) { background: rgba(99,102,234,0.08); color: var(--mcla-primary-muted); }
 
   .mod-tab-count { font-weight: 400; opacity: 0.75; }
 }
@@ -1200,19 +1561,39 @@ const navItems = [
   align-items: center;
   gap: 10px;
   padding: 9px 10px;
-  border-radius: 6px;
+  border-radius: var(--mcla-radius-md);
   transition: background 0.12s;
   position: relative;
 
-  &:hover { background: var(--pcl-blue-light); }
+  &:hover { background: var(--mcla-bg-hover); }
 }
 
 .mod-icon-img {
   width: 32px; height: 32px;
-  border-radius: 5px;
+  border-radius: var(--mcla-radius-sm);
   object-fit: cover;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+}
+
+.mod-icon-default {
+  width: 32px; height: 32px;
+  border-radius: var(--mcla-radius-sm);
+  background: var(--mcla-gradient-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-icon {
+  animation: spin 1.2s linear infinite;
 }
 
 .mod-info-main {
@@ -1230,12 +1611,12 @@ const navItems = [
 .mod-name-text {
   font-size: 13px;
   font-weight: 700;
-  color: var(--pcl-text);
+  color: var(--mcla-text-primary);
 }
 
 .mod-ver-text {
   font-size: 11px;
-  color: var(--pcl-text-muted);
+  color: var(--mcla-text-muted);
   white-space: nowrap;
 }
 
@@ -1248,8 +1629,8 @@ const navItems = [
 
 .mod-desc-text {
   margin: 2px 0 0;
-  font-size: 11.5px;
-  color: var(--pcl-text-secondary);
+  font-size: 11px;
+  color: var(--mcla-text-secondary);
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -1259,9 +1640,9 @@ const navItems = [
 .mod-tag {
   display: inline-block;
   padding: 0 5px;
-  font-size: 10.5px;
-  color: var(--pcl-orange);
-  background: rgba(251,140,0,0.08);
+  font-size: 10px;
+  color: var(--mcla-primary-muted);
+  background: rgba(99,102,234,0.08);
   border-radius: 3px;
   margin-right: 4px;
   vertical-align: middle;
@@ -1282,17 +1663,23 @@ const navItems = [
   width: 26px; height: 26px;
   border: none;
   background: transparent;
-  border-radius: 5px;
+  border-radius: var(--mcla-radius-sm);
   font-size: 13px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.12s;
 
-  &:hover { background: rgba(0,0,0,0.06); }
-  &.danger:hover { background: rgba(229,57,53,0.1); }
+  &:hover { background: var(--mcla-bg-hover); }
+  &.danger:hover { background: rgba(239,68,68,0.1); }
 }
 
-/* ====== 导出页专用样式 ====== */
+/* 输入弹窗尺寸（名称单行为窄窗，描述多行自动撑高） */
+.input-modal-win {
+  width: 420px;
+  max-width: 90vw;
+  .vs-body { padding: 20px !important; }
+  textarea { min-height: 90px; }
+}
 
 .export-header-row {
   display: flex;
@@ -1335,20 +1722,34 @@ const navItems = [
   align-items: baseline;
   gap: 6px;
   cursor: pointer;
-  font-size: 12.5px;
-  color: var(--pcl-text);
+  font-size: 12px;
+  color: var(--mcla-text-primary);
 
   input[type="checkbox"] {
     width: 14px; height: 14px;
-    accent-color: var(--pcl-blue);
+    accent-color: var(--mcla-primary);
     cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  > span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .tree-label-bold { font-weight: 600; }
   .tree-sub {
     font-size: 11px;
-    color: var(--pcl-text-muted);
+    color: var(--mcla-text-muted);
     margin-left: 4px;
+    flex-shrink: 0;
+    min-width: unset;
+    overflow: visible;
+    white-space: normal;
+    align-self: center;
   }
 }
 
@@ -1363,10 +1764,10 @@ const navItems = [
 .export-tip-box {
   margin-top: 10px;
   padding: 10px 12px;
-  background: #E3F2FD;
-  border-radius: 6px;
-  font-size: 11.5px;
-  color: var(--pcl-blue-dark);
+  background: rgba(99,102,234,0.06);
+  border-radius: var(--mcla-radius-md);
+  font-size: 11px;
+  color: var(--mcla-primary-muted);
   line-height: 1.55;
 }
 
@@ -1382,19 +1783,19 @@ const navItems = [
   align-items: center;
   gap: 8px;
   padding: 12px 36px;
-  background: var(--pcl-blue);
+  background: var(--mcla-gradient-primary);
   color: #fff;
   border: none;
-  border-radius: 24px;
+  border-radius: var(--mcla-radius-full);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(21,101,192,0.3);
+  box-shadow: var(--mcla-shadow-glow-primary);
   transition: all 0.16s;
 
   &:hover {
-    background: var(--pcl-blue-hover);
-    box-shadow: 0 4px 16px rgba(21,101,192,0.4);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 24px rgba(99,102,234,0.5);
     transform: translateY(-1px);
   }
 }

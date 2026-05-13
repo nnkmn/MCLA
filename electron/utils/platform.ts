@@ -59,7 +59,7 @@ function getDefaultMcDir(): string {
 
 // ==================== Java 探测 =================
 
-interface JavaEntry {
+export interface JavaEntry {
   path: string
   version: string
   major: number

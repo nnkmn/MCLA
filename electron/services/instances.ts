@@ -70,7 +70,7 @@ export function updateInstance(id: string, data: Partial<Instance>): Instance | 
   if (fields.length === 0) return getInstanceById(id)
 
   const setClause = fields.map(f => `${f} = ?`).join(', ')
-  const values = fields.map(f => (data as any)[f])
+  const values = fields.map(f => (data as Record<string, unknown>)[f])
   values.push(now, id)
 
   db.prepare(`UPDATE instances SET ${setClause}, updated_at = ? WHERE id = ?`).run(...values)

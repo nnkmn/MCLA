@@ -2,21 +2,8 @@ import { createWriteStream, mkdirSync } from 'fs'
 import { dirname, basename } from 'path'
 import { EventEmitter } from 'events'
 import Database from 'better-sqlite3'
-
-export interface DownloadTask {
-  id: string
-  url: string
-  destination: string
-  fileName: string
-  totalSize: number
-  downloadedSize: number
-  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'error' | 'cancelled'
-  speed: number
-  progress: number
-  error?: string
-  createdAt: Date
-  updatedAt: Date
-}
+import type { DownloadTask } from '../types/download.types'
+export type { DownloadTask } from '../types/download.types'
 
 export class DownloadService extends EventEmitter {
   private tasks: Map<string, DownloadTask> = new Map()

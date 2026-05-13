@@ -19,6 +19,7 @@ export interface Account {
   skin_url: string | null    // 皮肤 URL
   createdAt: string
   updatedAt: string
+  xuid: string | null        // XUID
 }
 
 /** 微软 OAuth 登录流程返回数据 */

@@ -49,8 +49,6 @@ const displayPercent = computed(() => {
 </script>
 
 <style scoped>
-.px-progress {}
-
 .px-progress__meta {
   display: flex;
   justify-content: space-between;

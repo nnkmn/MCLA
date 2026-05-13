@@ -132,4 +132,4 @@ export type {
 } from './download.types'
 
 // ModLoader 配置类型
-export type { ModloaderTypesConfig } from './modloader.types'
+export type { ModLoaderInstallConfig, ModLoaderInstallResult, ModLoaderStatus, ModLoaderInstallProgress } from './modloader.types'

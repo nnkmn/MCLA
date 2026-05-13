@@ -2,6 +2,8 @@ import { spawn, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventEmitter } from 'events';
+import { logger } from '../utils/logger'
+const log = logger.child('WatcherService')
 
 /**
  * 游戏进程状态
@@ -93,7 +95,7 @@ export class WatcherService extends EventEmitter {
       data: info
     } as ProcessEvent);
     
-    console.log(`[WatcherService] 注册进程 ${instanceId} (PID: ${pid})`);
+    log.info(`[WatcherService] 注册进程 ${instanceId} (PID: ${pid})`);
   }
   
   /**
@@ -162,7 +164,7 @@ export class WatcherService extends EventEmitter {
       data: { reason, crashReportPath }
     } as ProcessEvent);
     
-    console.log(`[WatcherService] 检测到 ${instanceId} 可能崩溃: ${reason}`);
+    log.info(`[WatcherService] 检测到 ${instanceId} 可能崩溃: ${reason}`);
   }
   
   /**
@@ -195,7 +197,7 @@ export class WatcherService extends EventEmitter {
       data: info
     } as ProcessEvent);
     
-    console.log(`[WatcherService] 进程 ${instanceId} 退出，退出码: ${exitCode}`);
+    log.info(`[WatcherService] 进程 ${instanceId} 退出，退出码: ${exitCode}`);
   }
   
   /**
@@ -213,7 +215,7 @@ export class WatcherService extends EventEmitter {
       data: { message: error.message, stack: error.stack }
     } as ProcessEvent);
     
-    console.error(`[WatcherService] 进程 ${instanceId} 错误:`, error);
+    log.error(`[WatcherService] 进程 ${instanceId} 错误:`, error);
   }
   
   /**
@@ -246,7 +248,7 @@ export class WatcherService extends EventEmitter {
           instanceId,
           data: info
         } as ProcessEvent);
-        console.log(`[WatcherService] 进程 ${instanceId} 已启动`);
+        log.info(`[WatcherService] 进程 ${instanceId} 已启动`);
       }
     } catch {
       // 进程不存在，可能已经退出
@@ -317,8 +319,8 @@ export class WatcherService extends EventEmitter {
       }
       
       return true;
-    } catch (error) {
-      console.error(`[WatcherService] 终止进程 ${instanceId} 失败:`, error);
+    } catch (error: any) {
+      log.error(`[WatcherService] 终止进程 ${instanceId} 失败:`, error.message);
       return false;
     }
   }

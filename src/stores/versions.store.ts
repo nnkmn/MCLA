@@ -22,6 +22,7 @@ export interface ModLoaderVersion {
 export const useVersionsStore = defineStore('versions', () => {
   // ====== 状态 ======
   const versions = ref<MCVersion[]>([])
+  const currentVersionId = ref<string | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   const cacheTime = ref<number | null>(null)
@@ -75,7 +76,6 @@ export const useVersionsStore = defineStore('versions', () => {
       return versions.value
     } catch (e: any) {
       error.value = e.message || '获取版本列表失败'
-      console.error('[VersionsStore]', e)
       return []
     } finally {
       loading.value = false
@@ -104,7 +104,6 @@ export const useVersionsStore = defineStore('versions', () => {
         stable: true,
       }))
     } catch (e: any) {
-      console.error('[VersionsStore] ModLoader versions error:', e)
     } finally {
       loading.value = false
     }
@@ -121,9 +120,15 @@ export const useVersionsStore = defineStore('versions', () => {
     cacheTime.value = null
   }
 
+  /** 设置当前选中的版本 ID */
+  function setCurrentVersion(id: string | null) {
+    currentVersionId.value = id
+  }
+
   return {
     // 状态
     versions,
+    currentVersionId,
     loading,
     error,
     fabricVersions,
@@ -139,5 +144,6 @@ export const useVersionsStore = defineStore('versions', () => {
     fetchModLoaderVersions,
     getVersionById,
     clearCache,
+    setCurrentVersion,
   }
 })

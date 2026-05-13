@@ -247,6 +247,16 @@
           </nav>
         </template>
 
+        <!-- ========== 版本详情/下载管理侧栏 ========== -->
+        <template v-else-if="currentRoute.startsWith('/download')">
+          <nav class="sb-nav">
+            <button class="nav-item" @click="$router.push('/downloads')">
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+              返回下载页
+            </button>
+          </nav>
+        </template>
+
       </aside>
 
       <!-- 主内容区 -->
@@ -263,6 +273,9 @@
     <VersionSettings
       v-model:visible="showVersionSettings"
       :version-name="selectedVersion"
+      :game-dir="versionGameDir"
+      :instance-id="currentInstanceId"
+      @version-deleted="onVersionDeleted"
     />
 
     <!-- 版本选择弹窗 -->
@@ -273,6 +286,11 @@
 
     <!-- 账户管理抽屉 -->
     <AccountManager v-model:visible="showAccountManager" />
+
+    <!-- 全局悬浮下载面板 -->
+    <DownloadFloat />
+    <!-- 通知铃铛 + 面板 -->
+    <PxNotification />
   </div>
 </template>
 
@@ -282,7 +300,9 @@ import { useRoute, useRouter } from 'vue-router'
 import VersionSettings from './components/VersionSettings.vue'
 import VersionSelect from './components/VersionSelect.vue'
 import AccountManager from './components/AccountManager.vue'
-import { useVersionsStore, useAccountsStore } from './stores'
+import DownloadFloat from './components/DownloadFloat.vue'
+import PxNotification from './components/common/PxNotification.vue'
+import { useVersionsStore, useAccountsStore, useInstancesStore, useDownloadStore } from './stores'
 
 const route = useRoute()
 const router = useRouter()
@@ -290,6 +310,24 @@ const currentRoute = computed(() => route.path)
 const isElectron = ref(false)
 const versionsStore = useVersionsStore()
 const accountsStore = useAccountsStore()
+const instancesStore = useInstancesStore()
+const downloadStore = useDownloadStore()
+const minecraftPath = ref('')
+const versionGameDir = computed(() =>
+  minecraftPath.value ? `${minecraftPath.value}/versions/${selectedVersionId.value}` : ''
+)
+
+// 当前选中版本的 instanceId（通过 path 匹配）
+const currentInstanceId = computed(() =>
+  instancesStore.instances.find(i => i.path === versionGameDir.value)?.id ?? ''
+)
+
+// 版本被删除后刷新
+async function onVersionDeleted() {
+  await loadLocalInstalledVersions()
+  selectedVersionId.value = ''
+  selectedVersion.value = '选择版本'
+}
 
 // 账户状态 - 从 store 获取
 const userName = computed(() => accountsStore.activeAccount?.name || '')
@@ -309,22 +347,18 @@ async function loadSkin() {
       // 裁剪出头部
       avatarUrl.value = await cropSkinHead(result.data)
     } else {
-      console.warn('[App] 皮肤加载失败:', result?.error)
       avatarUrl.value = ''
     }
   } catch (e) {
-    console.warn('[App] 皮肤加载异常:', e)
     avatarUrl.value = ''
   }
 }
 
 /** 从完整皮肤图中裁剪头像区域（8x8 头部像素） */
 async function cropSkinHead(skinDataUrl: string): Promise<string> {
-  console.log('[cropSkinHead] called, dataUrl length:', skinDataUrl.length)
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
-      console.log('[cropSkinHead] img loaded, naturalWidth:', img.naturalWidth, 'naturalHeight:', img.naturalHeight)
       const canvas = document.createElement('canvas')
       const SIZE = 8
       const canvasSize = 48
@@ -335,11 +369,9 @@ async function cropSkinHead(skinDataUrl: string): Promise<string> {
       // Minecraft 皮肤脸部在 (8, 8) 位置，8x8 像素
       ctx.drawImage(img, 8, 8, SIZE, SIZE, 0, 0, canvasSize, canvasSize)
       const result = canvas.toDataURL('image/png')
-      console.log('[cropSkinHead] canvas result length:', result.length)
       resolve(result)
     }
     img.onerror = (e) => {
-      console.error('[cropSkinHead] img load error:', e)
       resolve(skinDataUrl)
     }
     img.src = skinDataUrl
@@ -386,6 +418,9 @@ const showAccountManager = ref(false)
 // 版本选择弹窗（PCL2 风格）
 const showVersionSelectModal = ref(false)
 
+// 标记用户是否已手动选择过版本（用于区分首次加载 vs store版本更新）
+const userHasSelectedVersion = ref(false)
+
 // 启动数据
 const isLaunching = ref(false)
 const showVersionSelect = ref(false)
@@ -396,16 +431,73 @@ interface VersionItem { id: string; name: string; loader?: string }
 
 // 本地版本列表（从 Store 获取真实数据）
 const versions = ref<VersionItem[]>([])
-// Store 版本变化时同步到 versions
+
+// 扫描本地 .minecraft/versions 目录获取已安装版本
+async function loadLocalInstalledVersions() {
+  const instancesStore = useInstancesStore()
+  await instancesStore.fetchInstances()
+
+  // 优先：从文件系统扫描真实版本文件夹
+  if (window.electronAPI?.path) {
+    try {
+      const customPath = await window.electronAPI.path.getCustom()
+      const mcPath = customPath || await window.electronAPI.path.getMinecraft()
+      const result = await window.electronAPI.versions.scanFolder(mcPath)
+      if (result?.ok && result.data?.length) {
+        versions.value = result.data.map((v: any) => ({
+          id: v.id,                    // 真实文件夹名，用于启动
+          name: v.baseVersion || v.id,  // 显示用基础版本号
+          loader: v.loaderInfo || '',
+        }))
+        return
+      }
+    } catch (e) {
+    }
+  }
+
+  // 兜底：用实例数据库
+  if (instancesStore.instances.length) {
+    versions.value = instancesStore.instances.map(inst => ({
+      id: inst.path || inst.id,
+      name: inst.path || inst.mcVersion || inst.id,
+      loader: inst.loaderType !== 'vanilla' ? `${inst.loaderType} ${inst.loaderVersion}` : '',
+    }))
+  }
+}
+
+// Store 版本变化时同步到 versions（仅执行一次，避免热重载重复触发）
 watch(() => versionsStore.versions, (storeVersions) => {
   if (storeVersions.length) {
+    // 优先用本地已安装版本（已有数据则跳过）
+    if (versions.value.length) return
+
     versions.value = storeVersions.slice(0, 20).map(v => ({
       id: v.id,
       name: v.name,
       loader: '',
     }))
+
+    // 优先用精确保存的版本名恢复（处理带 loader 的版本）
+    const savedDisplayName = localStorage.getItem('mcla_last_version_name')
+    const lastId = localStorage.getItem('mcla_last_version')
+    if (savedDisplayName && lastId) {
+      // 尝试在版本列表中匹配
+      const match = versions.value.find(v => v.id === lastId)
+      if (match) {
+        selectedVersionId.value = lastId
+        selectedVersion.value = `${match.name}${match.loader ? '-' + match.loader : ''}`
+        userHasSelectedVersion.value = true
+        versionsStore.setCurrentVersion(lastId)
+      } else {
+        // 保存的版本不在列表中，保持当前选择（不要 fallback）
+        userHasSelectedVersion.value = true
+      }
+    } else if (!userHasSelectedVersion.value && versions.value.length) {
+      // 从未选择过版本 + 有版本列表 → 选第一个
+      selectVersion(versions.value[0])
+    }
   }
-}, { immediate: true })
+}, { immediate: true, once: true })
 
 // 下载页分类
 const dlActiveCat = ref('vanilla')
@@ -423,27 +515,117 @@ const moreCategories = [
   { id: 'feedback', label: '反馈', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' },
 ]
 
-onMounted(() => {
+onMounted(async () => {
   isElectron.value = !!window.electronAPI
 
-  // 加载版本列表
-  versionsStore.fetchVersions()
+  // 获取 .minecraft 路径（优先自定义路径）
+  if (window.electronAPI?.path) {
+    try {
+      const customPath = await window.electronAPI.path.getCustom()
+      if (customPath) {
+        minecraftPath.value = customPath
+      } else {
+        minecraftPath.value = await window.electronAPI.path.getMinecraft()
+      }
+    } catch (e) {
+    }
+  }
+
+  // 加载本地已安装版本（优先于远程版本）
+  await loadLocalInstalledVersions()
+
+  // 从 localStorage 恢复已保存的版本（无论数据来源，统一恢复）
+  {
+    const savedDisplayName = localStorage.getItem('mcla_last_version_name')
+    const lastId = localStorage.getItem('mcla_last_version')
+    if (savedDisplayName && lastId) {
+      // 优先用精确保存的版本名恢复
+      const match = versions.value.find(v => v.id === lastId)
+      if (match) {
+        selectedVersionId.value = lastId
+        selectedVersion.value = `${match.name}${match.loader ? '-' + match.loader : ''}`
+        userHasSelectedVersion.value = true
+        versionsStore.setCurrentVersion(lastId)
+      } else {
+        // 保存的版本不在当前列表中，保持 lastId，清空显示名
+        selectedVersionId.value = lastId
+        selectedVersion.value = savedDisplayName
+        userHasSelectedVersion.value = true
+      }
+    } else if (!userHasSelectedVersion.value && versions.value.length) {
+      // 从未选择过版本 → 选第一个
+      const target = versions.value[0]
+      selectedVersionId.value = target.id
+      selectedVersion.value = `${target.name}${target.loader ? '-' + target.loader : ''}`
+      localStorage.setItem('mcla_last_version', target.id)
+      localStorage.setItem('mcla_last_version_name', selectedVersion.value)
+    }
+  }
+
+  // 如果没有本地版本，fallback 到远程版本列表
+  if (!versions.value.length) {
+    versionsStore.fetchVersions()
+  }
 
   // 加载账号列表
   accountsStore.fetchAccounts()
 
   // 设置默认版本列表（用于没有数据时显示）
-  if (!versionsStore.versions.length) {
+  // 注意：只作为兜底显示用，不覆盖 localStorage 已保存的版本
+  if (!versions.value.length) {
     versions.value = [
       { id: '1.20.4', name: '1.20.4', loader: '' },
       { id: '1.20.1', name: '1.20.1', loader: 'Fabric 0.16.9' },
       { id: '1.20.2', name: '1.20.2', loader: 'NeoForge 47.1' },
       { id: '1.19.2', name: '1.19.2', loader: 'Forge 45.2' },
     ]
-    if (versions.value.length) {
-      selectedVersionId.value = versions.value[0].id
-      selectedVersion.value = `${versions.value[0].name}${versions.value[0].loader ? '-' + versions.value[0].loader : ''}`
+    const savedDisplayName = localStorage.getItem('mcla_last_version_name')
+    const lastId = localStorage.getItem('mcla_last_version')
+    if (savedDisplayName && lastId) {
+      // 优先用显示名恢复（用户之前选过的版本）
+      selectedVersionId.value = lastId
+      selectedVersion.value = savedDisplayName
+    } else if (lastId) {
+      // 有 lastId 但不在当前列表中 → 尝试模糊匹配
+      const fuzzy = versions.value.find(v => v.name && lastId.includes(v.name))
+      if (fuzzy) {
+        selectedVersionId.value = fuzzy.id
+        selectedVersion.value = `${fuzzy.name}${fuzzy.loader ? '-' + fuzzy.loader : ''}`
+      } else {
+        // 列表里找不到 → 保持 lastId，清空显示名，等待用户重新选择
+        selectedVersionId.value = lastId
+        selectedVersion.value = ''
+      }
+    } else if (versions.value.length) {
+      // 从未选择过版本 + 有列表 → 选第一个
+      const target = versions.value[0]
+      selectedVersionId.value = target.id
+      selectedVersion.value = `${target.name}${target.loader ? '-' + target.loader : ''}`
+      localStorage.setItem('mcla_last_version', target.id)
     }
+  }
+
+  // 监听版本下载进度事件（始终注册）
+  const api = window.electronAPI
+  if (api?.versions) {
+    api.versions.onDownloadProgress((data) => {
+      downloadStore.updateVersionProgress(data)
+    })
+    api.versions.onDownloadComplete(async (data) => {
+      downloadStore.onVersionComplete(data)
+      // 下载完成后自动创建实例
+      if (api.instance) {
+        await api.instance.create({
+          name: data.versionId,
+          mcVersion: data.versionId,
+          loaderType: 'vanilla',
+          loaderVersion: '',
+        })
+      }
+    })
+    api.versions.onDownloadError((data) => {
+      downloadStore.onVersionError(data)
+    })
   }
 })
 
@@ -466,6 +648,10 @@ const avatarLetter = computed(() => {
 function selectVersion(ver: VersionItem) {
   selectedVersionId.value = ver.id
   selectedVersion.value = `${ver.name}${ver.loader ? '-' + ver.loader : ''}`
+  localStorage.setItem('mcla_last_version', ver.id)
+  localStorage.setItem('mcla_last_version_name', selectedVersion.value)
+  userHasSelectedVersion.value = true
+  versionsStore.setCurrentVersion(ver.id)
   showVersionSelect.value = false
 }
 
@@ -486,14 +672,46 @@ async function onAccountSelect(event: Event) {
   select.value = accountsStore.activeAccount?.id || ''
 }
 
-function onVersionSelect(version: { id: string; name: string }) {
+function onVersionSelect(version: { id: string; name: string; loader?: string }) {
   selectedVersionId.value = version.id
-  selectedVersion.value = version.name
+  const displayName = `${version.name}${version.loader ? '-' + version.loader : ''}`
+  selectedVersion.value = displayName
+  localStorage.setItem('mcla_last_version', version.id)
+  localStorage.setItem('mcla_last_version_name', displayName)
+  userHasSelectedVersion.value = true
+  versionsStore.setCurrentVersion(version.id)
 }
 
-function handleLaunch() {
+async function handleLaunch() {
+  // 前置检查
+  if (!selectedVersionId.value) {
+    alert('请先选择一个版本')
+    return
+  }
+  if (!accountsStore.activeAccount) {
+    alert('请先添加并选择一个账号')
+    return
+  }
+
   isLaunching.value = true
-  setTimeout(() => { isLaunching.value = false }, 3000)
+  const accountId = accountsStore.activeAccount.id
+
+  // 监听启动进度
+  if (window.electronAPI?.game.onProgress) {
+    window.electronAPI.game.onProgress((progress) => {
+    })
+  }
+
+  try {
+    const result = await window.electronAPI?.game.launch('', accountId, selectedVersionId.value)
+    if (!result?.success) {
+      alert('启动失败: ' + (result?.error || '未知错误'))
+    }
+  } catch (e: any) {
+    alert('启动异常: ' + e.message)
+  } finally {
+    isLaunching.value = false
+  }
 }
 
 function saveOfflineName() {

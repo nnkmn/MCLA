@@ -5,6 +5,8 @@
 
 import type { IGameAdapter } from './IGameAdapter'
 import { MinecraftJavaAdapter } from './minecraft-java.adapter'
+import { logger } from '../utils/logger'
+const log = logger.child('AdapterRegistry')
 
 class AdapterRegistry {
   private adapters = new Map<string, IGameAdapter>()
@@ -20,10 +22,10 @@ class AdapterRegistry {
   register(adapter: IGameAdapter): void {
     const { id } = adapter.gameInfo
     if (this.adapters.has(id)) {
-      console.warn(`[AdapterRegistry] Overwriting adapter: ${id}`)
+      log.warn(`[AdapterRegistry] Overwriting adapter: ${id}`)
     }
     this.adapters.set(id, adapter)
-    console.log(`[AdapterRegistry] Registered: ${id}`)
+    log.info(`[AdapterRegistry] Registered: ${id}`)
   }
 
   /**
@@ -55,14 +57,14 @@ class AdapterRegistry {
    * 获取当前平台支持的适配器
    */
   getSupportedAdapters(): IGameAdapter[] {
-    const platform = process.platform === 'win32'
+    const platform: 'windows' | 'macos' | 'linux' = process.platform === 'win32'
       ? 'windows'
       : process.platform === 'darwin'
         ? 'macos'
         : 'linux'
 
     return Array.from(this.adapters.values()).filter(
-      a => a.gameInfo.supportedPlatforms.includes(platform as any)
+      a => a.gameInfo.supportedPlatforms.includes(platform)
     )
   }
 }

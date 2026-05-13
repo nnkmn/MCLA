@@ -24,6 +24,29 @@
         <span class="btn-text">{{ launchLabel }}</span>
       </button>
 
+      <!-- .minecraft 路径显示 -->
+      <div class="mc-path-bar" :title="mcPath">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <span class="mc-path-text" :class="{ 'not-found': !mcPathExists }">{{ mcPathDisplay }}</span>
+        <div class="mc-path-actions">
+          <button
+            v-if="isCustomPath"
+            class="mc-path-btn"
+            title="恢复默认路径"
+            @click.stop="restoreDefaultPath"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button
+            class="mc-path-btn"
+            title="修改路径"
+            @click.stop="changePath"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      </div>
+
       <!-- 状态信息 -->
       <p v-if="statusMessage" class="status-msg" :class="{ error: hasError }">
         {{ statusMessage }}
@@ -80,10 +103,16 @@
       </div>
     </section>
   </div>
+
+  <PxLaunchProgress ref="pxProgressRef" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useVersionsStore, useAccountsStore, useInstancesStore } from '../stores'
+import PxLaunchProgress from '../components/common/PxLaunchProgress.vue'
+
+const pxProgressRef = ref<InstanceType<typeof PxLaunchProgress> | null>(null)
 
 // ====== 状态 ======
 const isLaunching = ref(false)
@@ -93,8 +122,12 @@ const hasError = ref(false)
 const logLines = ref<string[]>([])
 const logContainerRef = ref<HTMLElement | null>(null)
 const autoScroll = ref(true)
+const mcPath = ref('')
+const mcPathExists = ref(true)
+const isCustomPath = ref(false)
 let logListener: ((...args: any[]) => void) | null = null
 let exitListener: ((code: number) => void) | null = null
+let progressListener: ((...args: any[]) => void) | null = null
 
 // 崩溃报告（简化版）
 interface CrashInfo {
@@ -105,6 +138,11 @@ interface CrashInfo {
 const crashReport = ref<CrashInfo | null>(null)
 
 // ====== 计算属性 ======
+const mcPathDisplay = computed(() => {
+  if (!mcPath.value) return '正在检测...'
+  if (!mcPathExists.value) return mcPath.value + '（未找到）'
+  return mcPath.value
+})
 const launchLabel = computed(() => {
   if (isRunning.value) return '运行中'
   if (isLaunching.value) return '启动中...'
@@ -114,7 +152,6 @@ const launchLabel = computed(() => {
 // ====== 方法 ======
 async function handleLaunch() {
   if (isLaunching.value || isRunning.value) {
-    // 运行中点击 = 终止
     await terminateGame()
     return
   }
@@ -123,20 +160,44 @@ async function handleLaunch() {
   hasError.value = false
   statusMessage.value = '正在构建启动参数...'
   crashReport.value = null
+  pxProgressRef.value?.open()
+  addLog('[MCLA] 开始启动流程...')
 
   try {
-    // 获取当前选中的实例和账户
-    // TODO: 从 store 获取实际选中的 instanceId / accountId
-    const instanceId = '' // 需要从全局状态获取
-    const accountId = ''
+    // 从 versionsStore 获取当前选中的版本
+    const versionsStore = useVersionsStore()
+    const accountsStore = useAccountsStore()
+    const instancesStore = useInstancesStore()
 
-    await window.electronAPI?.game.launch(instanceId || 'default', accountId || 'default')
-    statusMessage.value = '游戏进程已启动'
+    // 优先用 instancesStore 的当前实例
+    let instanceId = instancesStore.currentInstanceId || ''
+    let accountId = accountsStore.activeAccount?.id || ''
+
+    // 如果没有实例 id，用 versionsStore 当前版本
+    const versionId = versionsStore.currentVersionId || ''
+    if (!instanceId && versionId) {
+      instanceId = versionId
+    }
+
+    // 如果没有版本，提示用户
+    if (!versionId && !instanceId) {
+      hasError.value = true
+      statusMessage.value = '请先选择一个游戏版本'
+      addLog('[MCLA] 未选择版本，无法启动')
+      isLaunching.value = false
+      return
+    }
+
+    addLog(`[MCLA] 启动参数: instanceId="${instanceId}", accountId="${accountId}", versionId="${versionId}"`)
+
+    const result = await window.electronAPI?.game.launch(instanceId || 'default', accountId || 'default', versionId)
+    addLog(`[MCLA] launch IPC 返回: ${JSON.stringify(result)}`)
   } catch (e: any) {
     hasError.value = true
     statusMessage.value = e.message || '启动失败'
+    addLog(`[MCLA] 启动失败: ${e.message || e}`)
   } finally {
-    isLaunching.value = false
+    // 保持 isLaunching，progress 事件会在成功时设为 false
   }
 }
 
@@ -147,7 +208,6 @@ async function terminateGame() {
     statusMessage.value = '游戏已终止'
     addLog('[MCLA] 游戏进程已手动终止')
   } catch (e) {
-    console.error('Terminate failed:', e)
   }
 }
 
@@ -206,8 +266,68 @@ function onScrollLog() {
   autoScroll.value = atBottom
 }
 
+/** 修改 .minecraft 路径 */
+async function changePath() {
+  const api = window.electronAPI
+  if (!api?.dialog) return
+
+  const selected = await api.dialog.selectFolder()
+  if (!selected) return
+
+  // 保存到配置
+  await api.path.setCustom(selected)
+  // 更新显示
+  mcPath.value = selected
+  isCustomPath.value = true
+  mcPathExists.value = await api.path.exists(selected)
+  statusMessage.value = `已切换到: ${selected}`
+  setTimeout(() => { statusMessage.value = '' }, 3000)
+}
+
+/** 恢复默认路径 */
+async function restoreDefaultPath() {
+  const api = window.electronAPI
+  if (!api?.path) return
+
+  await api.path.clearCustom()
+  const defaultPath = await api.path.getDefault()
+  mcPath.value = defaultPath
+  isCustomPath.value = false
+  mcPathExists.value = await api.path.exists(defaultPath)
+  statusMessage.value = `已恢复默认: ${defaultPath}`
+  setTimeout(() => { statusMessage.value = '' }, 3000)
+}
+
 // ====== 生命周期 ======
 onMounted(async () => {
+  // 加载上次选中的版本（从 localStorage，App.vue onVersionSelect 会写这里）
+  try {
+    const lastVersionId = localStorage.getItem('mcla_last_version') || ''
+    const lastVersionName = localStorage.getItem('mcla_last_version_name') || ''
+    if (lastVersionId) {
+      const versionsStore = useVersionsStore()
+      versionsStore.setCurrentVersion(lastVersionId)
+    }
+  } catch (e) { /* ignore */ }
+
+  // 加载 .minecraft 路径
+  try {
+    const api = window.electronAPI
+    if (api?.path) {
+      // 检查是否有自定义路径
+      const customPath = await api.path.getCustom()
+      if (customPath) {
+        mcPath.value = customPath
+        isCustomPath.value = true
+      } else {
+        mcPath.value = await api.path.getMinecraft()
+      }
+      mcPathExists.value = await api.path.exists(mcPath.value)
+    }
+  } catch (e) {
+    mcPathExists.value = false
+  }
+
   // 注册日志监听
   if (window.electronAPI?.game.onLog) {
     logListener = (line: string) => addLog(line)
@@ -223,13 +343,26 @@ onMounted(async () => {
       if (code !== 0) {
         hasError.value = true
         statusMessage.value = `游戏异常退出 (exit code ${code})`
-        // TODO: 触发崩溃分析
-        // analyzeCrash(logLines.value)
       } else {
         statusMessage.value = '游戏正常退出'
       }
     }
     window.electronAPI.game.onExit(exitListener)
+  }
+
+  // 注册进度监听
+  if (window.electronAPI?.game.onProgress) {
+    progressListener = (progress: { phase: string; message: string; detail?: string }) => {
+      statusMessage.value = progress.message
+      if (progress.detail) addLog(`[进度] ${progress.message} → ${progress.detail}`)
+      else addLog(`[进度] ${progress.message}`)
+      if (progress.phase === 'running') {
+        isLaunching.value = false
+        isRunning.value = true
+      }
+      if (progress.phase === 'error') hasError.value = true
+    }
+    window.electronAPI.game.onProgress(progressListener)
   }
 
   // 检查是否已有运行中的游戏
@@ -258,8 +391,62 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   margin-top: 20px;
+}
+
+/* .minecraft 路径显示条 */
+.mc-path-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--mcla-bg-elevated);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-md);
+  font-size: 12px;
+  color: var(--mcla-text-muted);
+  max-width: 560px;
+  width: 100%;
+
+  svg { flex-shrink: 0; opacity: 0.6; }
+
+  .mc-path-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--mcla-text-secondary);
+
+    &.not-found { color: var(--mcla-text-error); }
+  }
+
+  .mc-path-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .mc-path-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--mcla-radius-sm);
+    color: var(--mcla-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      color: var(--mcla-primary);
+      border-color: var(--mcla-primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+  }
 }
 
 .launch-btn {

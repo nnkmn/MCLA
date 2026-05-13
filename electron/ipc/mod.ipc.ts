@@ -1,5 +1,7 @@
 import { ipcMain } from 'electron';
-import { ModService, ModInfo } from '../services/mod.service';
+import { promises as fs, existsSync } from 'fs';
+import * as path from 'path';
+import { ModService, ModInfo, ModUpdateInfo } from '../services/mod.service';
 
 /**
  * 注册 Mod 管理 IPC handlers
@@ -135,4 +137,106 @@ export function registerModIpcHandlers(modService: ModService) {
       return { ok: false, error: error.message };
     }
   });
+
+  /**
+   * 读取 config 目录下的配置文件列表
+   */
+  ipcMain.handle('mod:read-config', async (_event, { gameDir }) => {
+    try {
+      const configDir = path.join(gameDir, 'config');
+      const configFiles: Array<{ name: string; path: string; size: number; modified: string }> = [];
+
+      const entries = await fs.readdir(configDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && /\.(toml|json|cfg|conf|ini)$/i.test(entry.name)) {
+          const filePath = path.join(configDir, entry.name);
+          const stat = await fs.stat(filePath);
+          configFiles.push({
+            name: entry.name,
+            path: filePath,
+            size: stat.size,
+            modified: stat.mtime.toISOString(),
+          });
+        }
+      }
+
+      return { ok: true, data: configFiles };
+    } catch (error: any) {
+      // config 目录不存在不算错，返回空列表
+      if (error.code === 'ENOENT') return { ok: true, data: [] };
+      return { ok: false, error: error.message };
+    }
+  });
+
+  /**
+   * 读取单个 config 文件内容
+   */
+  ipcMain.handle('mod:get-config-content', async (_event, { filePath }) => {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      return { ok: true, data: content };
+    } catch (error: any) {
+      return { ok: false, error: error.message };
+    }
+  });
+
+  /**
+   * 写入 config 文件内容
+   */
+  ipcMain.handle('mod:save-config-content', async (_event, { filePath, content }) => {
+    try {
+      await fs.writeFile(filePath, content, 'utf-8');
+      return { ok: true };
+    } catch (error: any) {
+      return { ok: false, error: error.message };
+    }
+  });
+
+  /**
+   * 打开 config 目录（创建如果不存在）
+   */
+  ipcMain.handle('mod:open-config-dir', async (_event, { gameDir }) => {
+    try {
+      const configDir = path.join(gameDir, 'config');
+      await fs.mkdir(configDir, { recursive: true });
+      return { ok: true, data: configDir };
+    } catch (error: any) {
+      return { ok: false, error: error.message };
+    }
+  });
+
+  /**
+   * 批量检查 mod 更新（Modrinth）
+   * @param mods ModInfo[] 需要检查的 mod 列表
+   * @param mcVersion string 当前 MC 版本（可选）
+   * @param loader string mod loader（可选）
+   */
+  ipcMain.handle('mod:check-update', async (_event, { mods, mcVersion, loader }) => {
+    try {
+      const results = await modService.checkModsUpdate(mods, mcVersion, loader)
+      return { ok: true, data: results }
+    } catch (error: any) {
+      return { ok: false, error: error.message }
+    }
+  })
+
+  /**
+   * 下载并替换 mod 到最新版本
+   * @param mod ModInfo 当前 mod 信息
+   * @param updateInfo ModUpdateInfo 更新信息
+   */
+  ipcMain.handle('mod:update', async (event, { mod, updateInfo }: { mod: ModInfo; updateInfo: ModUpdateInfo }) => {
+    try {
+      const result = await modService.updateMod(mod, updateInfo, (progress) => {
+        event.sender.send('mod:update-progress', {
+          filePath: mod.filePath,
+          progress,
+        })
+      })
+      if (!result) return { ok: false, error: '更新失败' }
+      return { ok: true, data: result }
+    } catch (error: any) {
+      return { ok: false, error: error.message }
+    }
+  })
 }

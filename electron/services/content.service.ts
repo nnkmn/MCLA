@@ -1,6 +1,8 @@
 import { CurseForgeService, CurseForgeMod, CurseForgeFile, CurseForgeSearchParams } from './curseforge.service';
 import { ModrinthService, ModrinthProject, ModrinthVersion, ModrinthSearchParams } from './modrinth.service';
 import { DownloadService, DownloadTask } from './download.service';
+import { logger } from '../utils/logger'
+const log = logger.child('ContentService')
 
 /**
  * 内容平台类型
@@ -129,7 +131,7 @@ export class ContentService {
 
       return response.data.map(mod => this.curseForgeModToContentProject(mod));
     } catch (error) {
-      console.error('CurseForge search error:', error);
+      log.error('CurseForge search error:', error);
       return [];
     }
   }
@@ -165,7 +167,7 @@ export class ContentService {
 
       return response.hits.map(project => this.modrinthProjectToContentProject(project));
     } catch (error) {
-      console.error('Modrinth search error:', error);
+      log.error('Modrinth search error:', error);
       return [];
     }
   }
@@ -184,7 +186,7 @@ export class ContentService {
         return this.modrinthProjectToContentProject(project);
       }
     } catch (error) {
-      console.error('Get project error:', error);
+      log.error('Get project error:', error);
       return null;
     }
   }
@@ -225,7 +227,7 @@ export class ContentService {
         return versions.map(version => this.modrinthVersionToContentFile(version, projectId));
       }
     } catch (error) {
-      console.error('Get project files error:', error);
+      log.error('Get project files error:', error);
       return [];
     }
   }
@@ -259,7 +261,7 @@ export class ContentService {
         return categories.map(cat => cat.name);
       }
     } catch (error) {
-      console.error('Get categories error:', error);
+      log.error('Get categories error:', error);
       return [];
     }
   }
@@ -276,7 +278,7 @@ export class ContentService {
         return loaders.map(loader => loader.name);
       }
     } catch (error) {
-      console.error('Get loaders error:', error);
+      log.error('Get loaders error:', error);
       return [];
     }
   }

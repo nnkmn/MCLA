@@ -1,8 +1,11 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import { join } from 'path';
 import axios from 'axios';
-import { GameInstance, ModLoader } from '../types/adapter.types';
+import { GameInstance, ModLoader, ModLoaderType } from '../types/adapter.types';
+import { logger } from '../utils/logger'
+const log = logger.child('ModLoaderService')
 
 // Fabric API 端点
 const FABRIC_META_BASE = 'https://meta.fabricmc.net/v2'
@@ -110,7 +113,7 @@ export class ModLoaderService {
 
       return results.sort((a, b) => this.compareVersions(b.gameVersion, a.gameVersion));
     } catch (error) {
-      console.error('[ModLoaderService] 获取 Fabric 版本失败:', error);
+      log.error('[ModLoaderService] 获取 Fabric 版本失败:', error);
       return [];
     }
   }
@@ -133,7 +136,7 @@ export class ModLoaderService {
       }
       return null;
     } catch (error) {
-      console.error(`[ModLoaderService] 获取 ${mcVersion} 的 Fabric 版本失败:`, error);
+      log.error(`[ModLoaderService] 获取 ${mcVersion} 的 Fabric 版本失败:`, error);
       return null;
     }
   }
@@ -203,7 +206,7 @@ export class ModLoaderService {
       timeout: 300000 // 5分钟超时
     });
 
-    const totalSize = parseInt(response.headers['content-length'] || '0', 10);
+    const totalSize = parseInt((response.headers as Record<string, string>)['content-length'] || '0', 10);
     let downloaded = 0;
 
     const writer = await fs.open(destPath, 'w');
@@ -279,7 +282,7 @@ export class ModLoaderService {
     for (const [type, info] of this.modLoaders) {
       if (info.supportedVersions.includes(minecraftVersion)) {
         loaders.push({
-          type,
+          type: type as ModLoaderType,
           name: info.name,
           supportedVersions: info.supportedVersions
         });
@@ -328,11 +331,86 @@ export class ModLoaderService {
     const downloadUrl = loaderInfo.downloadUrls[platform]
       .replace('{version}', version);
 
-    const installerPath = join(process.cwd(), 'downloads', `${loaderType}-${version}-${platform}.${this.getExtension(platform)}`);
-    
-    // 这里应该实现实际的下载逻辑
-    // 暂时返回模拟路径
-    return installerPath;
+    const downloadsDir = join(process.cwd(), 'downloads', 'modloaders');
+    await fs.mkdir(downloadsDir, { recursive: true });
+
+    const extension = this.getExtension(platform);
+    const installerPath = join(downloadsDir, `${loaderType}-${version}-${platform}.${extension}`);
+
+    // 检查是否已下载
+    try {
+      await fs.access(installerPath);
+      log.info(`[ModLoader] 安装程序已存在: ${installerPath}`);
+      return installerPath;
+    } catch {
+      // 文件不存在，继续下载
+    }
+
+    // 报告下载进度
+    this.reportProgress({
+      stage: 'downloading',
+      progress: 0,
+      message: `正在下载 ${loaderInfo.name} ${version}...`
+    });
+
+    try {
+      log.info(`[ModLoader] 开始下载: ${downloadUrl}`);
+
+      const response = await axios({
+        method: 'get',
+        url: downloadUrl,
+        responseType: 'stream',
+        timeout: 300000 // 5分钟超时
+      });
+
+      const totalSize = parseInt((response.headers as Record<string, string>)['content-length'] || '0', 10);
+      let downloadedSize = 0;
+
+      const writer = await fs.open(installerPath, 'w');
+      const stream = response.data;
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', (chunk: Buffer) => {
+          downloadedSize += chunk.length;
+          if (totalSize > 0) {
+            const progress = Math.round((downloadedSize / totalSize) * 100);
+            this.reportProgress({
+              stage: 'downloading',
+              progress,
+              message: `正在下载 ${loaderInfo.name} ${version}... ${progress}%`
+            });
+          }
+        });
+
+        stream.on('end', async () => {
+          try {
+            await writer.close();
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        stream.on('error', async (err: Error) => {
+          try {
+            await writer.close();
+          } catch {}
+          reject(err);
+        });
+
+        // 写入文件
+        stream.pipe(writer.createWriteStream());
+      });
+
+      log.info(`[ModLoader] 下载完成: ${installerPath}`);
+      return installerPath;
+    } catch (error: any) {
+      // 下载失败时清理文件
+      try {
+        await fs.unlink(installerPath);
+      } catch {}
+      throw new Error(`下载 ${loaderInfo.name} 失败: ${error.message}`);
+    }
   }
 
   /**
@@ -400,7 +478,7 @@ export class ModLoaderService {
       } else if (instance.modLoader!.type === 'fabric') {
         await fs.access(fabricCoreFile);
       }
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Mod 加载器安装验证失败: ' + error.message);
     }
   }

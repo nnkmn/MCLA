@@ -117,5 +117,6 @@ function mapRawToAccount(raw: any): Account {
     skin_url: raw.skin_url ?? null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
+    xuid: raw.xuid ?? null,
   }
 }

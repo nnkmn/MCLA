@@ -536,6 +536,22 @@
 
         <div class="row">
           <div class="row-main">
+            <label class="row-label">CurseForge API Key</label>
+            <p class="row-desc">用于访问 CurseForge API（留空则只用 Modrinth）</p>
+          </div>
+          <div class="row-control">
+            <input
+              type="password"
+              class="f-input"
+              v-model="s.cfApiKey"
+              placeholder="填入你的 CF API Key"
+              @blur="saveCfApiKey"
+            />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="row-main">
             <label class="row-label">文件名格式</label>
             <p class="row-desc">下载的 Mod/资源包文件命名规则</p>
           </div>
@@ -608,13 +624,19 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, inject, computed } from 'vue'
+import { reactive, inject, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 const settingsActive = inject('settingsActive') as any
 const activeCategory = computed(() => settingsActive?.value || 'launch')
+
+// 加载保存的 CF API Key 和 Java 设置
+onMounted(async () => {
+  await loadCfApiKey()
+  await loadJavaSettings()
+})
 
 // section 折叠状态（true = 展开）
 const collapsed = reactive<Record<string, boolean>>({
@@ -664,6 +686,7 @@ const s = reactive({
   themeColor: '#6366f1',
   lang: 'zh-CN',
   bgImageMode: 'none',
+  bgImagePath: '',
   bgColorOverlay: false,
   bgMusicMode: 'none',
   titleBarMode: 'default',
@@ -675,6 +698,7 @@ const s = reactive({
   maxThreads: 32,
   speedLimit: 0,
   modSource: 'both',
+  cfApiKey: '',
   fileNameFormat: 'name-version',
   modManageStyle: 'card',
 })
@@ -734,10 +758,47 @@ const featureRows = reactive([
   },
 ])
 
-function browseJava() { console.log('browse java') }
-function browseSkin() { console.log('browse skin') }
-function browseBgImage() { console.log('browse bg image') }
-function openMcDir() { console.log('open .minecraft dir') }
+async function browseJava() {
+  const path = await window.electronAPI?.dialog.selectFile({
+    title: '选择 java.exe',
+    filters: [{ name: 'Java 可执行文件', extensions: ['exe'] }],
+  })
+  if (path) {
+    s.javaPath = path
+    s.javaPreset = 'custom'
+  }
+}
+async function browseSkin() {
+  const path = await window.electronAPI?.dialog?.selectFile({
+    title: '选择皮肤文件（PNG）',
+    filters: [{ name: 'PNG 图片', extensions: ['png'] }],
+  })
+  if (path) {
+    s.customSkinPath = path
+    s.offlineSkin = 'custom'
+  }
+}
+async function browseBgImage() {
+  const path = await window.electronAPI?.dialog?.selectFile({
+    title: '选择背景图片',
+    filters: [{ name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'] }],
+  })
+  if (path) {
+    s.bgImagePath = path
+  }
+}
+async function openMcDir() {
+  try {
+    const mcDir = await window.electronAPI?.path?.getMinecraftPath()
+    if (mcDir) {
+      await window.electronAPI?.shell.openPath(mcDir)
+    } else {
+      alert('无法确定 .minecraft 目录位置')
+    }
+  } catch (e: any) {
+    alert(`打开目录失败: ${e.message}`)
+  }
+}
 
 const skinOptions = [
   { value: 'random',   label: '随机' },
@@ -755,8 +816,61 @@ function onSkinSelect(val: string) {
   s.offlineSkin = val
 }
 
-function saveSkin() { console.log('save skin', s.officialSkinName) }
-function refreshSkin() { console.log('refresh skin') }
+async function saveSkin() {
+  if (!s.officialSkinName) {
+    alert('请先输入正版玩家名')
+    return
+  }
+  try {
+    const result = await window.electronAPI?.account?.saveOfficialSkin?.(s.officialSkinName)
+    if (result?.ok) {
+      alert('皮肤保存成功')
+    } else {
+      alert(`皮肤保存失败: ${result?.error || '未知错误'}`)
+    }
+  } catch (e: any) {
+    alert(`皮肤保存失败: ${e.message}`)
+  }
+}
+
+async function saveCfApiKey() {
+  if (window.electronAPI?.config) {
+    await window.electronAPI.config.setSecure('curseforge_api_key', s.cfApiKey)
+  }
+}
+
+async function loadCfApiKey() {
+  if (window.electronAPI?.config) {
+    const key = await window.electronAPI.config.getSecure('curseforge_api_key')
+    if (key) s.cfApiKey = key
+  }
+}
+
+async function loadJavaSettings() {
+  if (!window.electronAPI?.config) return
+  const preset = await window.electronAPI.config.get('java_preset')
+  const path = await window.electronAPI.config.get('java_custom_path')
+  if (preset) s.javaPreset = preset
+  if (path) s.javaPath = path
+}
+
+// 监听 Java 预设变化，保存到 DB
+async function saveJavaPreset() {
+  if (window.electronAPI?.config) {
+    await window.electronAPI.config.set('java_preset', s.javaPreset)
+  }
+}
+
+// 监听自定义路径变化，保存到 DB
+async function saveJavaPath() {
+  if (window.electronAPI?.config) {
+    await window.electronAPI.config.set('java_custom_path', s.javaPath)
+  }
+}
+
+// 监听 javaPreset 和 javaPath 变化，自动保存
+watch(() => s.javaPreset, saveJavaPreset)
+watch(() => s.javaPath, saveJavaPath)
 
 // ====== 主题色应用：用户选择颜色后实时更新全局 CSS 变量 ======
 function applyThemeColor(hex: string) {

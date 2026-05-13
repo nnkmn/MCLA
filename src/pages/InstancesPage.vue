@@ -26,6 +26,14 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           新建实例
         </button>
+        <button class="btn-secondary" @click="showImport = true" title="导入实例">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导入
+        </button>
+        <button class="btn-secondary" @click="showExport = true" :disabled="!selectedId" title="导出选中实例">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          导出
+        </button>
       </div>
     </div>
 
@@ -161,11 +169,117 @@
         </form>
       </div>
     </div>
+
+    <!-- 导入实例弹窗 -->
+    <div class="modal-overlay" v-if="showImport" @click.self="closeImport">
+      <div class="modal-content">
+        <h3>导入已有实例</h3>
+
+        <!-- 步骤1: 选择目录 -->
+        <div v-if="importStep === 'select'" class="import-step">
+          <p class="import-hint">选择一个包含 Minecraft 游戏数据的目录（versions、libraries、mods 等）</p>
+          <div class="form-group">
+            <label>目录路径</label>
+            <div class="dir-picker">
+              <input v-model="importDir" placeholder="点击选择按钮选择目录..." readonly />
+              <button class="btn-secondary" @click="selectImportDir">选择</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤2: 扫描中 -->
+        <div v-else-if="importStep === 'scanning'" class="import-step">
+          <div class="spinner-row"><div class="spinner"></div><span>正在扫描目录...</span></div>
+        </div>
+
+        <!-- 步骤3: 预览 -->
+        <div v-else-if="importStep === 'preview'" class="import-step">
+          <div class="scan-result" v-if="importScanResult">
+            <div class="result-item">
+              <span class="result-label">游戏版本</span>
+              <span class="result-value">{{ importScanResult.mcVersion || '未知' }}</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">加载器</span>
+              <span class="result-value">{{ importScanResult.loaderType || '原版' }} {{ importScanResult.loaderVersion }}</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Mod 数量</span>
+              <span class="result-value">{{ importScanResult.modsCount || 0 }}</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">配置文件</span>
+              <span class="result-value">{{ importScanResult.configCount || 0 }}</span>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-cancel" @click="closeImport">取消</button>
+            <button class="btn-primary" @click="doImport">确认导入</button>
+          </div>
+        </div>
+
+        <!-- 步骤4: 导入中 -->
+        <div v-else-if="importStep === 'importing'" class="import-step">
+          <div class="spinner-row"><div class="spinner"></div><span>正在导入...</span></div>
+        </div>
+
+        <!-- 步骤5: 完成 -->
+        <div v-else-if="importStep === 'done'" class="import-step">
+          <div class="result-success">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--mcla-success)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <p>导入成功！</p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-primary" @click="closeImport">完成</button>
+          </div>
+        </div>
+
+        <!-- 步骤6: 错误 -->
+        <div v-else-if="importStep === 'error'" class="import-step">
+          <div class="result-error">
+            <p>{{ importError }}</p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-cancel" @click="closeImport">关闭</button>
+            <button class="btn-secondary" @click="importStep = 'select'">重新选择</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导出实例弹窗 -->
+    <div class="modal-overlay" v-if="showExport" @click.self="showExport = false">
+      <div class="modal-content">
+        <h3>导出实例</h3>
+        <p class="export-desc">将选中实例导出为 .mcla 可分享包</p>
+        <div class="export-options">
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="exportOptions.includeMods" />
+            包含 Mod 文件
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="exportOptions.includeConfigs" />
+            包含配置文件
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="exportOptions.includeSaves" />
+            包含存档（建议关闭，会使包体较大）
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showExport = false">取消</button>
+          <button class="btn-primary" @click="doExport" :disabled="exportLoading">
+            {{ exportLoading ? '导出中...' : '导出' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 实例类型（统一使用 camelCase）
 interface Instance {
@@ -190,11 +304,22 @@ interface Instance {
   updated_at: string
 }
 
+const router = useRouter()
 const searchQuery = ref('')
 const showNewInstance = ref(false)
 const selectedId = ref('')
 const viewMode = ref<'grid' | 'list'>('grid')
 const instances = ref<Instance[]>([])
+
+// 导入/导出状态
+const showImport = ref(false)
+const showExport = ref(false)
+const importStep = ref<'select' | 'scanning' | 'preview' | 'importing' | 'done' | 'error'>('select')
+const importDir = ref('')
+const importScanResult = ref<any>(null)
+const importError = ref('')
+const exportLoading = ref(false)
+const exportOptions = ref({ includeMods: true, includeConfigs: true, includeSaves: false })
 
 // 新建表单
 const newInst = ref({
@@ -240,7 +365,6 @@ async function loadInstances() {
     const result = await window.electronAPI?.instance?.list()
     instances.value = (result || []) as Instance[]
   } catch (e) {
-    console.error('[Instances] 加载失败:', e)
     instances.value = []
   }
 }
@@ -259,24 +383,31 @@ function selectInstance(inst: Instance) { selectedId.value = inst.id }
 async function handleCreateInstance() {
   if (!newInst.value.name.trim()) return
 
+  // 获取用户选择的 .minecraft 路径（自定义路径优先）
+  let customPath = ''
+  try {
+    const api = window.electronAPI
+    if (api?.path) {
+      const custom = await api.path.getCustom()
+      if (custom) {
+        customPath = custom
+      } else {
+        customPath = await api.path.getMinecraft()
+      }
+    }
+  } catch (e) {
+  }
+
   try {
     await window.electronAPI?.instance?.create({
       name: newInst.value.name.trim(),
-      path: '', // 后续由后端生成路径
-      mc_version: newInst.value.mc_version,
-      loader_type: newInst.value.loader_type,
-      loader_version: '',
-      icon: '',
-      java_path: '',
-      jvm_args: '',
-      min_memory: 512,
-      max_memory: 2048,
-      width: 854,
-      height: 480,
-      fullscreen: 0,
-      is_favorited: 0,
-      last_played: null,
-      play_time: 0,
+      mcVersion: newInst.value.mc_version,
+      loaderType: newInst.value.loader_type,
+      customPath, // 传入用户选择的 .minecraft 路径
+      loaderVersion: '',
+      javaPath: '',
+      minMemory: 512,
+      maxMemory: 2048,
     })
 
     // 重新加载列表
@@ -286,28 +417,102 @@ async function handleCreateInstance() {
     newInst.value = { name: '', mc_version: '1.20.4', loader_type: 'vanilla' }
     showNewInstance.value = false
   } catch (e) {
-    console.error('[Instances] 创建失败:', e)
   }
 }
 
 function launchInstance(inst: Instance) {
-  console.log('Launch:', inst.name)
-  // TODO: 调用 game:launch IPC
+  window.electronAPI?.game?.launch?.({ instanceId: inst.id, accountId: undefined, versionId: inst.mc_version })
 }
 
 async function openFolder(inst: Instance) {
-  const path = inst.path || ''
-  if (path && window.electronAPI?.path?.exists) {
-    const exists = await window.electronAPI.path.exists(path)
-    if (exists) {
-      window.electronAPI.shell?.openPath?.(path)
+  if (inst.path) {
+    window.electronAPI?.shell?.openPath?.(inst.path)
+  }
+}
+
+// ====== 导入/导出 ======
+async function selectImportDir() {
+  const dir = await window.electronAPI?.dialog?.selectFolder()
+  if (!dir) return
+  importDir.value = dir
+  await scanImportDir()
+}
+
+async function scanImportDir() {
+  if (!importDir.value) return
+  importStep.value = 'scanning'
+  importError.value = ''
+  try {
+    const res = await window.electronAPI?.instance?.scanMinecraft(importDir.value)
+    if (res?.ok) {
+      importScanResult.value = res.data
+      importStep.value = res.data.valid ? 'preview' : 'error'
+      if (!res.data.valid) importError.value = res.data.suggestions?.[0] || '目录无效'
+    } else {
+      importStep.value = 'error'
+      importError.value = res?.error || '扫描失败'
     }
+  } catch (e: any) {
+    importStep.value = 'error'
+    importError.value = e.message
+  }
+}
+
+async function doImport() {
+  if (!importDir.value) return
+  importStep.value = 'importing'
+  try {
+    const minecraftPath = await window.electronAPI?.path?.getMinecraft()
+    if (!minecraftPath) {
+      importStep.value = 'error'
+      importError.value = '无法获取 .minecraft 目录'
+      return
+    }
+    const res = await window.electronAPI?.instance?.importInstance(importDir.value, minecraftPath)
+    if (res?.ok) {
+      importStep.value = 'done'
+      await loadInstances()
+    } else {
+      importStep.value = 'error'
+      importError.value = res?.error || '导入失败'
+    }
+  } catch (e: any) {
+    importStep.value = 'error'
+    importError.value = e.message
+  }
+}
+
+function closeImport() {
+  showImport.value = false
+  importStep.value = 'select'
+  importDir.value = ''
+  importScanResult.value = null
+  importError.value = ''
+}
+
+async function doExport() {
+  if (!selectedId.value) return
+  exportLoading.value = true
+  try {
+    const destPath = await window.electronAPI?.dialog?.selectFile({
+      title: '导出实例',
+      filters: [{ name: 'MCLA 导出包', extensions: ['mcla'] }]
+    })
+    if (!destPath) return
+    const fullPath = destPath.endsWith('.mcla') ? destPath : destPath + '.mcla'
+    const res = await window.electronAPI?.instance?.exportInstance(selectedId.value, fullPath, exportOptions.value)
+    if (res?.ok) {
+      showExport.value = false
+    } else {
+      alert('导出失败: ' + (res?.error || '未知错误'))
+    }
+  } finally {
+    exportLoading.value = false
   }
 }
 
 function editInstance(inst: Instance) {
-  console.log('Edit:', inst.name)
-  // TODO: 打开设置弹窗
+  router.push(`/instance/${inst.id}`)
 }
 
 // 确认删除（写入数据库）
@@ -318,7 +523,6 @@ async function confirmDeleteInstance(inst: Instance) {
     await loadInstances()
     if (selectedId.value === inst.id) selectedId.value = ''
   } catch (e) {
-    console.error('[Instances] 删除失败:', e)
   }
 }
 
@@ -782,10 +986,148 @@ onMounted(() => {
   }
 }
 
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--mcla-text-secondary);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: var(--mcla-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--mcla-primary-300);
+    color: var(--mcla-primary);
+    background: var(--mcla-primary-light);
+  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
+}
+
+/* ====== 导入/导出弹窗 ====== */
+.import-hint {
+  font-size: 13px;
+  color: var(--mcla-text-secondary);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.dir-picker {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--mcla-border-color);
+    border-radius: var(--mcla-radius-sm);
+    font-size: 13px;
+    color: var(--mcla-text-primary);
+    background: var(--mcla-bg-primary);
+    outline: none;
+
+    &:focus { border-color: var(--mcla-primary-400); }
+    &::placeholder { color: var(--mcla-text-muted); }
+  }
+}
+
+.import-step {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+.spinner-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mcla-text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--mcla-border-color);
+  border-top-color: var(--mcla-primary-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.scan-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  .result-label {
+    font-size: 11px;
+    color: var(--mcla-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .result-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--mcla-text-primary);
+  }
+}
+
+.result-success, .result-error {
+  text-align: center;
+  padding: 20px 0;
+
+  p { margin: 12px 0 0; font-size: 14px; color: var(--mcla-text-primary); }
+}
+
+.result-error p { color: var(--mcla-error); }
+
+/* 导出选项 */
+.export-desc {
+  font-size: 13px;
+  color: var(--mcla-text-secondary);
+  margin: -12px 0 16px;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mcla-text-primary);
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--mcla-primary);
+  }
 }
 </style>

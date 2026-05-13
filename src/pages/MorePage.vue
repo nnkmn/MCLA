@@ -15,7 +15,7 @@
           <div class="about-author">
             <div class="author-row">
               <div class="author-avatar">
-                <img src="/EccenTri-Avatar.png" alt="EccenTri" width="40" height="40" />
+                <img :src="eccenTriAvatar" alt="EccenTri" width="40" height="40" />
               </div>
               <div class="author-info">
                 <div class="author-name">EccenTri</div>
@@ -31,11 +31,11 @@
           <div class="about-app">
             <div class="app-row">
               <div class="app-logo">
-                <img src="/LOGO.png" alt="MCLA" width="40" height="40" />
+                <img :src="mclaLogo" alt="MCLA" width="40" height="40" />
               </div>
               <div class="app-info">
                 <div class="app-name">MCLA</div>
-                <div class="app-version">当前版本：0.2.0</div>
+                <div class="app-version">当前版本：{{ appVersion }}</div>
               </div>
               <a href="https://github.com/nnkmn/MCLA" target="_blank" class="app-btn">查看源代码</a>
             </div>
@@ -49,7 +49,7 @@
         <div class="credits-list">
           <div class="credit-item" v-for="credit in credits" :key="credit.name">
             <div class="credit-header">
-              <img v-if="credit.avatar" :src="credit.avatar" class="credit-avatar" />
+              <img v-if="credit.avatar" :src="credit.avatar" class="credit-avatar" :key="credit.avatar" />
               <span class="credit-name">{{ credit.name }}</span>
               <span class="credit-tag">{{ credit.tag }}</span>
             </div>
@@ -92,7 +92,8 @@
           <p class="copyright-text copyright-muted">
             Copyright &copy; 2024-2026 MCLA Contributors. MIT License.
           </p>
-          <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" class="copyright-link">查看许可证</a>
+          <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" class="copyright-link">查看 GPLv3 许可证</a>
+          <a href="https://opensource.org/licenses/MIT" target="_blank" class="copyright-link" style="margin-left: 16px;">查看 MIT 许可证</a>
         </div>
       </section>
     </template>
@@ -166,13 +167,27 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, ref } from 'vue'
+import { inject, computed, ref, onMounted } from 'vue'
 import PxModal from '@/components/common/PxModal.vue'
+import starlightLogo from '@/assets/starlight-logo.png'
+import eccenTriAvatar from '@/assets/EccenTri-Avatar.png'
+import mclaLogo from '@/assets/LOGO.png'
+import hexDragonAvatar from '@/assets/hex-dragon-avatar.png'
 
 const moreActive = inject('moreActive') as any
 const activeCat = computed(() => moreActive?.value || 'about')
 
 const showEmailModal = ref(false)
+const appVersion = ref('0.3.0')
+
+onMounted(async () => {
+  try {
+    const v = await window.electronAPI?.app.getVersion()
+    if (v) appVersion.value = v
+  } catch {
+    // 使用默认值
+  }
+})
 
 const copyEmail = async () => {
   try {
@@ -190,8 +205,8 @@ const copyEmail = async () => {
 }
 
 const credits = [
-  { name: '龙腾猫跃', tag: '参考项目', desc: 'PCL2 作者。MCLA 参考了其部分内容和实现思路。', avatar: '/hex-dragon-avatar.png' },
-  { name: 'StarLight.Core', tag: '核心参考', desc: '星光核心。MCLA 参考了其模块化架构设计理念和部分功能实现。', avatar: '/starlight-logo.png' },
+  { name: '龙腾猫跃', tag: '参考项目', desc: 'PCL2 作者。MCLA 参考了其部分内容和实现思路。', avatar: hexDragonAvatar },
+  { name: 'StarLight.Core', tag: '核心参考', desc: '星光核心。MCLA 参考了其模块化架构设计理念和部分功能实现。', avatar: starlightLogo },
   { name: 'Mojang Studios', tag: '游戏开发', desc: 'Minecraft 游戏的创造者，提供了这个令人惊叹的沙盒世界。' },
   { name: 'Vue.js', tag: '前端框架', desc: '渐进式 JavaScript 框架，让构建现代化 Web 应用变得简单。' },
   { name: 'Anthony Fu', tag: '开源贡献', desc: 'Vue / Vite / Iconify 等众多优质开源项目的作者。' },

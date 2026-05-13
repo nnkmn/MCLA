@@ -3,10 +3,13 @@
  * 负责自动检测系统 Java 安装、验证版本、管理多版本
  */
 
-import { execSync, execFileSync } from 'child_process'
+import { execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import { getDatabase } from './database'
+import { VersionsService } from './versions'
+import { logger } from '../utils/logger'
+const log = logger.child('JavaService')
 
 export interface JavaInfo {
   id: string
@@ -39,20 +42,67 @@ export async function detectAllJava(): Promise<JavaInfo[]> {
   return results
 }
 
-/** 获取默认 Java（DB 里标记的，或自动选最高版本） */
-export async function getDefaultJava(): Promise<JavaInfo | null> {
+/** 获取默认 Java（读取用户预设 + 根据游戏版本智能选择） */
+export async function getDefaultJava(mcVersion?: string): Promise<JavaInfo | null> {
   const db = getDatabase()
-  const row = db.prepare("SELECT value FROM configs WHERE key = 'default_java'").get() as { value: string } | undefined
+  const versionSvc = new VersionsService(getDatabase())
 
-  if (row?.value) {
-    const info = await probeJava(row.value)
-    if (info) return info
+  // 读取用户预设
+  const presetRow = db.prepare("SELECT value FROM configs WHERE key = 'java_preset'").get() as { value: string } | undefined
+  const preset = presetRow?.value || 'auto'
+
+  // 读取自定义路径
+  const customPathRow = db.prepare("SELECT value FROM configs WHERE key = 'java_custom_path'").get() as { value: string } | undefined
+  const customPath = customPathRow?.value || ''
+
+  // 1. custom 模式：直接用用户指定路径
+  if (preset === 'custom') {
+    if (customPath && fs.existsSync(customPath)) {
+      const info = await probeJava(customPath)
+      if (info) return info
+    }
+    log.warn('[JavaService] custom 模式路径无效，降级到自动检测')
   }
 
-  // 没有配置，自动选第一个可用的 Java
+  // 2. 扫描所有 Java
   const all = await detectAllJava()
-  if (all.length > 0) return all[0]
-  return null
+  if (all.length === 0) {
+    const candidates = await gatherCandidates()
+    log.warn('[JavaService] 自动检测 Java 失败，候选路径列表:', candidates)
+    return null
+  }
+
+  // 3. 按预设过滤
+  let candidates: JavaInfo[] = all
+
+  if (preset === 'java8') {
+    candidates = all.filter(j => j.majorVersion === 8)
+  } else if (preset === 'java17') {
+    candidates = all.filter(j => j.majorVersion === 17)
+  } else if (preset === 'java21') {
+    candidates = all.filter(j => j.majorVersion === 21)
+  } else if (preset === 'auto' && mcVersion) {
+    // 自动模式：根据游戏版本来推荐
+    const { recommended } = versionSvc.getRecommendedJavaVersion(mcVersion)
+    const targetMajor = parseInt(recommended)
+    candidates = all.filter(j => j.majorVersion >= targetMajor)
+    // 按推荐程度排序：优先匹配推荐版本，其次更高版本
+    candidates.sort((a, b) => {
+      if (a.majorVersion === targetMajor && b.majorVersion !== targetMajor) return -1
+      if (b.majorVersion === targetMajor && a.majorVersion !== targetMajor) return 1
+      return b.majorVersion - a.majorVersion
+    })
+  }
+
+  if (candidates.length === 0) {
+    // 该版本没有，降级到所有版本里找
+    log.warn(`[JavaService] 未找到 ${preset}，降级到可用版本`)
+    candidates = all
+  }
+
+  const chosen = candidates[0]
+  log.info(`[JavaService] 自动检测到 ${all.length} 个 Java（预设: ${preset}，MC: ${mcVersion || '?'}，选中: ${chosen?.vendor} ${chosen?.version}）`)
+  return chosen
 }
 
 /** 设置默认 Java 路径 */
@@ -82,6 +132,11 @@ export function recommendedJavaMajor(mcVersion: string): number {
   return 8
 }
 
+/** 查找最佳 Java 版本（兼容旧版接口） */
+export async function findBestJava(mcVersion?: string): Promise<JavaInfo | null> {
+  return getDefaultJava(mcVersion)
+}
+
 // ===== 内部实现 =====
 
 /** 收集所有候选 java 路径 */
@@ -109,8 +164,10 @@ function findInPath(): string | null {
   try {
     const cmd = process.platform === 'win32' ? 'where java' : 'which java'
     const result = execSync(cmd, { timeout: 3000 }).toString().trim().split('\n')[0].trim()
+    log.info(`[JavaService] findInPath found: ${result}`)
     return result || null
-  } catch {
+  } catch (e: any) {
+    log.warn('[JavaService] findInPath failed:', e.message)
     return null
   }
 }
@@ -150,6 +207,13 @@ function getWindowsCandidates(): string[] {
   if (process.env['JAVA_HOME']) {
     candidates.push(path.join(process.env['JAVA_HOME'], 'bin', 'java.exe'))
   }
+
+  // Oracle Java PATH 常见路径（where java 会找到的位置）
+  candidates.push(
+    'C:\\Program Files\\Common Files\\Oracle\\Java\\javapath\\java.exe',
+    'C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path\\java.exe',
+    path.join(pf, 'Oracle\\Java\\javapath', 'java.exe'),
+  )
 
   // Minecraft 官方启动器自带 JRE
   const mcJre = path.join(local, 'Packages', 'Microsoft.4297127D64EC6_8wekyb3d8bbwe', 'LocalCache', 'Local', 'runtime')
@@ -212,32 +276,22 @@ function getLinuxCandidates(): string[] {
 /** 探测单个 java 可执行文件，返回版本信息 */
 async function probeJava(javaExe: string): Promise<JavaInfo | null> {
   try {
-    // java -XshowSettings:all -version 2>&1 包含 arch 和 vendor 信息
-    const output = execFileSync(javaExe, ['-version'], {
+    // Java -version 退出码 0，不会抛异常；版本信息在 stderr，用 2>&1 重定向到 stdout
+    const output = execSync(`"${javaExe}" -version 2>&1`, {
       timeout: 5000,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-    }).toString() + execFileSync(javaExe, [
-      '-XshowSettings:property', '-version'
-    ], {
-      timeout: 5000,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }).toString()
+    })
 
     return parseJavaInfo(javaExe, output)
   } catch (e: any) {
-    // -version 输出到 stderr，尝试 stderr
-    try {
-      let stderr = ''
-      try {
-        execFileSync(javaExe, ['-version'], { timeout: 5000, encoding: 'utf8', stdio: 'pipe' })
-      } catch (err: any) {
-        stderr = (err.stderr || '') + (err.stdout || '')
-      }
-      if (stderr) return parseJavaInfo(javaExe, stderr)
-    } catch {}
-    return null
+    // Windows 上某些 Java 实现仍会抛异常，尝试从 stderr 获取
+    const output = (e.stderr || '').toString()
+    if (!output) {
+      log.warn(`[JavaService] probeJava 无法获取输出 ${javaExe}:`, e.message)
+      return null
+    }
+    return parseJavaInfo(javaExe, output)
   }
 }
 

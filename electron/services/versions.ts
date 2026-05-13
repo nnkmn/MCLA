@@ -1,5 +1,9 @@
-import { Database } from './database'
-import { VersionInfo } from '../types'
+import Database from 'better-sqlite3'
+import type { McVersionInfo } from '../types'
+import * as fs from 'fs'
+import * as path from 'path'
+import { logger } from '../utils/logger'
+const log = logger.child('VersionsService')
 
 // BMCLAPI API 端点
 const BMCLAPI_BASE = 'https://bmclapi2.bangbang93.com'
@@ -55,6 +59,7 @@ interface BMCLVersionList {
     type: 'release' | 'snapshot' | 'old_alpha' | 'old_beta'
     releaseTime: string
     url: string
+    time?: string
   }>
   latest: {
     release: string
@@ -66,12 +71,12 @@ interface BMCLVersionList {
 export type DownloadSource = 'bmclapi' | 'mcbbs' | 'official'
 
 export class VersionsService {
-  private db: Database
+  private db: Database.Database
   private source: DownloadSource = 'bmclapi'
   private cache: Map<string, any> = new Map()
   private cacheTimeout = 5 * 60 * 1000 // 5分钟缓存
 
-  constructor(db: Database) {
+  constructor(db: Database.Database) {
     this.db = db
   }
 
@@ -97,7 +102,7 @@ export class VersionsService {
 
     try {
       const baseUrl = this.getBaseUrl()
-      const response = await fetch(`${baseUrl}/mc/game/version_manifest`)
+      const response = await fetch(`${baseUrl}/mc/game/version_manifest.json`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
@@ -105,7 +110,7 @@ export class VersionsService {
       this.cache.set(cacheKey, { data, timestamp: Date.now() })
       return data
     } catch (error) {
-      console.error('[VersionsService] 获取版本列表失败:', error)
+      log.error('[VersionsService] 获取版本列表失败:', error)
       // 降级到官方 API
       const fallback = await this.getMojangManifest()
       return fallback
@@ -122,13 +127,14 @@ export class VersionsService {
   }
 
   // 获取所有可用版本
-  async getAllVersions(): Promise<VersionInfo[]> {
+  async getAllVersions(): Promise<McVersionInfo[]> {
     const manifest = await this.getVersionList()
     return manifest.versions.map(v => ({
       id: v.id,
       type: v.type,
       releaseTime: v.releaseTime,
-      url: v.url
+      url: v.url,
+      time: v.time || v.releaseTime
     }))
   }
 
@@ -147,49 +153,56 @@ export class VersionsService {
     }
 
     try {
-      const baseUrl = this.getBaseUrl()
-      const response = await fetch(`${baseUrl}/mc/game/version/${versionId}`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
+      // 先从版本清单获取该版本的 URL
+      const manifestRes = await fetch(`${this.getBaseUrl()}/mc/game/version_manifest.json`)
+      if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`)
+      const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
+      const verEntry = manifest.versions.find((v: any) => v.id === versionId)
+      if (!verEntry) return null
+
+      // 用 manifest 中的 URL（已镜像）下载
+      const response = await fetch(verEntry.url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
       this.cache.set(cacheKey, { data, timestamp: Date.now() })
       return data
     } catch (error) {
-      console.error(`[VersionsService] 获取版本 ${versionId} 信息失败:`, error)
+      log.error(`[VersionsService] 获取版本 ${versionId} 信息失败:`, error)
       return null
     }
   }
 
-  // 获取版本下载 URL
+  // 获取版本下载 URL（StarLight.Core 方案：始终构造 URL，不依赖 downloads 字段存在性）
   async getVersionDownloadUrl(versionId: string): Promise<{
     client: string
     server?: string
     windows_server?: string
   } | null> {
     const versionInfo = await this.getVersionInfo(versionId)
-    if (!versionInfo || !versionInfo.downloads) return null
+    if (!versionInfo) return null
 
-    const urls: any = {}
-    
-    // 优先使用 BMCLAPI 的下载地址
     const baseUrl = this.getBaseUrl()
-    if (versionInfo.downloads.client) {
-      // 转换为 BMCLAPI URL
-      urls.client = `${baseUrl}/mc/version/${versionId}/client`
+    const urls: any = {}
+
+    // client.jar — 优先 version.json 里的 Mojang URL，兜底 BMCLAPI
+    urls.client = versionInfo.downloads?.client?.url
+      ?? `${baseUrl}/mc/version/${versionId}/client`
+
+    // server.jar — 有则覆盖
+    if (versionInfo.downloads?.server?.url) {
+      urls.server = versionInfo.downloads.server.url
     }
-    if (versionInfo.downloads.server) {
-      urls.server = `${baseUrl}/mc/version/${versionId}/server`
-    }
-    if (versionInfo.downloads.windows_server) {
-      urls.windows_server = `${baseUrl}/mc/version/${versionId}/windows_server`
+
+    // windows_server — 有则覆盖
+    if (versionInfo.downloads?.windows_server?.url) {
+      urls.windows_server = versionInfo.downloads.windows_server.url
     }
 
     return urls
   }
 
   // 过滤版本（按类型）
-  async getVersionsByType(type: 'release' | 'snapshot' | 'old' | 'all' = 'all'): Promise<VersionInfo[]> {
+  async getVersionsByType(type: 'release' | 'snapshot' | 'old' | 'all' = 'all'): Promise<McVersionInfo[]> {
     const versions = await this.getAllVersions()
     
     if (type === 'all') return versions
@@ -200,7 +213,7 @@ export class VersionsService {
   }
 
   // 获取推荐版本列表（最近的主要版本）
-  async getRecommendedVersions(count: number = 5): Promise<VersionInfo[]> {
+  async getRecommendedVersions(count: number = 5): Promise<McVersionInfo[]> {
     const versions = await this.getVersionsByType('release')
     return versions.slice(0, count)
   }
@@ -224,10 +237,37 @@ export class VersionsService {
 
   // 检查版本是否已安装
   async isVersionInstalled(versionId: string, gameDir: string): Promise<boolean> {
-    const versionDir = `${gameDir}/versions/${versionId}`
-    const jarPath = `${versionDir}/${versionId}.jar`
-    // 这里需要 fs 模块，但由于是服务类，在实例方法中可以使用
-    return false // TODO: 实现文件检查
+    const versionDir = path.join(gameDir, 'versions', versionId)
+    const jsonPath = path.join(versionDir, `${versionId}.json`)
+
+    // JSON 必须存在
+    try {
+      await fs.promises.access(jsonPath)
+    } catch {
+      return false
+    }
+
+    // 检查 jar 是否存在（原版需要）
+    const jarPath = path.join(versionDir, `${versionId}.jar`)
+    try {
+      await fs.promises.access(jarPath)
+      return true // 原版：jar + json 都存在
+    } catch {
+      // jar 不存在，继续检查
+    }
+
+    // jar 不存在时，检查是否是 ModLoader 继承版本
+    try {
+      const jsonContent = fs.readFileSync(jsonPath, 'utf-8')
+      const meta = JSON.parse(jsonContent)
+      if (meta.inheritsFrom) {
+        return true // ModLoader 版本，继承基版本 jar
+      }
+    } catch {
+      // JSON 解析失败，忽略
+    }
+
+    return false
   }
 
   // 清除缓存
@@ -236,24 +276,23 @@ export class VersionsService {
   }
 
   // 保存版本信息到数据库
-  async saveVersionInfo(version: VersionInfo): Promise<void> {
-    await this.db.run(
-      'INSERT OR REPLACE INTO versions (id, type, releaseTime, url) VALUES (?, ?, ?, ?)',
-      [version.id, version.type, version.releaseTime, version.url]
-    )
+  saveVersionInfo(version: McVersionInfo): void {
+    this.db.prepare(
+      'INSERT OR REPLACE INTO versions (id, type, releaseTime, url) VALUES (?, ?, ?, ?)'
+    ).run([version.id, version.type, version.releaseTime, version.url])
   }
 
   // 从数据库获取版本信息
-  async getVersionFromDB(versionId: string): Promise<VersionInfo | null> {
-    const result = await this.db.get(
-      'SELECT * FROM versions WHERE id = ?',
-      [versionId]
-    )
+  getVersionFromDB(versionId: string): McVersionInfo | null {
+    const result = this.db.prepare(
+      'SELECT * FROM versions WHERE id = ?'
+    ).get([versionId]) as McVersionInfo | undefined
     return result ? {
       id: result.id,
       type: result.type,
       releaseTime: result.releaseTime,
-      url: result.url
+      url: result.url,
+      time: result.releaseTime || ''
     } : null
   }
 }

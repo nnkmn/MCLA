@@ -39,7 +39,7 @@ export async function hashFile(
     }
     let loadedBytes = 0
 
-    stream.on('data', (chunk: Buffer) => {
+    stream.on('data', (chunk) => {
       hash.update(chunk)
       loadedBytes += chunk.length
       if (onProgress && totalBytes > 0) {

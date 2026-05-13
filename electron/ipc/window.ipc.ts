@@ -1,7 +1,7 @@
 /**
  * 窗口控制 IPC 处理器
  */
-import { ipcMain, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 
 export function registerWindowHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('window:minimize', () => mainWindow.minimize())
@@ -17,6 +17,9 @@ export function registerWindowHandlers(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('window:close', () => mainWindow.close())
   ipcMain.handle('window:is-maximized', () => mainWindow.isMaximized())
+
+  // 获取应用版本号（从 package.json）
+  ipcMain.handle('app:get-version', () => app.getVersion())
 
   // 最大化状态变化通知渲染进程
   mainWindow.on('maximize', () => {

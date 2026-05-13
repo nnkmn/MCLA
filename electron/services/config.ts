@@ -4,6 +4,9 @@
  */
 
 import { getDatabase } from './database'
+import { encryptToHex, decryptFromHex } from '../utils/crypto'
+import { logger } from '../utils/logger'
+const log = logger.child('Config')
 
 export interface ConfigEntry {
   key: string
@@ -15,7 +18,9 @@ export interface ConfigEntry {
 // 获取配置项
 export function getConfig<T = string>(key: string): T | null {
   const db = getDatabase()
+  log.info('[config.getConfig] key:', key, '| db is null?', !db)
   const row = db.prepare('SELECT * FROM configs WHERE key = ?').get(key) as ConfigEntry | null
+  log.info('[config.getConfig] result row:', row)
   if (!row) return null
 
   switch (row.type) {
@@ -37,6 +42,7 @@ export function getConfig<T = string>(key: string): T | null {
 // 设置配置项
 export function setConfig(key: string, value: any, type?: ConfigEntry['type']): void {
   const db = getDatabase()
+  log.info('[config.setConfig] key:', key, 'value:', value, 'db is null?', !db)
   const now = new Date().toISOString()
 
   // 自动推断类型
@@ -78,4 +84,35 @@ export function getAllConfigs(): Record<string, any> {
   }
 
   return result
+}
+
+// ====== 敏感配置存取（自动加解密） ======
+
+/** 需要加密存储的配置 key 列表 */
+const SENSITIVE_KEYS = new Set([
+  'curseforge_api_key',
+])
+
+/** 获取敏感配置值（自动解密） */
+export function getSecureConfig(key: string): string | null {
+  const db = getDatabase()
+  const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined
+  if (!row?.value) return null
+  // 兼容旧明文数据
+  if (row.value.length > 64 && /^[0-9a-f]+$/.test(row.value)) {
+    try { return decryptFromHex(row.value) } catch { /* 旧明文 */ }
+  }
+  return row.value
+}
+
+/** 设置敏感配置值（自动加密） */
+export function setSecureConfig(key: string, value: string): void {
+  const db = getDatabase()
+  const encValue = encryptToHex(value)
+  const now = new Date().toISOString()
+  db.prepare(`
+    INSERT INTO configs (key, value, type, updated_at)
+    VALUES (?, ?, 'secure', ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, type = excluded.type, updated_at = excluded.updated_at
+  `).run(key, encValue, now)
 }

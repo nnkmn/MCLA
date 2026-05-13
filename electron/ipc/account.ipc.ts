@@ -4,6 +4,7 @@
  */
 import { ipcMain, BrowserWindow, shell } from 'electron'
 import * as accountService from '../services/accounts'
+import { getDatabase } from '../services/database'
 import { downloadSkin, getSkinPath } from '../services/skin.service'
 import {
   requestDeviceCode,
@@ -12,6 +13,8 @@ import {
   refreshMicrosoftToken,
 } from '../services/microsoft.auth'
 import type { DeviceCodeResponse } from '../services/microsoft.auth'
+import { logger } from '../utils/logger'
+const log = logger.child('Account-IPC')
 
 // 暂存当前 Device Code 响应，等前端复制时打开浏览器
 let pendingDeviceCode: DeviceCodeResponse | null = null
@@ -73,7 +76,7 @@ export function registerAccountHandlers(): void {
       // 3. 走完整认证链
       const profile = await authenticateWithMicrosoftToken(msTokens, sendProgress)
 
-      // 4. 存入数据库（skin_url 存原始 URL，由 getSkinPath 单独管理本地缓存）
+      // 4. 存入数据库（skin_url 存原始 URL，xuid 存 Xbox 用户 ID）
       sendProgress('saving', '正在保存账户...')
       const account = accountService.createMicrosoftAccount(
         profile.name,
@@ -81,7 +84,8 @@ export function registerAccountHandlers(): void {
         profile.accessToken,
         profile.refreshToken,
         profile.expiresIn,
-        profile.skinUrl || undefined  // 存原始皮肤 URL
+        profile.skinUrl || undefined,  // 存原始皮肤 URL
+        profile.xuid  // Xbox 用户 ID（Minecraft 启动参数需要）
       )
 
       sendProgress('done', '登录成功')
@@ -115,14 +119,14 @@ export function registerAccountHandlers(): void {
     // 1. 先检查本地缓存
     let skinPath = getSkinPath(uuid)
     if (skinPath) {
-      console.log(`[getSkinDataUrl] using cache: ${skinPath}`)
+      log.info(`[getSkinDataUrl] using cache: ${skinPath}`)
     }
 
     // 2. 无缓存，尝试从数据库取 skin_url
     if (!skinPath) {
       const accounts = accountService.listAccounts()
       const account = accounts.find(a => a.uuid === uuid && a.skin_url)
-      console.log(`[getSkinDataUrl] uuid=${uuid}, skin_url=${account?.skin_url}`)
+      log.info(`[getSkinDataUrl] uuid=${uuid}, skin_url=${account?.skin_url}`)
 
       let skinUrl = account?.skin_url
 
@@ -138,10 +142,10 @@ export function registerAccountHandlers(): void {
           if (res.ok) {
             const data = await res.json()
             skinUrl = data.skins?.[0]?.url
-            console.log(`[getSkinDataUrl] fetched skinUrl from API: ${skinUrl}`)
+            log.info(`[getSkinDataUrl] fetched skinUrl from API: ${skinUrl}`)
           }
         } catch (e: any) {
-          console.log(`[getSkinDataUrl] API fetch failed: ${e.message}`)
+          log.info(`[getSkinDataUrl] API fetch failed: ${e.message}`)
         }
       }
 
@@ -151,11 +155,11 @@ export function registerAccountHandlers(): void {
 
       try {
         const localPath = await downloadSkin(skinUrl, uuid)
-        console.log(`[getSkinDataUrl] download result: ${localPath}`)
+        log.info(`[getSkinDataUrl] download result: ${localPath}`)
         if (!localPath) return { ok: false, error: '皮肤下载失败' }
         skinPath = `file://${localPath.replace(/\\/g, '/')}`
       } catch (e: any) {
-        console.log(`[getSkinDataUrl] download error: ${e.message}`)
+        log.info(`[getSkinDataUrl] download error: ${e.message}`)
         return { ok: false, error: e.message }
       }
     }
@@ -164,12 +168,12 @@ export function registerAccountHandlers(): void {
       const fs = await import('fs/promises')
       const filePath = skinPath.replace('file://', '')
       const data = await fs.readFile(filePath)
-      console.log(`[getSkinDataUrl] read ${data.length} bytes from ${filePath}`)
+      log.info(`[getSkinDataUrl] read ${data.length} bytes from ${filePath}`)
       const base64 = data.toString('base64')
       const dataUrl = `data:image/png;base64,${base64}`
       return { ok: true, data: dataUrl }
     } catch (e: any) {
-      console.log(`[getSkinDataUrl] read error: ${e.message}`)
+      log.info(`[getSkinDataUrl] read error: ${e.message}`)
       return { ok: false, error: e.message }
     }
   })
@@ -181,7 +185,7 @@ export function registerAccountHandlers(): void {
       shell.openExternal(pendingDeviceCode.verification_uri)
       return { ok: true }
     } catch (e: any) {
-      console.error('[OAuth] openExternal failed:', e)
+      log.error('[OAuth] openExternal failed:', e)
       return { ok: false, error: e.message }
     }
   })
@@ -202,6 +206,32 @@ export function registerAccountHandlers(): void {
   // ===== 设置活跃账户 =====
   ipcMain.handle('account:set-active', (_event, id: string) => accountService.setActiveAccount(id))
 
+  // ===== 启动时回填旧账户缺失的 xuid =====
+  ipcMain.handle('account:backfill-xuid', async () => {
+    const db = getDatabase()
+    const accounts = db.prepare("SELECT id, refresh_token FROM accounts WHERE type = 'microsoft' AND (xuid IS NULL OR xuid = '')").all() as { id: string; refresh_token: string | null }[]
+    if (accounts.length === 0) {
+      return { ok: true, count: 0 }
+    }
+    log.info(`[account:backfill-xuid] 发现 ${accounts.length} 个账户需要回填 xuid`)
+    let success = 0
+    for (const acc of accounts) {
+      if (!acc.refresh_token) continue
+      try {
+        const newTokens = await refreshMicrosoftToken(acc.refresh_token)
+        const profile = await authenticateWithMicrosoftToken(newTokens)
+        if (profile.xuid) {
+          accountService.backfillXuid(acc.id, profile.xuid)
+          success++
+          log.info(`[account:backfill-xuid] ${acc.id} 回填 xuid=${profile.xuid}`)
+        }
+      } catch (e: any) {
+        log.warn(`[account:backfill-xuid] ${acc.id} 失败: ${e.message}`)
+      }
+    }
+    return { ok: true, count: success }
+  })
+
   // ===== 静默刷新 Token（令牌过期时由前端或启动流程调用） =====
   ipcMain.handle('account:refresh-token', async (_event, id: string) => {
     try {
@@ -217,6 +247,11 @@ export function registerAccountHandlers(): void {
       // 用新 token 重新走 Xbox/XSTS/MC 认证链
       const profile = await authenticateWithMicrosoftToken(newTokens)
 
+      // 更新 token 时同步回填 xuid（修复旧账户缺失的 xuid）
+      if (profile.xuid) {
+        accountService.backfillXuid(id, profile.xuid)
+        log.info(`[account:refresh-token] xuid 回填成功: ${profile.xuid}`)
+      }
       accountService.updateMicrosoftTokens(id, profile.accessToken, profile.refreshToken, profile.expiresIn)
       return { ok: true }
     } catch (e: any) {

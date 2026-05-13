@@ -8,14 +8,18 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import axios, { type AxiosError } from 'axios'
 import { logger } from '../utils/logger'
 
-const SKIN_DIR = join(app.getPath('userData'), 'skins')
-
-// 确保皮肤目录存在
-function ensureSkinDir() {
-  if (!existsSync(SKIN_DIR)) {
-    mkdirSync(SKIN_DIR, { recursive: true })
-    logger.info('SkinService', `创建皮肤目录: ${SKIN_DIR}`)
+/** 皮肤目录（延迟初始化） */
+let _skinDir: string | null = null
+function getSkinDir(): string {
+  if (!_skinDir) {
+    _skinDir = join(app.getPath('userData'), 'skins')
+    // 确保目录存在
+    if (!existsSync(_skinDir)) {
+      mkdirSync(_skinDir, { recursive: true })
+      logger.info('SkinService', `创建皮肤目录: ${_skinDir}`)
+    }
   }
+  return _skinDir
 }
 
 /**
@@ -27,9 +31,7 @@ function ensureSkinDir() {
 export async function downloadSkin(skinUrl: string, uuid: string): Promise<string | null> {
   if (!skinUrl) return null
 
-  ensureSkinDir()
-
-  const localPath = join(SKIN_DIR, `${uuid}.png`)
+  const localPath = join(getSkinDir(), `${uuid}.png`)
 
   // 已存在则直接返回
   if (existsSync(localPath)) {
@@ -82,6 +84,6 @@ export async function downloadSkin(skinUrl: string, uuid: string): Promise<strin
  * @returns file:// URL 或 null
  */
 export function getSkinPath(uuid: string): string | null {
-  const localPath = join(SKIN_DIR, `${uuid}.png`)
+  const localPath = join(getSkinDir(), `${uuid}.png`)
   return existsSync(localPath) ? `file://${localPath.replace(/\\/g, '/')}` : null
 }

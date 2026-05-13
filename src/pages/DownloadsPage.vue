@@ -28,7 +28,7 @@
         <div class="acc-group">
           <button class="acc-header" :class="{ open: accOpen.release }" @click="accOpen.release = !accOpen.release">
             <span class="acc-title">正式版</span>
-            <span class="acc-count">{{ releaseVersions.length }} 个版本</span>
+            <span class="acc-count">{{ allVersions.filter(v => v.type === 'release').length }} 个版本</span>
             <svg class="acc-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="acc-body" v-show="accOpen.release">
@@ -39,6 +39,7 @@
               :class="{ featured: ver.featured }"
               @mouseenter="ver.hovered = true"
               @mouseleave="ver.hovered = false"
+              @click="goToDetail(ver)"
             >
               <div class="ver-icon" :style="{ background: ver.color }">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -52,15 +53,25 @@
                 <p class="ver-desc">{{ ver.desc }}</p>
               </div>
               <div class="ver-actions" :class="{ visible: ver.hovered || ver.featured }">
-                <button class="va-btn primary" @click.stop="downloadVersion(ver)">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下载
+                <button
+                  class="va-btn primary"
+                  :class="{ 'is-dl': ver.downloading, 'is-done': ver.downloaded }"
+                  :disabled="ver.downloading || ver.downloaded"
+                  @click.stop="downloadVersion(ver)"
+                >
+                  <svg v-if="ver.downloading" class="spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                  <svg v-else-if="ver.downloaded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {{ ver.downloading ? '下载中' : ver.downloaded ? '已下载' : '下载' }}
                 </button>
                 <button class="va-btn" @click.stop="addVersion(ver)">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
               </div>
             </div>
-            <div v-if="filteredBySearch(releaseVersions).length === 0" class="acc-empty">无匹配结果</div>
+            <div v-if="filteredBySearch(releaseVersions).length === 0" class="acc-empty">
+              {{ isLoadingVersions ? '加载中...' : '无匹配结果' }}
+            </div>
           </div>
         </div>
 
@@ -79,6 +90,7 @@
               :class="{ featured: ver.featured }"
               @mouseenter="ver.hovered = true"
               @mouseleave="ver.hovered = false"
+              @click="goToDetail(ver)"
             >
               <div class="ver-icon" :style="{ background: ver.color }">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -92,15 +104,25 @@
                 <p class="ver-desc">{{ ver.desc }}</p>
               </div>
               <div class="ver-actions" :class="{ visible: ver.hovered || ver.featured }">
-                <button class="va-btn primary" @click.stop="downloadVersion(ver)">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下载
+                <button
+                  class="va-btn primary"
+                  :class="{ 'is-dl': ver.downloading, 'is-done': ver.downloaded }"
+                  :disabled="ver.downloading || ver.downloaded"
+                  @click.stop="downloadVersion(ver)"
+                >
+                  <svg v-if="ver.downloading" class="spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                  <svg v-else-if="ver.downloaded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {{ ver.downloading ? '下载中' : ver.downloaded ? '已下载' : '下载' }}
                 </button>
                 <button class="va-btn" @click.stop="addVersion(ver)">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
               </div>
             </div>
-            <div v-if="filteredBySearch(snapshotVersions).length === 0" class="acc-empty">无匹配结果</div>
+            <div v-if="filteredBySearch(snapshotVersions).length === 0" class="acc-empty">
+              {{ isLoadingVersions ? '加载中...' : '无匹配结果' }}
+            </div>
           </div>
         </div>
 
@@ -118,6 +140,7 @@
               class="ver-item"
               @mouseenter="ver.hovered = true"
               @mouseleave="ver.hovered = false"
+              @click="goToDetail(ver)"
             >
               <div class="ver-icon" :style="{ background: ver.color }">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -131,15 +154,25 @@
                 <p class="ver-desc">{{ ver.desc }}</p>
               </div>
               <div class="ver-actions" :class="{ visible: ver.hovered }">
-                <button class="va-btn primary" @click.stop="downloadVersion(ver)">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下载
+                <button
+                  class="va-btn primary"
+                  :class="{ 'is-dl': ver.downloading, 'is-done': ver.downloaded }"
+                  :disabled="ver.downloading || ver.downloaded"
+                  @click.stop="downloadVersion(ver)"
+                >
+                  <svg v-if="ver.downloading" class="spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                  <svg v-else-if="ver.downloaded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {{ ver.downloading ? '下载中' : ver.downloaded ? '已下载' : '下载' }}
                 </button>
                 <button class="va-btn" @click.stop="addVersion(ver)">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
               </div>
             </div>
-            <div v-if="filteredBySearch(oldVersions).length === 0" class="acc-empty">无匹配结果</div>
+            <div v-if="filteredBySearch(oldVersions).length === 0" class="acc-empty">
+              {{ isLoadingVersions ? '加载中...' : '无匹配结果' }}
+            </div>
           </div>
         </div>
 
@@ -158,6 +191,7 @@
               :class="{ featured: ver.featured }"
               @mouseenter="ver.hovered = true"
               @mouseleave="ver.hovered = false"
+              @click="goToDetail(ver)"
             >
               <div class="ver-icon" :style="{ background: ver.color }">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -171,15 +205,25 @@
                 <p class="ver-desc">{{ ver.desc }}</p>
               </div>
               <div class="ver-actions" :class="{ visible: ver.hovered || ver.featured }">
-                <button class="va-btn primary" @click.stop="downloadVersion(ver)">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下载
+                <button
+                  class="va-btn primary"
+                  :class="{ 'is-dl': ver.downloading, 'is-done': ver.downloaded }"
+                  :disabled="ver.downloading || ver.downloaded"
+                  @click.stop="downloadVersion(ver)"
+                >
+                  <svg v-if="ver.downloading" class="spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                  <svg v-else-if="ver.downloaded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  {{ ver.downloading ? '下载中' : ver.downloaded ? '已下载' : '下载' }}
                 </button>
                 <button class="va-btn" @click.stop="addVersion(ver)">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
               </div>
             </div>
-            <div v-if="filteredBySearch(aprilVersions).length === 0" class="acc-empty">无匹配结果</div>
+            <div v-if="filteredBySearch(aprilVersions).length === 0" class="acc-empty">
+              {{ isLoadingVersions ? '加载中...' : '无匹配结果' }}
+            </div>
           </div>
         </div>
       </div>
@@ -258,7 +302,13 @@
 
       <!-- 结果列表 -->
       <section v-else-if="filteredResources.length" class="result-list">
-        <div v-for="r in filteredResources" :key="r.id" class="res-card">
+        <div
+          v-for="r in filteredResources"
+          :key="r.id"
+          class="res-card"
+          :class="{ 'has-real-data': dlStore.searchResults.length > 0 }"
+          @click="handleCardClick(r)"
+        >
           <div v-if="!r.icon" class="res-thumb-placeholder" :style="{ background: r.color }">
             {{ r.name[0] }}
           </div>
@@ -266,7 +316,7 @@
           <div class="res-body">
             <p class="res-name">{{ r.name }}</p>
             <div class="res-tags">
-              <span class="tag" v-for="tag in r.tags" :key="tag">{{ tag }}</span>
+              <span class="tag" v-for="tag in (r.tags || []).slice(0, 5)" :key="tag">{{ tag }}</span>
             </div>
             <p class="res-desc">{{ r.desc }}</p>
             <div class="res-meta">
@@ -283,11 +333,24 @@
         <p>没有找到匹配的{{ categoryLabel }}</p>
       </section>
     </template>
+
+    <!-- Mod 详情弹窗 -->
+    <ModDetailModal
+      v-model="showModDetail"
+      :mod="selectedMod"
+      :instance="selectedInstance"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, inject, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useDownloadStore } from '../stores/download.store'
+import { useInstancesStore } from '../stores/instances.store'
+import type { ModSearchResult } from '../types/download'
+import type { GameInstance } from '../types/instance'
+import ModDetailModal from '../components/download/ModDetailModal.vue'
 
 const dlActiveCat = inject<ref<string>>('dlActiveCat')!
 const activeCategory = computed(() => dlActiveCat.value)
@@ -298,11 +361,28 @@ const categoryMap: Record<string, string> = {
 }
 const categoryLabel = computed(() => categoryMap[activeCategory.value] || '资源')
 
+// ====== Stores ======
+const dlStore = useDownloadStore()
+const instancesStore = useInstancesStore()
+
+// ====== Mod 详情弹窗 ======
+const showModDetail = ref(false)
+const selectedMod = ref<ModSearchResult | null>(null)
+const selectedInstance = ref<GameInstance | null>(null)
+
+function openModDetail(mod: ModSearchResult) {
+  selectedMod.value = mod
+  // 如果有当前选中的实例，传入弹窗自动设置目标
+  selectedInstance.value = instancesStore.currentInstance
+  showModDetail.value = true
+}
+
 // ---- 原版游戏 ----
 const verSearch = ref('')
 const hasMoreVersions = ref(true)
+const isLoadingVersions = ref(false)
 
-// 独立折叠面板状态
+// 折叠面板状态
 const accOpen = reactive({
   release: true,   // 正式版默认展开
   snapshot: false,
@@ -310,43 +390,276 @@ const accOpen = reactive({
   april: false,
 })
 
+// 已安装版本缓存（用于判断是否已下载）
+const installedVersionIds = ref<Set<string>>(new Set())
+
 interface VerItem {
-  id: string; name: string; type: string; typeLabel: string
-  date: string; desc: string; color: string; featured: boolean; hovered: boolean
+  id: string
+  name: string
+  type: 'release' | 'snapshot' | 'old' | 'april'
+  typeLabel: string
+  date: string
+  desc: string
+  color: string
+  featured: boolean
+  hovered: boolean
+  downloading: boolean
+  downloaded: boolean
 }
 
-const releaseVersions = ref<VerItem[]>([
-  { id: 'r1', name: '1.21.4', type: 'release', typeLabel: '正式版', date: '2024-12-03', desc: '花园与密林更新', color: '#4CAF50', featured: true, hovered: false },
-  { id: 'r2', name: '1.21.3', type: 'release', typeLabel: '正式版', date: '2024-10-23', desc: 'Bundles of Bravery', color: '#66BB6A', featured: false, hovered: false },
-  { id: 'r3', name: '1.21.2', type: 'release', typeLabel: '正式版', date: '2024-10-10', desc: '错误修复更新', color: '#81C784', featured: false, hovered: false },
-  { id: 'r4', name: '1.21.1', type: 'release', typeLabel: '正式版', date: '2024-08-08', desc: '错误修复更新', color: '#A5D6A7', featured: false, hovered: false },
-  { id: 'r5', name: '1.21', type: 'release', typeLabel: '正式版', date: '2024-06-13', desc: '棘巧试炼', color: '#43A047', featured: false, hovered: false },
-  { id: 'r6', name: '1.20.6', type: 'release', typeLabel: '正式版', date: '2024-04-29', desc: '错误修复更新', color: '#388E3C', featured: false, hovered: false },
-  { id: 'r7', name: '1.20.4', type: 'release', typeLabel: '正式版', date: '2023-12-07', desc: '1.20.3 的错误修复', color: '#2E7D32', featured: false, hovered: false },
-  { id: 'r8', name: '1.20.1', type: 'release', typeLabel: '正式版', date: '2023-06-12', desc: '足迹与故事', color: '#1B5E20', featured: false, hovered: false },
-])
+// 所有版本（扁平，分类显示）
+const allVersions = ref<VerItem[]>([])
+const PAGE_SIZE = 20
+const displayedCount = ref(PAGE_SIZE)
 
-const snapshotVersions = ref<VerItem[]>([
-  { id: 's1', name: '25w02a', type: 'snapshot', typeLabel: '快照', date: '2025-01-08', desc: '最新开发快照', color: '#FF9800', featured: true, hovered: false },
-  { id: 's2', name: '24w46a', type: 'snapshot', typeLabel: '快照', date: '2024-11-13', desc: '开发快照', color: '#FFA726', featured: false, hovered: false },
-  { id: 's3', name: '24w44a', type: 'snapshot', typeLabel: '快照', date: '2024-10-30', desc: '开发快照', color: '#FFB74D', featured: false, hovered: false },
-])
+// 分类版本（计算属性，从 allVersions 过滤）
+const releaseVersions = computed(() =>
+  allVersions.value.filter(v => v.type === 'release').slice(0, displayedCount.value)
+)
+const snapshotVersions = computed(() =>
+  allVersions.value.filter(v => v.type === 'snapshot').slice(0, 10)
+)
+const oldVersions = computed(() =>
+  allVersions.value.filter(v => v.type === 'old').slice(0, 20)
+)
+const aprilVersions = computed(() =>
+  allVersions.value.filter(v => v.type === 'april')
+)
 
-const oldVersions = ref<VerItem[]>([
-  { id: 'o1', name: '1.19.2', type: 'old', typeLabel: '旧版', date: '2022-08-05', desc: '荒野更新', color: '#78909C', featured: false, hovered: false },
-  { id: 'o2', name: '1.18.2', type: 'old', typeLabel: '旧版', date: '2022-02-28', desc: '洞穴与悬崖 Part 2', color: '#90A4AE', featured: false, hovered: false },
-  { id: 'o3', name: '1.16.5', type: 'old', typeLabel: '旧版', date: '2021-01-15', desc: '下界更新', color: '#B0BEC5', featured: false, hovered: false },
-  { id: 'o4', name: '1.12.2', type: 'old', typeLabel: '旧版', date: '2017-09-18', desc: '缤纷更新', color: '#CFD8DC', featured: false, hovered: false },
-  { id: 'o5', name: '1.8.9', type: 'old', typeLabel: '旧版', date: '2015-12-09', desc: '性感更新', color: '#ECEFF1', featured: false, hovered: false },
-  { id: 'o6', name: '1.7.10', type: 'old', typeLabel: '旧版', date: '2014-06-26', desc: '改变世界的更新', color: '#B71C1C', featured: false, hovered: false },
-])
+// 加载更多
+const hasMoreReleases = computed(() =>
+  allVersions.value.filter(v => v.type === 'release').length > displayedCount.value
+)
 
-const aprilVersions = ref<VerItem[]>([
-  { id: 'a1', name: '25w14craftmine', type: 'april', typeLabel: '愚人节', date: '2025-04-01', desc: 'CraftMine', color: '#E91E63', featured: true, hovered: false },
-  { id: 'a2', name: '24w14potato', type: 'april', typeLabel: '愚人节', date: '2024-04-01', desc: 'Potato Edition', color: '#F06292', featured: false, hovered: false },
-  { id: 'a3', name: '23w13a_or_b', type: 'april', typeLabel: '愚人节', date: '2023-04-01', desc: 'The Vote Update', color: '#EC407A', featured: false, hovered: false },
-  { id: 'a4', name: '22w13oneblockatatime', type: 'april', typeLabel: '愚人节', date: '2022-04-01', desc: 'One Block at a Time', color: '#F48FB1', featured: false, hovered: false },
-])
+function loadMoreVersions() {
+  if (!hasMoreReleases.value) return
+  displayedCount.value += PAGE_SIZE
+}
+
+function toVerItem(raw: any, isInstalled: boolean): VerItem {
+  const t = raw.type as string
+  let type: VerItem['type'] = 'release'
+  if (t === 'snapshot' || t.includes('snapshot')) type = 'snapshot'
+  else if (t === 'old_alpha' || t === 'old_beta') type = 'old'
+  else if (isAprilFools(raw.id)) type = 'april'
+
+  const color = typeColor(type)
+  const isFeatured = isFeaturedVersion(raw.id, type)
+
+  return {
+    id: raw.id,
+    name: raw.id,
+    type,
+    typeLabel: typeLabelOf(type),
+    date: raw.releaseTime ? raw.releaseTime.slice(0, 10) : '',
+    desc: getVersionDesc(raw.id),
+    color,
+    featured: isFeatured,
+    hovered: false,
+    downloading: false,
+    downloaded: isInstalled,
+  }
+}
+
+function isAprilFools(id: string): boolean {
+  // 愚人节版本命名规律：含 craftmine/potato/or_b|oneblockatatime 或日期在4月1日
+  return /craftmine|potato|or_b|oneblockatatime/i.test(id)
+}
+
+function typeLabelOf(type: VerItem['type']): string {
+  const map: Record<string, string> = { release: '正式版', snapshot: '快照', old: '旧版', april: '愚人节' }
+  return map[type] || '正式版'
+}
+
+function typeColor(type: VerItem['type']): string {
+  const map: Record<string, string> = {
+    release: '#4CAF50',
+    snapshot: '#FF9800',
+    old: '#78909C',
+    april: '#E91E63',
+  }
+  return map[type] || '#4CAF50'
+}
+
+function isFeaturedVersion(id: string, type: string): boolean {
+  const featured = ['1.21.4', '1.21.3', '1.20.4', '1.20.1', '1.19.2', '1.18.2', '1.16.5', '1.12.2']
+  return type === 'release' && featured.includes(id)
+}
+
+function getVersionDesc(id: string): string {
+  const descs: Record<string, string> = {
+    '1.21.4': '花园与密林更新',
+    '1.21.3': 'Bundles of Bravery',
+    '1.21.2': '错误修复更新',
+    '1.21.1': '错误修复更新',
+    '1.21': '棘巧试炼',
+    '1.20.6': '错误修复更新',
+    '1.20.4': '错误修复更新',
+    '1.20.3': '主要更新',
+    '1.20.2': '主要更新',
+    '1.20.1': '足迹与故事',
+    '1.19.4': '主要更新',
+    '1.19.3': '深暗古城更新',
+    '1.19.2': '荒野更新',
+    '1.19.1': '错误修复更新',
+    '1.19': '荒野更新',
+    '1.18.2': '洞穴与悬崖 Part 2',
+    '1.18.1': '主要更新',
+    '1.18': '洞穴与悬崖 Part 1',
+    '1.17.1': '主要更新',
+    '1.17': '洞穴与悬崖 Part 1',
+    '1.16.5': '主要更新',
+    '1.16.4': '主要更新',
+    '1.16.3': '主要更新',
+    '1.16.2': '主要更新',
+    '1.16.1': '主要更新',
+    '1.16': '下界更新',
+    '1.15.2': '蜜蜂更新',
+    '1.15.1': '主要更新',
+    '1.15': '蜜蜂更新',
+    '1.14.4': '主要更新',
+    '1.14.3': '主要更新',
+    '1.14.2': '主要更新',
+    '1.14.1': '主要更新',
+    '1.14': '村庄与掠夺',
+    '1.13.2': '水域更新',
+    '1.13.1': '主要更新',
+    '1.13': '水域更新',
+    '1.12.2': '缤纷更新',
+    '1.12.1': '主要更新',
+    '1.12': '缤纷更新',
+    '1.11.2': '主要更新',
+    '1.11.1': '主要更新',
+    '1.11': '探险时间',
+    '1.10.2': '主要更新',
+    '1.10.1': '主要更新',
+    '1.10': '主要更新',
+    '1.9.4': 'Combat Update',
+    '1.9.3': '主要更新',
+    '1.9.2': '主要更新',
+    '1.9.1': '主要更新',
+    '1.9': 'Combat Update',
+    '1.8.9': '重要更新',
+    '1.8.8': '主要更新',
+    '1.8.7': '主要更新',
+    '1.8.6': '主要更新',
+    '1.8.5': '主要更新',
+    '1.8.4': '主要更新',
+    '1.8.3': '主要更新',
+    '1.8.2': '主要更新',
+    '1.8.1': '主要更新',
+    '1.8': '重要更新',
+    '1.7.10': '改变世界的更新',
+    '1.7.9': '主要更新',
+    '1.7.8': '主要更新',
+    '1.7.7': '主要更新',
+    '1.7.6': '主要更新',
+    '1.7.5': '主要更新',
+    '1.7.4': '主要更新',
+    '1.7.2': '改变世界的更新',
+  }
+  return descs[id] || ''
+}
+
+// 加载版本列表
+async function refreshVersions() {
+  isLoadingVersions.value = true
+  try {
+    const api = window.electronAPI
+    if (!api?.versions) {
+      isLoadingVersions.value = false
+      return
+    }
+
+    // 获取已安装版本
+    let mcDir = ''
+    if (api.path) {
+      mcDir = await api.path.getMinecraft()
+    }
+
+    // 扫描已安装版本
+    let installed: Set<string> = new Set()
+    if (mcDir && api.versions.scanFolder) {
+      try {
+        const res = await api.versions.scanFolder(mcDir)
+        if (res?.ok && res.data) {
+          for (const v of res.data as any[]) {
+            installed.add(v.id)
+          }
+        }
+      } catch { /* 忽略扫描错误 */ }
+    }
+    installedVersionIds.value = installed
+
+    // 从 BMCLAPI 获取版本列表
+    const rawVersions = await api.versions.list()
+    allVersions.value = (rawVersions || []).map((raw: any) =>
+      toVerItem(raw, installed.has(raw.id))
+    )
+  } catch (err) {
+  } finally {
+    isLoadingVersions.value = false
+  }
+}
+
+// 跳转到版本详情页
+const router = useRouter()
+function goToDetail(ver: VerItem) {
+  router.push(`/download/version/${ver.id}`)
+}
+
+// 下载版本（下载到当前选中的 .minecraft 文件夹 + 创建实例）
+async function downloadVersion(ver: VerItem) {
+  if (ver.downloading || ver.downloaded) return
+  const api = window.electronAPI
+  if (!api?.versions || !api?.instance) {
+    return
+  }
+
+  // 优先使用 VersionSelect 当前选中的文件夹，否则用默认路径
+  let mcDir = ''
+  if (api?.folders) {
+    mcDir = await api.folders.getLast() ?? ''
+  }
+  if (!mcDir && api?.path) {
+    mcDir = await api.path.getMinecraft()
+  }
+  if (!mcDir) {
+    return
+  }
+
+  ver.downloading = true
+  try {
+    const res = await api.versions.download(ver.id, mcDir)
+    if (res?.ok) {
+      ver.downloaded = true
+      installedVersionIds.value.add(ver.id)
+      // 创建实例
+      await api.instance.create({
+        name: ver.id,
+        mcVersion: ver.id,
+        loaderType: 'vanilla',
+        loaderVersion: '',
+      })
+    } else {
+    }
+  } catch (err) {
+  } finally {
+    ver.downloading = false
+  }
+}
+
+// 添加已下载版本（仅创建实例，不下载）
+async function addVersion(ver: VerItem) {
+  const api = window.electronAPI
+  if (!api?.instance) return
+  await api.instance.create({
+    name: ver.id,
+    mcVersion: ver.id,
+    loaderType: 'vanilla',
+    loaderVersion: '',
+  })
+}
 
 // 搜索过滤（各分类独立）
 function filteredBySearch(list: VerItem[]): VerItem[] {
@@ -355,10 +668,8 @@ function filteredBySearch(list: VerItem[]): VerItem[] {
   return list.filter(v => v.name.toLowerCase().includes(q))
 }
 
-function downloadVersion(ver: VerItem) { console.log('download:', ver.name) }
-function addVersion(ver: VerItem) { console.log('add:', ver.name) }
-function refreshVersions() { console.log('refresh versions') }
-function loadMoreVersions() { console.log('load more') }
+// 初始加载
+refreshVersions()
 
 // ---- 搜索筛选 ----
 const searchName = ref('')
@@ -410,6 +721,21 @@ const allResources: Record<string, ResourceItem[]> = {
 }
 
 const filteredResources = computed(() => {
+  // 有搜索结果时用真实数据
+  if (dlStore.searchResults.length > 0) {
+    return dlStore.searchResults.map(r => ({
+      id: r.id,
+      name: r.name,
+      tags: r.loaders || r.categories || [],
+      desc: r.description,
+      downloads: String(r.downloads),
+      time: '',
+      source: r.source === 'curseforge' ? 'CurseForge' : 'Modrinth',
+      icon: r.iconUrl,
+      color: '#6366f1',
+    }))
+  }
+  // 无搜索时用静态示例数据
   const items = allResources[activeCategory.value] || []
   if (!searchName.value) return items
   const q = searchName.value.toLowerCase()
@@ -419,14 +745,18 @@ const filteredResources = computed(() => {
 function doSearch() {
   isLoading.value = true
   loadProgress.value = 0
-  const iv = setInterval(() => {
-    loadProgress.value += Math.random() * 20
-    if (loadProgress.value >= 100) {
-      clearInterval(iv)
-      loadProgress.value = 100
-      setTimeout(() => { isLoading.value = false }, 400)
-    }
-  }, 200)
+
+  // 真实 API 调用
+  dlStore.searchMods({
+    query: searchName.value,
+    source: searchSource.value === 'all' ? 'modrinth' : searchSource.value as any,
+    gameVersion: searchVersion.value || undefined,
+    loaderType: searchLoader.value || undefined,
+    offset: 0,
+    limit: 20,
+  }).finally(() => {
+    isLoading.value = false
+  })
 }
 
 function resetSearch() {
@@ -435,6 +765,15 @@ function resetSearch() {
   searchVersion.value = ''
   searchType.value = ''
   searchLoader.value = ''
+  dlStore.searchResults = []
+}
+
+function handleCardClick(r: any) {
+  // 如果是真实搜索结果，转换为 ModSearchResult 格式打开详情
+  const real = dlStore.searchResults.find(m => m.id === r.id)
+  if (real) {
+    openModDetail(real)
+  }
 }
 </script>
 
@@ -677,6 +1016,20 @@ function resetSearch() {
     background: var(--mcla-blue); border-color: var(--mcla-blue); color: #fff;
     &:hover { background: var(--mcla-blue-hover); }
   }
+  &.is-dl {
+    background: var(--mcla-blue-hover); border-color: var(--mcla-blue); color: #fff; cursor: wait; opacity: 0.85;
+  }
+  &.is-done {
+    background: #2E7D32; border-color: #2E7D32; color: #fff; cursor: default; opacity: 0.8;
+  }
+}
+
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .ver-empty {
@@ -777,7 +1130,13 @@ function resetSearch() {
   background: var(--mcla-surface); border-radius: 10px;
   border: 1px solid transparent; transition: all 0.13s; cursor: default;
 
-  &:hover { border-color: var(--mcla-border); box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+  &.has-real-data { cursor: pointer; }
+
+  &:hover {
+    border-color: var(--mcla-border);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
+  }
 
   .res-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
   .res-thumb-placeholder {

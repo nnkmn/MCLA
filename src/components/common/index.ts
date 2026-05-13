@@ -5,3 +5,4 @@
 export { default as PxModal } from './PxModal.vue'
 export { default as PxProgress } from './PxProgress.vue'
 export { default as PxBadge } from './PxBadge.vue'
+export { default as PxNotification } from './PxNotification.vue'

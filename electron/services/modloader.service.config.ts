@@ -4,7 +4,7 @@
 
 import { ModLoaderService } from './modloader.service';
 import { ModLoaderConfig, DEFAULT_MODLOADER_CONFIG } from './modloader.config';
-import { Service } from 'vue-typed-concepts';
+import type { ModLoader, ModLoaderInstallConfig, ModLoaderInstallResult, ModLoaderStatus, ModLoaderInstallProgress } from '../types/modloader.types';
 
 /**
  * ModLoader 服务注册配置

@@ -7,6 +7,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       outDir: 'out/main',
+      minify: false,
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'electron/main.ts')
@@ -44,7 +45,7 @@ export default defineConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: ''
+          api: 'modern-compiler'
         }
       }
     },

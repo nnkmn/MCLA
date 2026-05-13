@@ -13,6 +13,8 @@ files:
 extraResources:
   - from: out/renderer
     to: renderer
+  - from: public
+    to: public
   - from: resources/icons
     to: icons
 

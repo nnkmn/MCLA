@@ -7,6 +7,8 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
+import { mkdirSync, createWriteStream } from 'fs'
+import { join } from 'path'
 import type { IGameAdapter } from './IGameAdapter'
 import type {
   GameInfo,
@@ -16,6 +18,8 @@ import type {
   ModLoader,
   CrashReport,
 } from '../types/adapter.types'
+import { logger } from '../utils/logger'
+const log = logger.child('MC-Adapter')
 
 const execFileAsync = promisify(execFile)
 
@@ -121,7 +125,7 @@ async function fetchMojangVersions(): Promise<GameVersion[]> {
       type: v.type as GameVersion['type'],
     }))
   } catch (e) {
-    console.error('[MC Adapter] Failed to fetch versions:', e)
+    log.error('[MC Adapter] Failed to fetch versions:', e)
     return []
   }
 }
@@ -167,15 +171,57 @@ export class MinecraftJavaAdapter implements IGameAdapter {
     return fetchMojangVersions()
   }
 
-  async installVersion(_instance: GameInstance): Promise<void> {
-    // TODO: 接入 download.service 完成版本文件下载与安装
-    console.warn('[MC Adapter] installVersion not yet fully implemented')
+  async installVersion(instance: GameInstance): Promise<void> {
+    const versionId = instance.version
+    const gameDir = instance.gameDir
+    const bmclUrl = 'https://bmclapi2.bangbang93.com'
+    const versionDir = join(gameDir, 'versions', versionId)
+
+    log.info(`[installVersion] 开始安装 ${versionId} → ${versionDir}`)
+
+    mkdirSync(versionDir, { recursive: true })
+
+    // 1. 从 BMCLAPI 获取版本清单，找到版本 JSON 下载地址
+    const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
+    if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
+    const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
+    const verEntry = manifest.versions.find(v => v.id === versionId)
+    if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
+
+    // 2. 下载版本 JSON
+    const jsonPath = join(versionDir, `${versionId}.json`)
+    const jsonRes = await fetch(verEntry.url)
+    if (!jsonRes.ok) throw new Error(`下载版本 JSON 失败 HTTP ${jsonRes.status}`)
+    const jsonText = await jsonRes.text()
+    fs.writeFileSync(jsonPath, jsonText, 'utf-8')
+    log.info(`[installVersion] 版本 JSON 已保存: ${jsonPath}`)
+
+    // 3. 解析 client.jar 下载地址
+    const versionJson = JSON.parse(jsonText)
+    const clientUrl: string | undefined = versionJson.downloads?.client?.url
+    if (!clientUrl) throw new Error(`${versionId}.json 中缺少 downloads.client.url，可能是不支持的远古版`)
+
+    // 4. 下载 client.jar
+    const jarPath = join(versionDir, `${versionId}.jar`)
+    const jarRes = await fetch(clientUrl)
+    if (!jarRes.ok) throw new Error(`下载 client.jar 失败 HTTP ${jarRes.status}`)
+    if (!jarRes.body) throw new Error('响应体为空')
+
+    const writer = createWriteStream(jarPath)
+    const reader = jarRes.body.getReader()
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      writer.write(value)
+    }
+    writer.end()
+    log.info(`[installVersion] client.jar 已保存: ${jarPath}`)
   }
 
   async launchGame(instance: GameInstance, account: unknown): Promise<unknown> {
     // 委托给已有的 launcher.ts service
     // 实际使用时由 game.ipc.ts 调用 launcherService，这里作为接口占位
-    console.log('[MC Adapter] launchGame ->', instance.id, (account as any)?.username)
+    log.info('[MC Adapter] launchGame ->', instance.id, (account as { username?: string })?.username)
     return { success: true, pid: -1 }
   }
 
@@ -244,7 +290,7 @@ export class MinecraftJavaAdapter implements IGameAdapter {
     // 检查 assets/indexes 目录是否存在，如缺失则标记需要重新安装
     const assetsDir = path.join(instance.gameDir, 'assets', 'indexes')
     if (!fs.existsSync(assetsDir)) {
-      console.warn('[MC Adapter] Assets missing, re-install recommended:', instance.id)
+      log.warn('[MC Adapter] Assets missing, re-install recommended:', instance.id)
     }
   }
 }

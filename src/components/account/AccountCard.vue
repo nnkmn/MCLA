@@ -61,7 +61,7 @@
 import { computed } from 'vue'
 import type { Account } from '../../types/account'
 
-defineProps<{
+const props = defineProps<{
   account: Account
   showActions?: boolean
 }>()
@@ -72,21 +72,9 @@ defineEmits<{
 }>()
 
 const shortUuid = computed(() => {
-  const uuid = '' // from props.account.uuid
+  const uuid = props.account.uuid
   return uuid ? `${uuid.slice(0, 8)}...` : ''
 })
-</script>
-
-<script lang="ts">
-export default {
-  props: {
-    account: {
-      type: Object as () => import('../../types/account').Account,
-      required: true,
-    },
-    showActions: Boolean,
-  },
-}
 </script>
 
 <style scoped lang="scss">

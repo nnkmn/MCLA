@@ -56,6 +56,18 @@ const router = createRouter({
       component: () => import('../pages/MorePage.vue'),
       meta: { title: '更多' },
     },
+    {
+      path: '/download/version/:versionId',
+      name: 'version-detail',
+      component: () => import('../pages/VersionDetail.vue'),
+      meta: { title: '版本详情' },
+    },
+    {
+      path: '/download/manage',
+      name: 'download-manage',
+      component: () => import('../pages/DownloadManager.vue'),
+      meta: { title: '下载管理' },
+    },
   ],
 })
 
