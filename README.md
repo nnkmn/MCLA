@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MCLA](https://img.shields.io/badge/MCLA-v0.3.0-6366f1?style=for-the-badge&labelColor=1e1e2e)
+![MCLA](https://img.shields.io/badge/MCLA-v0.4.0-6366f1?style=for-the-badge&labelColor=1e1e2e)
 ![Electron](https://img.shields.io/badge/Electron-33-478cbf?style=flat-square&logo=electron&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3.5-4db08b?style=flat-square&logo=vuedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?style=flat-square&logo=typescript&logoColor=white)
@@ -235,6 +235,19 @@ MCLA 使用 SQLite（better-sqlite3）持久化数据，6 张表：
   → 保存到数据库（token 使用 safeStorage 加密）
   → 后续自动刷新，无需重复登录
 ```
+
+---
+
+## 版本历史
+
+各版本详细更新日志请查看 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
+
+| 版本 | 日期 | 核心内容 |
+|------|------|-----------|
+| v0.4.0 | 2026-05-14 | isVersionInstalled 修复、ModLoader IPC 重写、动态版本号 |
+| v0.3.0 | 2026-04-28 | 版本设置补全、Mod 管理增强、游戏启动真实 IPC |
+| v0.2.0 | 2026-04-26 | 微软账户系统、崩溃监控、Mod 下载、皮肤管理 |
+| v0.1.0 | 2026-04-24 | 初始版本，基础启动器框架 |
 
 ---
 
