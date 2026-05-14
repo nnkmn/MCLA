@@ -1,3 +1,91 @@
+# MCLA v0.4.0 - Bug 修复 + 动态版本号
+
+> Minecraft 启动器第四个版本，修复版本判断 Bug + 动态版本显示
+
+---
+
+## 核心修复
+
+### isVersionInstalled() 修复
+- ✅ **ModLoader 版本误判修复**：原函数同时检查 jar 和 json，ModLoader 版本没有独立 jar（继承基版本）导致永远返回 false
+- ✅ **继承版本检测**：jar 不存在时检查 `inheritsFrom`，正确识别 Fabric/Forge/NeoForge/Quilt 安装状态
+- ✅ **新增 IPC 通道**：`versions:is-installed`，供前端调用
+
+### ModLoader IPC 重写
+- ✅ **`modloader.ipc.ts` 重写**：接入真实 `ModLoaderService`，返回实际安装状态和进度
+- ✅ **删除旧 stub**：`electron/services/modloader.ts` 已在 v0.3.0 清理
+
+### 皮肤系统确认
+- ✅ **主进程 → 前端完整接通**：`account:get-skin-data-url` IPC + `preload.ts` 暴露 + `AccountPage.vue` 渲染皮肤头像
+
+### 动态版本号
+- ✅ **新增 `app:get-version` IPC**：从 `package.json` 读取版本号，不再写死
+- ✅ **`MorePage.vue` 动态显示**：`onMounted` 调用 `app.getVersion()`，模板用 `{{ appVersion }}`
+
+---
+
+## 技术栈
+
+- **框架**: Electron 33.4.11 + Vite + Vue 3
+- **UI**: 像素风设计系统（Press Start 2P 字体）
+- **数据库**: SQLite (better-sqlite3)
+- **构建**: electron-builder 25.x
+
+---
+
+## 安装包
+
+| 平台 | 文件 | 大小 |
+|------|------|------|
+| Windows | `MCLA Setup 0.4.0.exe` | ~94 MB |
+
+---
+
+## Changelog
+
+### v0.4.0 (2026-05-14)
+- 修复 `isVersionInstalled()` 对 ModLoader 版本误判（继承版本正确识别）
+- 新增 `versions:is-installed` IPC 通道
+- `modloader.ipc.ts` 重写，接入真实 `ModLoaderService`
+- 皮肤系统确认完整接入前端
+- `MorePage.vue` 版本号改为动态获取（`app:get-version` IPC）
+- git commit v0.3.0 全部改动（86 files，commit `7d591bc`）
+- 打包发布 `MCLA Setup 0.4.0.exe`
+
+### v0.3.0 (2026-04-28)
+- 版本设置：补全文件（BMCLAPI 自动修复）、修改名称/描述/收藏夹
+- 快捷方式：一键打开版本/存档/Mod 文件夹
+- 导出启动脚本：生成 .bat 批处理
+- 删除版本：双重确认安全删除
+- Mod管理：从文件批量安装、全选切换
+- 游戏启动：真实 IPC 流程替换 stub、版本持久化恢复
+- 修复：Electron 不兼容 prompt() → 自定义弹窗
+- 新增：shell:open-path IPC、实例单字段更新 API
+
+### v0.2.0 (2026-04-26)
+- 账户系统：完整 Microsoft OAuth Device Flow
+- Mod下载：CurseForge + Modrinth 双平台
+- 崩溃监控：自动捕获与分析
+- 皮肤管理：下载并缓存玩家皮肤
+- 基础设施：日志、加密、类型定义完善
+- 资源：macOS ICNS 图标、字体、StarLight Logo
+- UI优化：设置页、更多页响应式布局修复
+
+### v0.1.0 (2026-04-24)
+- 初始版本：基础启动器框架
+- 微软登录、版本管理、ModLoader 安装
+
+---
+
+## 已知问题
+
+- Sass legacy JS API 警告（构建时 82 个弃用警告）
+- `electron-vite dev` 热重载 IPC handlers 不注册，需改用 build 模式运行
+- 首次启动版本列表加载慢（BMCLAPI 网络请求慢）
+- Windows 图标缓存需 `ie4uinit.exe -show` 清理
+
+---
+
 # MCLA v0.3.0 - 版本设置完善 + 游戏启动
 
 > Minecraft 启动器第三个版本，完善版本设置交互与真实游戏启动
