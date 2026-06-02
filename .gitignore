@@ -47,6 +47,7 @@ components.d.ts
 .env
 .env.local
 .env.*.local
+.env.example
 
 # ========== 调试符号 ==========
 *.pdb
@@ -71,3 +72,20 @@ release/                        # 手动构建输出
 # ========== 操作系统 ==========
 $RECYCLE.BIN/
 *.lnk
+
+# ========== 项目文档（不上传）==========
+DEVELOPMENT_PLAN.md
+DEVELOPMENT_SUMMARY.md
+RELEASE_NOTES.md
+RELEASE_NOTES_v*.md
+TASKS.md
+ANALYSIS_REPORT_*.md
+MCLA_介绍.pptx
+
+# ========== 备份目录（不上传）==========
+LNTP/
+build/
+
+# ========== 临时图片（不上传）==========
+StarLight.Corelogo.png
+

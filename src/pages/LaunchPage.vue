@@ -11,14 +11,33 @@
       >
         <span class="btn-icon">
           <!-- 就绪：播放图标 -->
-          <svg v-if="!isLaunching && !isRunning" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg
+            v-if="!isLaunching && !isRunning"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
           <!-- 启动中：旋转加载 -->
-          <svg v-else-if="isLaunching && !isRunning" class="spin-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10" opacity="0.3"/>
-            <path d="M12 2a10 10 0 0110 10" stroke-linecap="round"/>
+          <svg
+            v-else-if="isLaunching && !isRunning"
+            class="spin-icon"
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <circle cx="12" cy="12" r="10" opacity="0.3" />
+            <path d="M12 2a10 10 0 0110 10" stroke-linecap="round" />
           </svg>
           <!-- 运行中：停止方块 -->
-          <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+          </svg>
         </span>
 
         <span class="btn-text">{{ launchLabel }}</span>
@@ -26,8 +45,19 @@
 
       <!-- .minecraft 路径显示 -->
       <div class="mc-path-bar" :title="mcPath">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-        <span class="mc-path-text" :class="{ 'not-found': !mcPathExists }">{{ mcPathDisplay }}</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+        </svg>
+        <span class="mc-path-text" :class="{ 'not-found': !mcPathExists }">{{
+          mcPathDisplay
+        }}</span>
         <div class="mc-path-actions">
           <button
             v-if="isCustomPath"
@@ -35,14 +65,30 @@
             title="恢复默认路径"
             @click.stop="restoreDefaultPath"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
           </button>
-          <button
-            class="mc-path-btn"
-            title="修改路径"
-            @click.stop="changePath"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <button class="mc-path-btn" title="修改路径" @click.stop="changePath">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -65,7 +111,9 @@
             class="console-btn danger"
             @click="terminateGame"
             title="强制结束"
-          >终止</button>
+          >
+            终止
+          </button>
         </div>
       </div>
       <div ref="logContainerRef" class="console-output" @scroll="onScrollLog">
@@ -74,7 +122,9 @@
           :key="idx"
           class="log-line"
           :class="getLineClass(line)"
-        >{{ line }}</div>
+        >
+          {{ line }}
+        </div>
         <div v-if="logLines.length === 0" class="log-empty">暂无日志输出，启动游戏后将显示...</div>
       </div>
     </section>
@@ -82,9 +132,19 @@
     <!-- 崩溃分析面板 -->
     <section v-if="crashReport" class="crash-panel">
       <div class="crash-header">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
-          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#ef4444"
+          stroke-width="2"
+        >
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         <h3>游戏崩溃</h3>
       </div>
@@ -188,9 +248,15 @@ async function handleLaunch() {
       return
     }
 
-    addLog(`[MCLA] 启动参数: instanceId="${instanceId}", accountId="${accountId}", versionId="${versionId}"`)
+    addLog(
+      `[MCLA] 启动参数: instanceId="${instanceId}", accountId="${accountId}", versionId="${versionId}"`
+    )
 
-    const result = await window.electronAPI?.game.launch(instanceId || 'default', accountId || 'default', versionId)
+    const result = await window.electronAPI?.game.launch(
+      instanceId || 'default',
+      accountId || 'default',
+      versionId
+    )
     addLog(`[MCLA] launch IPC 返回: ${JSON.stringify(result)}`)
   } catch (e: any) {
     hasError.value = true
@@ -207,8 +273,7 @@ async function terminateGame() {
     isRunning.value = false
     statusMessage.value = '游戏已终止'
     addLog('[MCLA] 游戏进程已手动终止')
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 /** 检查游戏是否在运行 */
@@ -232,7 +297,7 @@ function addLog(line: string) {
   if (autoScroll.value && logContainerRef.value) {
     requestAnimationFrame(() => {
       if (logContainerRef.value) {
-        logContainerRef.scrollTop = logContainerRef.scrollHeight
+        logContainerRef.value.scrollTop = logContainerRef.value.scrollHeight
       }
     })
   }
@@ -243,17 +308,23 @@ function clearLog() {
 }
 
 function copyLog() {
-  navigator.clipboard.writeText(logLines.value.join('\n')).then(() => {
-    statusMessage.value = '日志已复制到剪贴板'
-    setTimeout(() => { statusMessage.value = '' }, 2000)
-  }).catch(() => {
-    statusMessage.value = '复制失败'
-  })
+  navigator.clipboard
+    .writeText(logLines.value.join('\n'))
+    .then(() => {
+      statusMessage.value = '日志已复制到剪贴板'
+      setTimeout(() => {
+        statusMessage.value = ''
+      }, 2000)
+    })
+    .catch(() => {
+      statusMessage.value = '复制失败'
+    })
 }
 
 function getLineClass(line: string): string {
   const lower = line.toLowerCase()
-  if (lower.includes('error') || lower.includes('exception') || lower.includes('fatal')) return 'error'
+  if (lower.includes('error') || lower.includes('exception') || lower.includes('fatal'))
+    return 'error'
   if (lower.includes('warn')) return 'warn'
   if (lower.includes('[mcla]')) return 'system'
   return ''
@@ -281,7 +352,9 @@ async function changePath() {
   isCustomPath.value = true
   mcPathExists.value = await api.path.exists(selected)
   statusMessage.value = `已切换到: ${selected}`
-  setTimeout(() => { statusMessage.value = '' }, 3000)
+  setTimeout(() => {
+    statusMessage.value = ''
+  }, 3000)
 }
 
 /** 恢复默认路径 */
@@ -295,7 +368,9 @@ async function restoreDefaultPath() {
   isCustomPath.value = false
   mcPathExists.value = await api.path.exists(defaultPath)
   statusMessage.value = `已恢复默认: ${defaultPath}`
-  setTimeout(() => { statusMessage.value = '' }, 3000)
+  setTimeout(() => {
+    statusMessage.value = ''
+  }, 3000)
 }
 
 // ====== 生命周期 ======
@@ -308,7 +383,9 @@ onMounted(async () => {
       const versionsStore = useVersionsStore()
       versionsStore.setCurrentVersion(lastVersionId)
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    /* ignore */
+  }
 
   // 加载 .minecraft 路径
   try {
@@ -409,7 +486,10 @@ onUnmounted(() => {
   max-width: 560px;
   width: 100%;
 
-  svg { flex-shrink: 0; opacity: 0.6; }
+  svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
 
   .mc-path-text {
     flex: 1;
@@ -418,7 +498,9 @@ onUnmounted(() => {
     text-overflow: ellipsis;
     color: var(--mcla-text-secondary);
 
-    &.not-found { color: var(--mcla-text-error); }
+    &.not-found {
+      color: var(--mcla-text-error);
+    }
   }
 
   .mc-path-actions {
@@ -471,9 +553,11 @@ onUnmounted(() => {
   &::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), transparent);
     border-radius: var(--mcla-radius-xl) var(--mcla-radius-xl) 0 0;
     pointer-events: none;
   }
@@ -482,7 +566,7 @@ onUnmounted(() => {
   &:not(.launching):not(.running):hover {
     transform: translateY(-2px) scale(1.02);
     filter: brightness(1.06);
-    box-shadow: 0 8px 32px rgba(99,102,234,0.5);
+    box-shadow: 0 8px 32px rgba(99, 102, 234, 0.5);
   }
 
   &.launching .btn-icon {
@@ -491,7 +575,7 @@ onUnmounted(() => {
 
   &.running {
     background: linear-gradient(135deg, #059669, #10b981, #34d399);
-    box-shadow: 0 4px 20px rgba(16,185,129,0.35);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
 
     .btn-icon {
       animation: pulse-green 2s ease-in-out infinite;
@@ -521,18 +605,34 @@ onUnmounted(() => {
 
   .btn-text {
     letter-spacing: 0.8px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   }
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.85; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
 }
 @keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.35); }
-  50% { box-shadow: 0 0 0 12px rgba(16,185,129,0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+  }
 }
 
 .status-msg {
@@ -540,7 +640,9 @@ onUnmounted(() => {
   color: var(--mcla-text-secondary);
   min-height: 20px;
 
-  &.error { color: var(--mcla-text-error); }
+  &.error {
+    color: var(--mcla-text-error);
+  }
 }
 
 /* ====== 日志控制台 ====== */
@@ -595,7 +697,7 @@ onUnmounted(() => {
     &.danger:hover {
       color: #ef4444;
       border-color: #ef4444;
-      background: rgba(239,68,68,0.08);
+      background: rgba(239, 68, 68, 0.08);
     }
   }
 }
@@ -609,18 +711,32 @@ onUnmounted(() => {
   line-height: 1.7;
   color: var(--mcla-text-secondary);
 
-  &::-webkit-scrollbar { width: 5px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: var(--mcla-scrollbar-thumb); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mcla-scrollbar-thumb);
+    border-radius: 3px;
+  }
 }
 
 .log-line {
   white-space: pre-wrap;
   word-break: break-all;
 
-  &.error { color: #fca5a5; }
-  &.warn { color: #fcd34d; }
-  &.system { color: #93c5fd; opacity: 0.85; }
+  &.error {
+    color: #fca5a5;
+  }
+  &.warn {
+    color: #fcd34d;
+  }
+  &.system {
+    color: #93c5fd;
+    opacity: 0.85;
+  }
 }
 
 .log-empty {
@@ -646,7 +762,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 18px;
-  background: rgba(239,68,68,0.06);
+  background: rgba(239, 68, 68, 0.06);
 
   h3 {
     font-size: 15px;
@@ -669,7 +785,9 @@ onUnmounted(() => {
     ul {
       margin: 8px 0;
       padding-left: 20px;
-      li { margin: 4px 0; }
+      li {
+        margin: 4px 0;
+      }
     }
   }
 
@@ -682,7 +800,9 @@ onUnmounted(() => {
       font-size: 12px;
       outline: none;
 
-      &:hover { color: var(--mcla-text-secondary); }
+      &:hover {
+        color: var(--mcla-text-secondary);
+      }
     }
 
     pre {

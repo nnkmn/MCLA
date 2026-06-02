@@ -10,28 +10,94 @@
         <!-- 视图切换 -->
         <div class="view-toggle">
           <button
-            class="toggle-btn" :class="{ active: viewMode === 'grid' }"
-            @click="viewMode = 'grid'" title="网格视图"
+            class="toggle-btn"
+            :class="{ active: viewMode === 'grid' }"
+            @click="viewMode = 'grid'"
+            title="网格视图"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
           </button>
           <button
-            class="toggle-btn" :class="{ active: viewMode === 'list' }"
-            @click="viewMode = 'list'" title="列表视图"
+            class="toggle-btn"
+            :class="{ active: viewMode === 'list' }"
+            @click="viewMode = 'list'"
+            title="列表视图"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
           </button>
         </div>
         <button class="btn-primary" @click="showNewInstance = true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           新建实例
         </button>
         <button class="btn-secondary" @click="showImport = true" title="导入实例">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
           导入
         </button>
-        <button class="btn-secondary" @click="showExport = true" :disabled="!selectedId" title="导出选中实例">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <button
+          class="btn-secondary"
+          @click="showExport = true"
+          :disabled="!selectedId"
+          title="导出选中实例"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
           导出
         </button>
       </div>
@@ -39,7 +105,17 @@
 
     <!-- 搜索栏 -->
     <div class="search-bar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="M21 21l-4.35-4.35" />
+      </svg>
       <input type="text" v-model="searchQuery" placeholder="搜索实例名称或版本..." />
     </div>
 
@@ -67,11 +143,32 @@
           <h3 class="card-name">{{ inst.name }}</h3>
           <p class="card-meta">
             <span class="meta-item" v-if="getLoaderLabel(inst)">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"
+                />
+              </svg>
               {{ getLoaderLabel(inst) }}
             </span>
             <span class="meta-item">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
               {{ inst.last_played ? formatTime(inst.last_played) : '从未启动' }}
             </span>
           </p>
@@ -80,16 +177,49 @@
         <!-- 操作按钮区 -->
         <div class="card-actions">
           <button class="action-btn launch" @click.stop="launchInstance(inst)" title="启动">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </button>
           <button class="action-btn" @click.stop="openFolder(inst)" title="打开文件夹">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+            </svg>
           </button>
           <button class="action-btn" @click.stop="editInstance(inst)" title="设置">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2.83 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2.83 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+              />
+            </svg>
           </button>
           <button class="action-btn danger" @click.stop="confirmDeleteInstance(inst)" title="删除">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3,6 5,6 21,6" />
+              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+            </svg>
           </button>
         </div>
       </div>
@@ -109,14 +239,29 @@
         </div>
         <div class="list-info">
           <p class="list-name">{{ inst.name }}</p>
-          <p class="list-meta">{{ inst.mc_version }} · {{ getLoaderLabel(inst) || '原版' }} · {{ inst.last_played ? formatTime(inst.last_played) : '从未启动' }}</p>
+          <p class="list-meta">
+            {{ inst.mc_version }} · {{ getLoaderLabel(inst) || '原版' }} ·
+            {{ inst.last_played ? formatTime(inst.last_played) : '从未启动' }}
+          </p>
         </div>
         <div class="list-actions">
           <button class="action-btn launch" @click.stop="launchInstance(inst)" title="启动">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </button>
           <button class="action-btn danger" @click.stop="confirmDeleteInstance(inst)" title="删除">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3,6 5,6 21,6" />
+              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+            </svg>
           </button>
         </div>
       </div>
@@ -124,9 +269,18 @@
 
     <!-- 空状态 -->
     <div v-if="!filteredInstances.length" class="empty-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color:var(--mcla-text-muted);margin-bottom:12px">
-        <rect x="3" y="3" width="18" height="18" rx="3"/>
-        <line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.2"
+        style="color: var(--mcla-text-muted); margin-bottom: 12px"
+      >
+        <rect x="3" y="3" width="18" height="18" rx="3" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+        <line x1="15" y1="9" x2="9" y2="15" />
       </svg>
       <p>{{ searchQuery ? '没有匹配的实例' : '暂无游戏实例' }}</p>
       <span class="hint" v-if="!searchQuery">点击右上角按钮创建你的第一个实例</span>
@@ -177,7 +331,9 @@
 
         <!-- 步骤1: 选择目录 -->
         <div v-if="importStep === 'select'" class="import-step">
-          <p class="import-hint">选择一个包含 Minecraft 游戏数据的目录（versions、libraries、mods 等）</p>
+          <p class="import-hint">
+            选择一个包含 Minecraft 游戏数据的目录（versions、libraries、mods 等）
+          </p>
           <div class="form-group">
             <label>目录路径</label>
             <div class="dir-picker">
@@ -189,7 +345,10 @@
 
         <!-- 步骤2: 扫描中 -->
         <div v-else-if="importStep === 'scanning'" class="import-step">
-          <div class="spinner-row"><div class="spinner"></div><span>正在扫描目录...</span></div>
+          <div class="spinner-row">
+            <div class="spinner"></div>
+            <span>正在扫描目录...</span>
+          </div>
         </div>
 
         <!-- 步骤3: 预览 -->
@@ -201,7 +360,10 @@
             </div>
             <div class="result-item">
               <span class="result-label">加载器</span>
-              <span class="result-value">{{ importScanResult.loaderType || '原版' }} {{ importScanResult.loaderVersion }}</span>
+              <span class="result-value"
+                >{{ importScanResult.loaderType || '原版' }}
+                {{ importScanResult.loaderVersion }}</span
+              >
             </div>
             <div class="result-item">
               <span class="result-label">Mod 数量</span>
@@ -220,13 +382,25 @@
 
         <!-- 步骤4: 导入中 -->
         <div v-else-if="importStep === 'importing'" class="import-step">
-          <div class="spinner-row"><div class="spinner"></div><span>正在导入...</span></div>
+          <div class="spinner-row">
+            <div class="spinner"></div>
+            <span>正在导入...</span>
+          </div>
         </div>
 
         <!-- 步骤5: 完成 -->
         <div v-else-if="importStep === 'done'" class="import-step">
           <div class="result-success">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--mcla-success)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--mcla-success)"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
             <p>导入成功！</p>
           </div>
           <div class="modal-actions">
@@ -337,13 +511,13 @@ const gradients = [
   'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
   'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
   'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)',
-  'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+  'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)'
 ]
 
 function getCoverGradient(inst: Instance): string {
   let hash = 0
   for (let i = 0; i < inst.id.length; i++) {
-    hash = ((hash << 5) - hash) + inst.id.charCodeAt(i)
+    hash = (hash << 5) - hash + inst.id.charCodeAt(i)
     hash |= 0
   }
   return gradients[Math.abs(hash) % gradients.length]
@@ -372,12 +546,12 @@ async function loadInstances() {
 const filteredInstances = computed(() => {
   if (!searchQuery.value) return instances.value
   const q = searchQuery.value.toLowerCase()
-  return instances.value.filter(i =>
-    i.name.toLowerCase().includes(q) || i.mc_version.includes(q)
-  )
+  return instances.value.filter((i) => i.name.toLowerCase().includes(q) || i.mc_version.includes(q))
 })
 
-function selectInstance(inst: Instance) { selectedId.value = inst.id }
+function selectInstance(inst: Instance) {
+  selectedId.value = inst.id
+}
 
 // 创建实例（写入数据库）
 async function handleCreateInstance() {
@@ -395,8 +569,7 @@ async function handleCreateInstance() {
         customPath = await api.path.getMinecraft()
       }
     }
-  } catch (e) {
-  }
+  } catch (e) {}
 
   try {
     await window.electronAPI?.instance?.create({
@@ -407,7 +580,7 @@ async function handleCreateInstance() {
       loaderVersion: '',
       javaPath: '',
       minMemory: 512,
-      maxMemory: 2048,
+      maxMemory: 2048
     })
 
     // 重新加载列表
@@ -416,12 +589,15 @@ async function handleCreateInstance() {
     // 重置表单
     newInst.value = { name: '', mc_version: '1.20.4', loader_type: 'vanilla' }
     showNewInstance.value = false
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 function launchInstance(inst: Instance) {
-  window.electronAPI?.game?.launch?.({ instanceId: inst.id, accountId: undefined, versionId: inst.mc_version })
+  window.electronAPI?.game?.launch?.({
+    instanceId: inst.id,
+    accountId: undefined,
+    versionId: inst.mc_version
+  })
 }
 
 async function openFolder(inst: Instance) {
@@ -500,7 +676,11 @@ async function doExport() {
     })
     if (!destPath) return
     const fullPath = destPath.endsWith('.mcla') ? destPath : destPath + '.mcla'
-    const res = await window.electronAPI?.instance?.exportInstance(selectedId.value, fullPath, exportOptions.value)
+    const res = await window.electronAPI?.instance?.exportInstance(
+      selectedId.value,
+      fullPath,
+      exportOptions.value
+    )
     if (res?.ok) {
       showExport.value = false
     } else {
@@ -522,8 +702,7 @@ async function confirmDeleteInstance(inst: Instance) {
     await window.electronAPI?.instance?.delete(inst.id)
     await loadInstances()
     if (selectedId.value === inst.id) selectedId.value = ''
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 function formatTime(dateStr: string | null | undefined): string {
@@ -607,11 +786,13 @@ onMounted(() => {
     border-radius: 5px;
     transition: all 0.12s;
 
-    &:hover { color: var(--mcla-text-secondary); }
+    &:hover {
+      color: var(--mcla-text-secondary);
+    }
     &.active {
       background: var(--mcla-bg-elevated);
       color: var(--mcla-primary-600);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
   }
 }
@@ -630,8 +811,14 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { background: var(--mcla-primary-hover); transform: translateY(-1px); box-shadow: var(--mcla-shadow-md); }
-  &:active { transform: scale(0.97); }
+  &:hover {
+    background: var(--mcla-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--mcla-shadow-md);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 .btn-cancel {
@@ -645,7 +832,9 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { background: var(--mcla-bg-tertiary); }
+  &:hover {
+    background: var(--mcla-bg-tertiary);
+  }
 }
 
 /* ====== 搜索 ====== */
@@ -660,7 +849,10 @@ onMounted(() => {
   margin-bottom: 16px;
   flex-shrink: 0;
 
-  svg { color: var(--mcla-text-muted); flex-shrink: 0; }
+  svg {
+    color: var(--mcla-text-muted);
+    flex-shrink: 0;
+  }
   input {
     flex: 1;
     border: none;
@@ -669,7 +861,9 @@ onMounted(() => {
     color: var(--mcla-text-primary);
     background: transparent;
 
-    &::placeholder { color: var(--mcla-text-muted); }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -682,9 +876,16 @@ onMounted(() => {
   padding-right: 4px;
   flex: 1;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
 }
 
 .instance-card {
@@ -707,7 +908,7 @@ onMounted(() => {
 
   &.selected {
     border-color: var(--mcla-primary-500);
-    box-shadow: 0 0 0 3px rgba(99,102,234,0.15);
+    box-shadow: 0 0 0 3px rgba(99, 102, 234, 0.15);
   }
 }
 
@@ -721,7 +922,7 @@ onMounted(() => {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3));
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.3));
   }
 }
 
@@ -734,7 +935,7 @@ onMounted(() => {
   font-size: 9px;
   font-weight: 600;
   color: #fff;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
   border-radius: 4px;
   letter-spacing: 0.3px;
@@ -748,8 +949,8 @@ onMounted(() => {
   padding: 1px 6px;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  background: rgba(0,0,0,0.4);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   border-radius: 4px;
 }
@@ -783,7 +984,10 @@ onMounted(() => {
     font-size: 10px;
     color: var(--mcla-text-muted);
 
-    svg { flex-shrink: 0; opacity: 0.7; }
+    svg {
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
   }
 }
 
@@ -849,7 +1053,7 @@ onMounted(() => {
 
   &:hover {
     border-color: var(--mcla-border-color);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   }
 
   &.selected {
@@ -871,7 +1075,7 @@ onMounted(() => {
     font-size: 10px;
     font-weight: 700;
     color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -899,7 +1103,9 @@ onMounted(() => {
   opacity: 0;
   transition: opacity 0.15s;
 
-  .list-item:hover & { opacity: 1; }
+  .list-item:hover & {
+    opacity: 1;
+  }
 
   .action-btn {
     width: 30px;
@@ -914,8 +1120,17 @@ onMounted(() => {
     border-radius: var(--mcla-radius-sm);
     transition: all 0.12s;
 
-    &:hover { background: var(--mcla-primary); color: #fff; }
-    &.danger { color: var(--mcla-error); &:hover { background: var(--mcla-error); color: #fff; } }
+    &:hover {
+      background: var(--mcla-primary);
+      color: #fff;
+    }
+    &.danger {
+      color: var(--mcla-error);
+      &:hover {
+        background: var(--mcla-error);
+        color: #fff;
+      }
+    }
   }
 }
 
@@ -928,15 +1143,21 @@ onMounted(() => {
   flex: 1;
   color: var(--mcla-text-secondary);
 
-  p { margin: 0 0 6px; font-size: 14px; }
-  .hint { font-size: 12px; color: var(--mcla-text-muted); }
+  p {
+    margin: 0 0 6px;
+    font-size: 14px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--mcla-text-muted);
+  }
 }
 
 /* ====== 弹窗 ====== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -953,12 +1174,24 @@ onMounted(() => {
   box-shadow: var(--mcla-shadow-xl);
   border: 1px solid var(--mcla-border-color);
 
-  h3 { margin: 0 0 20px; font-size: 17px; font-weight: 700; color: var(--mcla-text-primary); }
+  h3 {
+    margin: 0 0 20px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--mcla-text-primary);
+  }
 
-  form { display: flex; flex-direction: column; gap: 14px; }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 }
 
-.form-row { display: flex; gap: 12px; }
+.form-row {
+  display: flex;
+  gap: 12px;
+}
 
 .form-group {
   flex: 1;
@@ -970,7 +1203,8 @@ onMounted(() => {
     margin-bottom: 5px;
   }
 
-  input, select {
+  input,
+  select {
     width: 100%;
     padding: 8px 12px;
     border: 1.5px solid var(--mcla-border-color);
@@ -981,8 +1215,13 @@ onMounted(() => {
     outline: none;
     transition: all 0.15s;
 
-    &:focus { border-color: var(--mcla-primary-400); box-shadow: 0 0 0 3px rgba(99,102,234,0.1); }
-    &::placeholder { color: var(--mcla-text-muted); }
+    &:focus {
+      border-color: var(--mcla-primary-400);
+      box-shadow: 0 0 0 3px rgba(99, 102, 234, 0.1);
+    }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -1005,7 +1244,10 @@ onMounted(() => {
     color: var(--mcla-primary);
     background: var(--mcla-primary-light);
   }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .modal-actions {
@@ -1037,8 +1279,12 @@ onMounted(() => {
     background: var(--mcla-bg-primary);
     outline: none;
 
-    &:focus { border-color: var(--mcla-primary-400); }
-    &::placeholder { color: var(--mcla-text-muted); }
+    &:focus {
+      border-color: var(--mcla-primary-400);
+    }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -1065,7 +1311,11 @@ onMounted(() => {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .scan-result {
   display: grid;
@@ -1093,14 +1343,21 @@ onMounted(() => {
   }
 }
 
-.result-success, .result-error {
+.result-success,
+.result-error {
   text-align: center;
   padding: 20px 0;
 
-  p { margin: 12px 0 0; font-size: 14px; color: var(--mcla-text-primary); }
+  p {
+    margin: 12px 0 0;
+    font-size: 14px;
+    color: var(--mcla-text-primary);
+  }
 }
 
-.result-error p { color: var(--mcla-error); }
+.result-error p {
+  color: var(--mcla-error);
+}
 
 /* 导出选项 */
 .export-desc {
@@ -1124,7 +1381,7 @@ onMounted(() => {
   color: var(--mcla-text-primary);
   cursor: pointer;
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     width: 16px;
     height: 16px;
     accent-color: var(--mcla-primary);

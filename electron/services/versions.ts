@@ -86,18 +86,45 @@ export class VersionsService {
 
   private getBaseUrl(): string {
     switch (this.source) {
-      case 'bmclapi': return BMCLAPI_BASE
-      case 'mcbbs': return BMCLAPI_MIRROR
-      default: return BMCLAPI_BASE
+      case 'bmclapi':
+        return BMCLAPI_BASE
+      case 'mcbbs':
+        return BMCLAPI_MIRROR
+      default:
+        return BMCLAPI_BASE
     }
   }
 
   // 获取版本列表（优先 BMCLAPI）
   async getVersionList(): Promise<BMCLVersionList> {
     const cacheKey = `versionList_${this.source}`
+
+    // 1. 先检查内存缓存
     const cached = this.cache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.data
+    }
+
+    // 2. 检查数据库持久化缓存
+    try {
+      const dbCached = this.db
+        .prepare('SELECT * FROM configs WHERE key = ?')
+        .get(['versionList']) as any
+
+      if (dbCached) {
+        try {
+          const cachedData = JSON.parse(dbCached.value)
+          if (Date.now() - cachedData.timestamp < this.cacheTimeout * 6) {
+            // 数据库缓存30分钟
+            this.cache.set(cacheKey, { data: cachedData.data, timestamp: cachedData.timestamp })
+            return cachedData.data
+          }
+        } catch {
+          // 解析失败，忽略
+        }
+      }
+    } catch {
+      // 数据库读取失败，继续
     }
 
     try {
@@ -107,10 +134,36 @@ export class VersionsService {
         throw new Error(`HTTP ${response.status}`)
       }
       const data = await response.json()
+
+      // 更新内存和数据库缓存
       this.cache.set(cacheKey, { data, timestamp: Date.now() })
+      try {
+        this.db
+          .prepare('INSERT OR REPLACE INTO configs (key, value) VALUES (?, ?)')
+          .run(['versionList', JSON.stringify({ data, timestamp: Date.now() })])
+      } catch (dbError) {
+        log.error('[VersionsService] 保存缓存失败:', dbError)
+      }
+
       return data
     } catch (error) {
       log.error('[VersionsService] 获取版本列表失败:', error)
+
+      // 即使请求失败，也尝试返回数据库中的旧缓存
+      try {
+        const dbCached = this.db
+          .prepare('SELECT * FROM configs WHERE key = ?')
+          .get(['versionList']) as any
+
+        if (dbCached) {
+          const cachedData = JSON.parse(dbCached.value)
+          this.cache.set(cacheKey, { data: cachedData.data, timestamp: cachedData.timestamp })
+          return cachedData.data
+        }
+      } catch {
+        // 忽略
+      }
+
       // 降级到官方 API
       const fallback = await this.getMojangManifest()
       return fallback
@@ -129,7 +182,7 @@ export class VersionsService {
   // 获取所有可用版本
   async getAllVersions(): Promise<McVersionInfo[]> {
     const manifest = await this.getVersionList()
-    return manifest.versions.map(v => ({
+    return manifest.versions.map((v) => ({
       id: v.id,
       type: v.type,
       releaseTime: v.releaseTime,
@@ -156,7 +209,9 @@ export class VersionsService {
       // 先从版本清单获取该版本的 URL
       const manifestRes = await fetch(`${this.getBaseUrl()}/mc/game/version_manifest.json`)
       if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`)
-      const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
+      const manifest = (await manifestRes.json()) as {
+        versions: Array<{ id: string; url: string }>
+      }
       const verEntry = manifest.versions.find((v: any) => v.id === versionId)
       if (!verEntry) return null
 
@@ -185,8 +240,7 @@ export class VersionsService {
     const urls: any = {}
 
     // client.jar — 优先 version.json 里的 Mojang URL，兜底 BMCLAPI
-    urls.client = versionInfo.downloads?.client?.url
-      ?? `${baseUrl}/mc/version/${versionId}/client`
+    urls.client = versionInfo.downloads?.client?.url ?? `${baseUrl}/mc/version/${versionId}/client`
 
     // server.jar — 有则覆盖
     if (versionInfo.downloads?.server?.url) {
@@ -202,14 +256,16 @@ export class VersionsService {
   }
 
   // 过滤版本（按类型）
-  async getVersionsByType(type: 'release' | 'snapshot' | 'old' | 'all' = 'all'): Promise<McVersionInfo[]> {
+  async getVersionsByType(
+    type: 'release' | 'snapshot' | 'old' | 'all' = 'all'
+  ): Promise<McVersionInfo[]> {
     const versions = await this.getAllVersions()
-    
+
     if (type === 'all') return versions
     if (type === 'old') {
-      return versions.filter(v => v.type === 'old_alpha' || v.type === 'old_beta')
+      return versions.filter((v) => v.type === 'old_alpha' || v.type === 'old_beta')
     }
-    return versions.filter(v => v.type === type)
+    return versions.filter((v) => v.type === type)
   }
 
   // 获取推荐版本列表（最近的主要版本）
@@ -221,7 +277,7 @@ export class VersionsService {
   // 获取支持的 Java 版本
   getRecommendedJavaVersion(mcVersion: string): { min: string; recommended: string } {
     const version = parseFloat(mcVersion)
-    
+
     if (version >= 1.21) {
       return { min: '17', recommended: '21' }
     } else if (version >= 1.18) {
@@ -277,22 +333,24 @@ export class VersionsService {
 
   // 保存版本信息到数据库
   saveVersionInfo(version: McVersionInfo): void {
-    this.db.prepare(
-      'INSERT OR REPLACE INTO versions (id, type, releaseTime, url) VALUES (?, ?, ?, ?)'
-    ).run([version.id, version.type, version.releaseTime, version.url])
+    this.db
+      .prepare('INSERT OR REPLACE INTO versions (id, type, releaseTime, url) VALUES (?, ?, ?, ?)')
+      .run([version.id, version.type, version.releaseTime, version.url])
   }
 
   // 从数据库获取版本信息
   getVersionFromDB(versionId: string): McVersionInfo | null {
-    const result = this.db.prepare(
-      'SELECT * FROM versions WHERE id = ?'
-    ).get([versionId]) as McVersionInfo | undefined
-    return result ? {
-      id: result.id,
-      type: result.type,
-      releaseTime: result.releaseTime,
-      url: result.url,
-      time: result.releaseTime || ''
-    } : null
+    const result = this.db.prepare('SELECT * FROM versions WHERE id = ?').get([versionId]) as
+      | McVersionInfo
+      | undefined
+    return result
+      ? {
+          id: result.id,
+          type: result.type,
+          releaseTime: result.releaseTime,
+          url: result.url,
+          time: result.releaseTime || ''
+        }
+      : null
   }
 }

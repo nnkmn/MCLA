@@ -8,7 +8,13 @@ import * as path from 'path'
 import * as os from 'os'
 import { shell } from 'electron'
 import { getDatabase } from './database'
-import { getInstanceById, createInstance, updateInstance, deleteInstance, Instance } from './instances'
+import {
+  getInstanceById,
+  createInstance,
+  updateInstance,
+  deleteInstance,
+  Instance
+} from './instances'
 import { logger } from '../utils/logger'
 const log = logger.child('InstanceEnhanced')
 
@@ -62,7 +68,7 @@ export function createInstanceWithDir(input: CreateInstanceInput): Instance {
     height: 480,
     fullscreen: 0,
     is_favorited: 0,
-    last_played: null,
+    last_played: null
   })
 }
 
@@ -114,7 +120,7 @@ export async function openModsFolder(id: string): Promise<boolean> {
 export interface ModFileInfo {
   filename: string
   size: number
-  enabled: boolean  // .jar = enabled, .jar.disabled = disabled
+  enabled: boolean // .jar = enabled, .jar.disabled = disabled
   modifiedAt: string
 }
 
@@ -127,16 +133,17 @@ export function listModFiles(id: string): ModFileInfo[] {
   if (!fs.existsSync(modsDir)) return []
 
   try {
-    return fs.readdirSync(modsDir)
-      .filter(f => f.endsWith('.jar') || f.endsWith('.jar.disabled'))
-      .map(filename => {
+    return fs
+      .readdirSync(modsDir)
+      .filter((f) => f.endsWith('.jar') || f.endsWith('.jar.disabled'))
+      .map((filename) => {
         const fullPath = path.join(modsDir, filename)
         const stat = fs.statSync(fullPath)
         return {
           filename,
           size: stat.size,
           enabled: filename.endsWith('.jar'),
-          modifiedAt: stat.mtime.toISOString(),
+          modifiedAt: stat.mtime.toISOString()
         }
       })
       .sort((a, b) => a.filename.localeCompare(b.filename))

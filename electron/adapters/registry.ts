@@ -50,21 +50,18 @@ class AdapterRegistry {
    * 获取所有已注册的游戏信息列表
    */
   listGames() {
-    return Array.from(this.adapters.values()).map(a => a.gameInfo)
+    return Array.from(this.adapters.values()).map((a) => a.gameInfo)
   }
 
   /**
    * 获取当前平台支持的适配器
    */
   getSupportedAdapters(): IGameAdapter[] {
-    const platform: 'windows' | 'macos' | 'linux' = process.platform === 'win32'
-      ? 'windows'
-      : process.platform === 'darwin'
-        ? 'macos'
-        : 'linux'
+    const platform: 'windows' | 'macos' | 'linux' =
+      process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux'
 
-    return Array.from(this.adapters.values()).filter(
-      a => a.gameInfo.supportedPlatforms.includes(platform)
+    return Array.from(this.adapters.values()).filter((a) =>
+      a.gameInfo.supportedPlatforms.includes(platform)
     )
   }
 }

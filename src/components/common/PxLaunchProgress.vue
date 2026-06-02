@@ -8,7 +8,13 @@
             <span class="panel-icon">▶</span>
             <span class="panel-title">正在启动</span>
             <span class="panel-version">{{ versionId }}</span>
-            <button class="panel-close" @click="handleClose" v-if="phase === 'error' || phase === 'idle'">✕</button>
+            <button
+              class="panel-close"
+              @click="handleClose"
+              v-if="phase === 'error' || phase === 'idle'"
+            >
+              ✕
+            </button>
           </div>
 
           <!-- 进度阶段列表 -->
@@ -20,7 +26,7 @@
               :class="{
                 active: step.id === phase,
                 done: step.done,
-                error: step.id === phase && phase === 'error',
+                error: step.id === phase && phase === 'error'
               }"
             >
               <span class="phase-icon">
@@ -47,7 +53,12 @@
             <button class="px-btn px-btn-sm" @click="$emit('openLog')">查看完整日志</button>
           </div>
           <div class="panel-footer" v-if="phase === 'error'">
-            <button class="px-btn px-btn-sm px-btn-danger" @click="$emit('showError', errorMessage)">查看错误详情</button>
+            <button
+              class="px-btn px-btn-sm px-btn-danger"
+              @click="$emit('showError', errorMessage)"
+            >
+              查看错误详情
+            </button>
           </div>
         </div>
       </div>
@@ -75,7 +86,14 @@ const logBuffer = ref('')
 const showLog = ref(false)
 const errorMessage = ref('')
 
-type LaunchPhase = 'idle' | 'building-config' | 'validating-java' | 'checking-files' | 'launching-process' | 'running' | 'error'
+type LaunchPhase =
+  | 'idle'
+  | 'building-config'
+  | 'validating-java'
+  | 'checking-files'
+  | 'launching-process'
+  | 'running'
+  | 'error'
 
 interface PhaseDef {
   id: LaunchPhase
@@ -85,11 +103,11 @@ interface PhaseDef {
 }
 
 const phases = ref<PhaseDef[]>([
-  { id: 'building-config',    label: '构建启动参数',   detail: '正在构建启动参数...', done: false },
-  { id: 'checking-files',    label: '检查游戏文件',   detail: '正在检查游戏文件...', done: false },
-  { id: 'validating-java',   label: '检测 Java',      detail: '正在检测 Java 环境...', done: false },
-  { id: 'launching-process',  label: '启动游戏进程',   detail: '正在启动游戏进程...', done: false },
-  { id: 'running',           label: '游戏运行中',     detail: '游戏已启动',          done: false },
+  { id: 'building-config', label: '构建启动参数', detail: '正在构建启动参数...', done: false },
+  { id: 'checking-files', label: '检查游戏文件', detail: '正在检查游戏文件...', done: false },
+  { id: 'validating-java', label: '检测 Java', detail: '正在检测 Java 环境...', done: false },
+  { id: 'launching-process', label: '启动游戏进程', detail: '正在启动游戏进程...', done: false },
+  { id: 'running', label: '游戏运行中', detail: '游戏已启动', done: false }
 ])
 
 // 清理函数引用
@@ -98,7 +116,9 @@ let cleanupLog: (() => void) | null = null
 let cleanupExit: (() => void) | null = null
 
 function resetPhases() {
-  phases.value.forEach(p => { p.done = false })
+  phases.value.forEach((p) => {
+    p.done = false
+  })
 }
 
 onMounted(() => {
@@ -107,44 +127,52 @@ onMounted(() => {
 
   // 监听进度
   if (api.game.onProgress) {
-    cleanupProgress = api.game.onProgress((data: { phase: LaunchPhase; message: string; detail?: string }) => {
-      const { phase: newPhase, message: msg, detail: det } = data
+    cleanupProgress = api.game.onProgress(
+      (data: { phase: LaunchPhase; message: string; detail?: string }) => {
+        const { phase: newPhase, message: msg, detail: det } = data
 
-      if (newPhase === 'idle') {
-        visible.value = false
-        resetPhases()
-        return
-      }
+        if (newPhase === 'idle') {
+          visible.value = false
+          resetPhases()
+          return
+        }
 
-      if (newPhase === 'error') {
-        phase.value = 'error'
-        errorMessage.value = msg || '启动失败'
+        if (newPhase === 'error') {
+          phase.value = 'error'
+          errorMessage.value = msg || '启动失败'
+          message.value = msg
+          detail.value = det || ''
+          visible.value = true
+          return
+        }
+
+        // 标记已完成阶段
+        const phaseOrder: LaunchPhase[] = [
+          'building-config',
+          'checking-files',
+          'validating-java',
+          'launching-process',
+          'running'
+        ]
+        const currentIdx = phaseOrder.indexOf(newPhase)
+        phases.value.forEach((p, idx) => {
+          const pIdx = phaseOrder.indexOf(p.id)
+          p.done = pIdx < currentIdx
+        })
+
+        // 如果回到前面阶段（如 checking-files 被调用多次），重置后面的
+        if (newPhase === 'checking-files') {
+          phases.value.forEach((p) => {
+            if (p.id !== 'checking-files') p.done = false
+          })
+        }
+
+        phase.value = newPhase
         message.value = msg
         detail.value = det || ''
         visible.value = true
-        return
       }
-
-      // 标记已完成阶段
-      const phaseOrder: LaunchPhase[] = ['building-config', 'checking-files', 'validating-java', 'launching-process', 'running']
-      const currentIdx = phaseOrder.indexOf(newPhase)
-      phases.value.forEach((p, idx) => {
-        const pIdx = phaseOrder.indexOf(p.id)
-        p.done = pIdx < currentIdx
-      })
-
-      // 如果回到前面阶段（如 checking-files 被调用多次），重置后面的
-      if (newPhase === 'checking-files') {
-        phases.value.forEach(p => {
-          if (p.id !== 'checking-files') p.done = false
-        })
-      }
-
-      phase.value = newPhase
-      message.value = msg
-      detail.value = det || ''
-      visible.value = true
-    })
+    )
   }
 
   // 监听日志
@@ -159,12 +187,14 @@ onMounted(() => {
 
   // 监听退出
   if (api.game.onExit) {
-    cleanupExit = api.game.onExit((data: { code: number; signal: string | null; instanceId?: string }) => {
-      if (data.code === 0 || data.code === null) {
-        visible.value = false
-        resetPhases()
+    cleanupExit = api.game.onExit(
+      (data: { code: number; signal: string | null; instanceId?: string }) => {
+        if (data.code === 0 || data.code === null) {
+          visible.value = false
+          resetPhases()
+        }
       }
-    })
+    )
   }
 })
 
@@ -184,7 +214,13 @@ function handleClose() {
   }
 }
 
-defineExpose({ open: () => { visible.value = true; resetPhases(); phase.value = 'building-config' } })
+defineExpose({
+  open: () => {
+    visible.value = true
+    resetPhases()
+    phase.value = 'building-config'
+  }
+})
 </script>
 
 <style scoped>
@@ -226,8 +262,13 @@ defineExpose({ open: () => { visible.value = true; resetPhases(); phase.value = 
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .panel-version {
@@ -324,8 +365,12 @@ defineExpose({ open: () => { visible.value = true; resetPhases(); phase.value = 
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .log-area {
@@ -339,7 +384,9 @@ defineExpose({ open: () => { visible.value = true; resetPhases(); phase.value = 
   cursor: pointer;
   text-align: right;
 }
-.log-header:hover { text-decoration: underline; }
+.log-header:hover {
+  text-decoration: underline;
+}
 
 .log-content {
   max-height: 150px;
@@ -376,7 +423,10 @@ defineExpose({ open: () => { visible.value = true; resetPhases(); phase.value = 
   background: var(--mcla-primary, #6366f1);
   color: #fff;
 }
-.px-btn-sm { padding: 4px 10px; font-size: 11px; }
+.px-btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
+}
 .px-btn-danger {
   border-color: var(--mcla-danger, #ef4444);
   color: var(--mcla-danger, #ef4444);

@@ -8,7 +8,16 @@
 
     <!-- 空状态 -->
     <div v-if="tasks.length === 0" class="queue-empty">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--mcla-text-muted)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--mcla-text-muted)"
+        stroke-width="1.5"
+      >
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+      </svg>
       <p>暂无下载任务</p>
     </div>
 
@@ -47,7 +56,9 @@
           class="cancel-btn"
           @click="$emit('cancel', task.id)"
           title="取消"
-        >×</button>
+        >
+          ×
+        </button>
       </div>
     </div>
 
@@ -58,7 +69,9 @@
         <div class="overall-fill" :style="{ width: `${overallProgress}%` }"></div>
       </div>
       <span class="overall-pct">{{ overallProgress }}%</span>
-      <span v-if="totalSpeed !== undefined" class="overall-speed">{{ formatSpeed(totalSpeed) }}</span>
+      <span v-if="totalSpeed !== undefined" class="overall-speed">{{
+        formatSpeed(totalSpeed)
+      }}</span>
     </div>
   </div>
 </template>
@@ -87,7 +100,7 @@ function statusLabel(status: DownloadStatus): string {
     paused: '已暂停',
     completed: '已完成',
     failed: '失败',
-    cancelled: '已取消',
+    cancelled: '已取消'
   }
   return map[status] || status
 }
@@ -112,8 +125,15 @@ function formatSpeed(bytesPerSec: number): string {
   justify-content: space-between;
   margin-bottom: 10px;
 
-  h3 { font-size: 14px; font-weight: 650; color: var(--mcla-text-primary); }
-  .queue-count { font-size: 12px; color: var(--mcla-text-muted); }
+  h3 {
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--mcla-text-primary);
+  }
+  .queue-count {
+    font-size: 12px;
+    color: var(--mcla-text-muted);
+  }
 }
 
 .queue-empty {
@@ -121,7 +141,10 @@ function formatSpeed(bytesPerSec: number): string {
   padding: 36px 0;
   color: var(--mcla-text-muted);
 
-  p { margin-top: 8px; font-size: 13px; }
+  p {
+    margin-top: 8px;
+    font-size: 13px;
+  }
 }
 
 .task-list {
@@ -139,8 +162,12 @@ function formatSpeed(bytesPerSec: number): string {
   border: 1px solid var(--mcla-border-color);
   border-radius: var(--mcla-radius-md);
 
-  &.active { border-color: var(--mcla-primary-300); }
-  &.error { border-color: rgba(239,68,68,0.35); }
+  &.active {
+    border-color: var(--mcla-primary-300);
+  }
+  &.error {
+    border-color: rgba(239, 68, 68, 0.35);
+  }
 }
 
 .task-name {
@@ -180,8 +207,12 @@ function formatSpeed(bytesPerSec: number): string {
   }
 
   @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 
   .progress-text {
@@ -199,11 +230,21 @@ function formatSpeed(bytesPerSec: number): string {
   min-width: 70px;
   text-align: right;
 
-  &.pending { color: var(--mcla-text-muted); }
-  &.downloading { color: var(--mcla-primary-500); }
-  &.paused { color: #f59e0b; }
-  &.completed { color: var(--mcla-success); }
-  &.failed { color: #ef4444; }
+  &.pending {
+    color: var(--mcla-text-muted);
+  }
+  &.downloading {
+    color: var(--mcla-primary-500);
+  }
+  &.paused {
+    color: #f59e0b;
+  }
+  &.completed {
+    color: var(--mcla-success);
+  }
+  &.failed {
+    color: #ef4444;
+  }
 }
 
 .cancel-btn {
@@ -217,7 +258,10 @@ function formatSpeed(bytesPerSec: number): string {
   border-radius: 3px;
   transition: all 0.1s;
 
-  &:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
+  &:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+  }
 }
 
 /* 总进度条 */
@@ -231,7 +275,11 @@ function formatSpeed(bytesPerSec: number): string {
   border: 1px solid var(--mcla-border-color);
   border-radius: var(--mcla-radius-md);
 
-  .label { font-size: 12px; color: var(--mcla-text-muted); white-space: nowrap; }
+  .label {
+    font-size: 12px;
+    color: var(--mcla-text-muted);
+    white-space: nowrap;
+  }
 
   .overall-bar {
     flex: 1;
@@ -248,7 +296,18 @@ function formatSpeed(bytesPerSec: number): string {
     transition: width 0.25s;
   }
 
-  .overall-pct { font-size: 12px; font-weight: 600; color: var(--mcla-text-secondary); min-width: 36px; text-align: right; }
-  .overall-speed { font-size: 11.5px; color: var(--mcla-text-muted); min-width: 60px; text-align: right; }
+  .overall-pct {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mcla-text-secondary);
+    min-width: 36px;
+    text-align: right;
+  }
+  .overall-speed {
+    font-size: 11.5px;
+    color: var(--mcla-text-muted);
+    min-width: 60px;
+    text-align: right;
+  }
 }
 </style>

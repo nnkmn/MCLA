@@ -42,10 +42,7 @@ export function formatRelativeTime(dateStr: string): string {
 }
 
 /** ISO 时间字符串格式化为本地显示 */
-export function formatDate(
-  dateStr: string,
-  format: 'short' | 'long' | 'full' = 'short'
-): string {
+export function formatDate(dateStr: string, format: 'short' | 'long' | 'full' = 'short'): string {
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '-'
 
@@ -60,7 +57,7 @@ export function formatDate(
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit',
+        minute: '2-digit'
       })
     default:
       return dateStr
@@ -122,7 +119,7 @@ export const LOADER_NAMES: Record<string, string> = {
   fabric: 'Fabric',
   forge: 'Forge',
   neoforge: 'NeoForge',
-  quilt: 'Quilt',
+  quilt: 'Quilt'
 }
 
 /** 获取加载器显示名 */

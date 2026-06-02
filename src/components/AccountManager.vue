@@ -6,12 +6,29 @@
           <!-- 标题栏 -->
           <header class="acc-header">
             <button class="acc-back" @click="close">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <span class="acc-title">账户管理</span>
             <div class="acc-wc">
-              <button class="acc-wc-btn" @click="minimize"><svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg></button>
-              <button class="acc-wc-btn acc-close" @click="close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="acc-wc-btn" @click="minimize">
+                <svg width="10" height="1" viewBox="0 0 10 1">
+                  <rect width="10" height="1" fill="currentColor" />
+                </svg>
+              </button>
+              <button class="acc-wc-btn acc-close" @click="close">
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+                </svg>
+              </button>
             </div>
           </header>
 
@@ -20,8 +37,14 @@
             <!-- 微软账户 -->
             <section class="acc-section">
               <div class="acc-section-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#00a4ef" style="flex-shrink:0">
-                  <rect width="24" height="24" rx="4"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="#00a4ef"
+                  style="flex-shrink: 0"
+                >
+                  <rect width="24" height="24" rx="4" />
                   <text x="5" y="17.5" font-size="14" font-weight="bold" fill="#fff">M</text>
                 </svg>
                 <span class="acc-section-title">微软账户</span>
@@ -36,7 +59,9 @@
                   class="acc-profile"
                   :class="{ 'acc-profile-active': acc.isActive === 1 }"
                 >
-                  <div class="acc-avatar" style="background:#00a4ef">{{ acc.name[0]?.toUpperCase() }}</div>
+                  <div class="acc-avatar" style="background: #00a4ef">
+                    {{ acc.name[0]?.toUpperCase() }}
+                  </div>
                   <div class="acc-profile-info">
                     <p class="acc-name">{{ acc.name }}</p>
                     <p class="acc-uuid">{{ acc.uuid }}</p>
@@ -46,12 +71,16 @@
                       v-if="acc.isActive !== 1"
                       class="acc-btn-ghost"
                       @click="switchMsAccount(acc.id)"
-                    >使用</button>
+                    >
+                      使用
+                    </button>
                     <span v-else class="acc-badge success">当前</span>
                     <button
                       class="acc-btn-ghost acc-btn-danger"
                       @click="removeMicrosoftAccount(acc.id)"
-                    >删除</button>
+                    >
+                      删除
+                    </button>
                   </div>
                 </div>
               </div>
@@ -63,8 +92,15 @@
 
               <!-- 添加新账户 -->
               <div class="acc-section-body">
-                <button class="acc-btn-primary" @click="startMicrosoftLogin" :disabled="loginState !== 'idle'">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#00a4ef"><rect width="24" height="24" rx="4"/><text x="5" y="17.5" font-size="14" font-weight="bold" fill="#fff">M</text></svg>
+                <button
+                  class="acc-btn-primary"
+                  @click="startMicrosoftLogin"
+                  :disabled="loginState !== 'idle'"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#00a4ef">
+                    <rect width="24" height="24" rx="4" />
+                    <text x="5" y="17.5" font-size="14" font-weight="bold" fill="#fff">M</text>
+                  </svg>
                   {{ msAccounts.length > 0 ? '添加另一个微软账户' : '登录微软账户' }}
                 </button>
               </div>
@@ -73,8 +109,20 @@
             <!-- 离线账户 -->
             <section class="acc-section">
               <div class="acc-section-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--mcla-text-muted)">
-                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  style="color: var(--mcla-text-muted)"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path
+                    d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
+                  />
                 </svg>
                 <span class="acc-section-title">离线账户</span>
                 <span class="acc-badge">{{ offlineAccounts.length }} 个</span>
@@ -88,7 +136,9 @@
                   class="acc-profile"
                   :class="{ 'acc-profile-active': acc.isActive === 1 }"
                 >
-                  <div class="acc-avatar" style="background:#8B5E3C">{{ acc.name[0]?.toUpperCase() }}</div>
+                  <div class="acc-avatar" style="background: #8b5e3c">
+                    {{ acc.name[0]?.toUpperCase() }}
+                  </div>
                   <div class="acc-profile-info">
                     <p class="acc-name">{{ acc.name }}</p>
                     <p class="acc-uuid">{{ acc.uuid }}</p>
@@ -99,13 +149,17 @@
                       class="acc-btn-ghost"
                       @click="switchToAccount(acc.id)"
                       title="切换到此账号"
-                    >使用</button>
+                    >
+                      使用
+                    </button>
                     <span v-else class="acc-badge success">当前</span>
                     <button
                       class="acc-btn-ghost acc-btn-danger"
                       @click="deleteOffline(acc.id)"
                       title="删除账号"
-                    >删除</button>
+                    >
+                      删除
+                    </button>
                   </div>
                 </div>
               </div>
@@ -131,7 +185,9 @@
                       v-model="offlineUuid"
                       placeholder="留空则自动生成"
                     />
-                    <button class="acc-btn-ghost" @click="offlineUuid = generateUUID()">生成</button>
+                    <button class="acc-btn-ghost" @click="offlineUuid = generateUUID()">
+                      生成
+                    </button>
                   </div>
                 </div>
                 <div class="acc-form-actions">
@@ -145,7 +201,18 @@
 
             <!-- 提示 -->
             <aside class="acc-hint">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <span>离线模式无法加入需要正版验证的服务器，但可以玩单人模式和部分服务器。</span>
             </aside>
           </div>
@@ -171,9 +238,13 @@
                 </a>
                 <div class="device-code-box">
                   <span class="device-code">{{ deviceCodeInfo.userCode }}</span>
-                  <button class="btn-ghost btn-sm" @click="copyCode">{{ codeCopied ? '已复制' : '复制' }}</button>
+                  <button class="btn-ghost btn-sm" @click="copyCode">
+                    {{ codeCopied ? '已复制' : '复制' }}
+                  </button>
                 </div>
-                <p class="device-flow-tip">输入代码后点「下一步」并完成微软登录，此窗口会自动更新。</p>
+                <p class="device-flow-tip">
+                  输入代码后点「下一步」并完成微软登录，此窗口会自动更新。
+                </p>
                 <div class="loader-row">
                   <span class="loader"></span>
                   <span class="loader-text">等待授权...</span>
@@ -190,22 +261,57 @@
             <!-- 成功 -->
             <template v-else-if="loginState === 'done'">
               <div class="result-box success">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#34a853"
+                  stroke-width="2.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="9 12 11 14 15 10" />
+                </svg>
                 <p>登录成功，欢迎 {{ newAccountName }}！</p>
               </div>
             </template>
             <!-- 错误 -->
             <template v-else-if="loginState === 'error'">
               <div class="result-box error-box">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ea4335" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#ea4335"
+                  stroke-width="2.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
                 <p>{{ loginError }}</p>
-                <button class="acc-btn-primary btn-sm" style="margin-top:12px" @click="startMicrosoftLogin">重试</button>
+                <button
+                  class="acc-btn-primary btn-sm"
+                  style="margin-top: 12px"
+                  @click="startMicrosoftLogin"
+                >
+                  重试
+                </button>
               </div>
             </template>
           </div>
           <div class="modal-footer">
-            <button v-if="loginState === 'done'" class="acc-btn-outline" @click="closeOAuthModal">完成</button>
-            <button v-else-if="loginState === 'error'" class="acc-btn-outline" @click="closeOAuthModal">关闭</button>
+            <button v-if="loginState === 'done'" class="acc-btn-outline" @click="closeOAuthModal">
+              完成
+            </button>
+            <button
+              v-else-if="loginState === 'error'"
+              class="acc-btn-outline"
+              @click="closeOAuthModal"
+            >
+              关闭
+            </button>
             <button v-else class="acc-btn-outline" @click="cancelLogin">取消</button>
           </div>
         </div>
@@ -227,7 +333,9 @@ const accountsStore = useAccountsStore()
 const msAccounts = computed(() => accountsStore.accounts.filter((a: any) => a.type === 'microsoft'))
 
 // ====== 离线账户列表 ======
-const offlineAccounts = computed(() => accountsStore.accounts.filter((a: any) => a.type === 'offline'))
+const offlineAccounts = computed(() =>
+  accountsStore.accounts.filter((a: any) => a.type === 'offline')
+)
 
 // 切换微软账户
 async function switchMsAccount(id: string) {
@@ -283,14 +391,21 @@ onUnmounted(() => {
   progressUnlisten?.()
 })
 
-watch(() => props.visible, async (val) => {
-  if (val) {
-    await accountsStore.fetchAccounts()
+watch(
+  () => props.visible,
+  async (val) => {
+    if (val) {
+      await accountsStore.fetchAccounts()
+    }
   }
-})
+)
 
-function close() { emit('update:visible', false) }
-function minimize() { window.electronAPI?.window?.minimize?.() }
+function close() {
+  emit('update:visible', false)
+}
+function minimize() {
+  window.electronAPI?.window?.minimize?.()
+}
 
 function handleLoginProgress(stage: string, detail?: string) {
   switch (stage) {
@@ -304,7 +419,7 @@ function handleLoginProgress(stage: string, detail?: string) {
         deviceCodeInfo.value = {
           userCode: info.userCode || '',
           verificationUri: info.verificationUri || 'https://microsoft.com/link',
-          message: info.message || '',
+          message: info.message || ''
         }
         loginState.value = 'waiting_user'
       } catch {
@@ -383,8 +498,12 @@ async function copyCode() {
   try {
     await navigator.clipboard.writeText(deviceCodeInfo.value.userCode)
     codeCopied.value = true
-    setTimeout(() => { codeCopied.value = false }, 2000)
-  } catch { /* ignore */ }
+    setTimeout(() => {
+      codeCopied.value = false
+    }, 2000)
+  } catch {
+    /* ignore */
+  }
 }
 
 async function saveOffline() {
@@ -437,7 +556,7 @@ function generateUUID(): string {
   width: 420px;
   max-width: 100%;
   background: var(--mcla-bg-elevated, #1a1a2e);
-  border-left: 1px solid var(--mcla-border-color, rgba(255,255,255,0.08));
+  border-left: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.08));
   display: flex;
   flex-direction: column;
   overflow: visible;
@@ -458,14 +577,17 @@ function generateUUID(): string {
 .acc-back {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   transition: all 0.15s;
-  &:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
 }
 
 .acc-title {
@@ -486,15 +608,20 @@ function generateUUID(): string {
   height: 28px;
   border: none;
   border-radius: 6px;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
-  &:hover { background: rgba(255,255,255,0.18); color: #fff; }
-  &.acc-close:hover { background: #e81123; }
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+  &.acc-close:hover {
+    background: #e81123;
+  }
 }
 
 /* ===== 主体 ===== */
@@ -510,8 +637,8 @@ function generateUUID(): string {
 
 /* ===== 区块 ===== */
 .acc-section {
-  background: var(--mcla-bg-primary, rgba(255,255,255,0.03));
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.06));
+  background: var(--mcla-bg-primary, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.06));
   border-radius: 10px;
   overflow: visible;
   min-width: 0;
@@ -522,7 +649,7 @@ function generateUUID(): string {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--mcla-border-color, rgba(255,255,255,0.06));
+  border-bottom: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.06));
 }
 
 .acc-section-title {
@@ -536,11 +663,17 @@ function generateUUID(): string {
   border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.1));
-  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.04);
   color: var(--mcla-text-muted);
-  &.success { background: rgba(255,255,255,0.06); color: var(--mcla-text-secondary); }
-  &.default { background: rgba(255,255,255,0.06); color: var(--mcla-text-muted); }
+  &.success {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--mcla-text-secondary);
+  }
+  &.default {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--mcla-text-muted);
+  }
 }
 
 .acc-section-body {
@@ -562,8 +695,8 @@ function generateUUID(): string {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   &.acc-profile-active {
     border-color: #22c55e;
@@ -616,7 +749,9 @@ function generateUUID(): string {
 /* ===== 表单 ===== */
 .acc-form-group {
   margin-bottom: 12px;
-  &:last-child { margin-bottom: 0; }
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .acc-label {
@@ -630,22 +765,28 @@ function generateUUID(): string {
 .acc-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.1));
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.1));
   border-radius: 7px;
   font-size: 13px;
   color: var(--mcla-text-primary);
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s;
-  &:focus { border-color: var(--mcla-primary-400, #818cf8); }
-  &::placeholder { color: var(--mcla-text-muted); }
+  &:focus {
+    border-color: var(--mcla-primary-400, #818cf8);
+  }
+  &::placeholder {
+    color: var(--mcla-text-muted);
+  }
 }
 
 .acc-input-row {
   display: flex;
   gap: 6px;
-  .acc-input { flex: 1; }
+  .acc-input {
+    flex: 1;
+  }
 }
 
 .acc-form-actions {
@@ -672,11 +813,20 @@ function generateUUID(): string {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.1));
-  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.05);
   color: var(--mcla-text-secondary);
-  &:hover { border-color: var(--mcla-primary-400); color: var(--mcla-primary-400); }
-  &.acc-btn-danger { color: var(--mcla-error, #f87171); &:hover { background: rgba(248,113,113,0.1); border-color: #f87171; } }
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary-400);
+  }
+  &.acc-btn-danger {
+    color: var(--mcla-error, #f87171);
+    &:hover {
+      background: rgba(248, 113, 113, 0.1);
+      border-color: #f87171;
+    }
+  }
 }
 
 .acc-btn-primary {
@@ -692,38 +842,51 @@ function generateUUID(): string {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover:not(:disabled) { background: var(--mcla-primary-hover, #4f46e5); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    background: var(--mcla-primary-hover, #4f46e5);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .acc-btn-outline {
   display: inline-flex;
   align-items: center;
   padding: 7px 16px;
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.12));
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.12));
   background: transparent;
   border-radius: 7px;
   font-size: 13px;
   cursor: pointer;
   color: var(--mcla-text-secondary);
   transition: all 0.15s;
-  &:hover { border-color: currentColor; }
+  &:hover {
+    border-color: currentColor;
+  }
 }
 
 .acc-btn-ghost {
   padding: 7px 12px;
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.1));
-  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.04);
   color: var(--mcla-text-secondary);
   border-radius: 7px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  &:hover { border-color: var(--mcla-primary-400); color: var(--mcla-primary-400); }
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary-400);
+  }
 }
 
-.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
 
 /* ===== 提示框 ===== */
 .acc-hint {
@@ -736,24 +899,33 @@ function generateUUID(): string {
   border-radius: 0 6px 6px 0;
   font-size: 11px;
   color: #776000;
-  svg { flex-shrink: 0; margin-top: 1px; }
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 }
 
 /* ===== 动画 ===== */
-.modal-slide-enter-active, .modal-slide-leave-active {
+.modal-slide-enter-active,
+.modal-slide-leave-active {
   transition: opacity 0.2s ease;
-  .acc-window { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  .acc-window {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
-.modal-slide-enter-from, .modal-slide-leave-to {
+.modal-slide-enter-from,
+.modal-slide-leave-to {
   opacity: 0;
-  .acc-window { transform: translateX(100%); }
+  .acc-window {
+    transform: translateX(100%);
+  }
 }
 
 /* ===== OAuth 弹窗（复用 AccountPage 样式） ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -763,11 +935,11 @@ function generateUUID(): string {
 
 .modal-card {
   background: var(--mcla-bg-elevated, #1a1a2e);
-  border: 1px solid var(--mcla-border-color, rgba(255,255,255,0.08));
+  border: 1px solid var(--mcla-border-color, rgba(255, 255, 255, 0.08));
   border-radius: 14px;
   width: 420px;
   max-width: calc(100vw - 32px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
@@ -776,70 +948,146 @@ function generateUUID(): string {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  .modal-title { font-size: 14px; font-weight: 700; }
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
   .modal-close {
-    background: none; border: none; font-size: 16px;
-    cursor: pointer; color: var(--mcla-text-muted);
-    padding: 2px 6px; border-radius: 4px;
-    &:hover { background: rgba(255,255,255,0.08); }
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--mcla-text-muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 }
 
-.modal-body { padding: 20px 18px; min-height: 120px; }
+.modal-body {
+  padding: 20px 18px;
+  min-height: 120px;
+}
 
 .modal-footer {
   padding: 12px 18px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
 /* Device Flow */
-.device-flow { text-align: center; }
-.device-flow-hint { font-size: 13px; color: var(--mcla-text-secondary); margin: 0 0 10px; }
+.device-flow {
+  text-align: center;
+}
+.device-flow-hint {
+  font-size: 13px;
+  color: var(--mcla-text-secondary);
+  margin: 0 0 10px;
+}
 .device-flow-link {
-  display: inline-block; font-size: 14px; font-weight: 700;
-  color: var(--mcla-primary, #6366f1); text-decoration: none; margin-bottom: 14px;
-  &:hover { text-decoration: underline; }
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--mcla-primary, #6366f1);
+  text-decoration: none;
+  margin-bottom: 14px;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .device-code-box {
-  display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .device-code {
-  font-size: 26px; font-weight: 900; letter-spacing: 4px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 4px;
   color: var(--mcla-text-primary);
-  background: rgba(0,0,0,0.2); border: 1px solid var(--mcla-border-color);
-  border-radius: 8px; padding: 6px 18px; font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--mcla-border-color);
+  border-radius: 8px;
+  padding: 6px 18px;
+  font-family: 'Courier New', monospace;
 }
-.device-flow-tip { font-size: 12px; color: var(--mcla-text-muted); margin: 0 0 14px; }
+.device-flow-tip {
+  font-size: 12px;
+  color: var(--mcla-text-muted);
+  margin: 0 0 14px;
+}
 .loader-row {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  color: var(--mcla-text-secondary); font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--mcla-text-secondary);
+  font-size: 12px;
 }
 
 /* Processing */
 .processing {
-  display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 10px 0;
-  .processing-text { font-size: 13px; color: var(--mcla-text-secondary); margin: 0; }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  .processing-text {
+    font-size: 13px;
+    color: var(--mcla-text-secondary);
+    margin: 0;
+  }
 }
 
 /* Result */
 .result-box {
-  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 0; text-align: center;
-  p { margin: 0; font-size: 14px; font-weight: 600; }
-  &.success p { color: #34a853; }
-  &.error-box p { color: var(--mcla-error, #ea4335); font-size: 13px; font-weight: 400; }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  text-align: center;
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  &.success p {
+    color: #34a853;
+  }
+  &.error-box p {
+    color: var(--mcla-error, #ea4335);
+    font-size: 13px;
+    font-weight: 400;
+  }
 }
 
 /* Loader */
 .loader {
-  display: inline-block; width: 16px; height: 16px;
-  border: 2px solid var(--mcla-border-color, rgba(255,255,255,0.1));
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--mcla-border-color, rgba(255, 255, 255, 0.1));
   border-top-color: var(--mcla-primary, #6366f1);
-  border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
-  &.loader-lg { width: 32px; height: 32px; border-width: 3px; }
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+  &.loader-lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+  }
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

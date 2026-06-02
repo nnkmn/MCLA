@@ -1,6 +1,9 @@
 import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export default defineConfig({
   main: {

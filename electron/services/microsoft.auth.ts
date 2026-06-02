@@ -11,8 +11,6 @@ const log = logger.child('OAuth')
  *   5. MC Access Token →  MC Profile (UUID + name)
  */
 
-
-
 // ======= JWT 解码工具（不验证签名，只取 payload） =======
 function decodeJwtPayload(token: string): Record<string, any> {
   try {
@@ -27,7 +25,7 @@ function decodeJwtPayload(token: string): Record<string, any> {
 }
 
 // ======= 常量 =======
-const CLIENT_ID = 'e1e383f9-59d9-4aa2-bf5e-73fe83b15ba0' // StarLight.Core 提供的公用微软验证 ClientId
+const CLIENT_ID = 'a12fb152-fc1f-412f-8512-fe4ed9f96511' //  MCLA ClientId
 const DEVICE_CODE_URL = 'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode'
 const TOKEN_URL = 'https://login.microsoftonline.com/consumers/oauth2/v2.0/token'
 const LIVE_TOKEN_URL = 'https://login.live.com/oauth20_token.srf' // 刷新 token 专用
@@ -68,10 +66,17 @@ export type AuthProgressCallback = (stage: string, detail?: string) => void
 // ======= 工具函数 =======
 
 /** 用 Electron net 模块发送 HTTP 请求（避免 Node.js http 模块在 Electron 中的限制） */
-async function httpPost(url: string, body: Record<string, string>, headers?: Record<string, string>): Promise<any> {
-  const isFormEncoded = !headers?.['Content-Type'] || headers['Content-Type'].includes('x-www-form-urlencoded')
+async function httpPost(
+  url: string,
+  body: Record<string, string>,
+  headers?: Record<string, string>
+): Promise<any> {
+  const isFormEncoded =
+    !headers?.['Content-Type'] || headers['Content-Type'].includes('x-www-form-urlencoded')
   const bodyStr = isFormEncoded
-    ? Object.entries(body).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
+    ? Object.entries(body)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&')
     : JSON.stringify(body)
 
   const res = await fetch(url, {
@@ -84,9 +89,9 @@ async function httpPost(url: string, body: Record<string, string>, headers?: Rec
       'x-client-Ver': '0.3.0',
       'x-client-CPU': 'x64',
       'x-client-OS': 'Win32',
-      ...headers,
+      ...headers
     },
-    body: bodyStr,
+    body: bodyStr
   })
 
   if (!res.ok) {
@@ -114,7 +119,10 @@ async function httpPost(url: string, body: Record<string, string>, headers?: Rec
     // Xbox/XSTS/Minecraft 错误
     const xerrMatch = text.match(/"XErr"\s*:\s*(\d+)/)
     const errMsgMatch = text.match(/"message"\s*:\s*"([^"]+)"/)
-    const detail = xerrMatch || errMsgMatch ? ` (${xerrMatch ? 'XErr=' + xerrMatch[1] : ''}${errMsgMatch ? ' ' + errMsgMatch[1] : ''})` : ''
+    const detail =
+      xerrMatch || errMsgMatch
+        ? ` (${xerrMatch ? 'XErr=' + xerrMatch[1] : ''}${errMsgMatch ? ' ' + errMsgMatch[1] : ''})`
+        : ''
     throw new Error(`HTTP ${res.status}: ${text}${detail}`)
   }
 
@@ -126,8 +134,8 @@ async function httpGet(url: string, accessToken: string): Promise<any> {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-    },
+      Accept: 'application/json'
+    }
   })
 
   if (!res.ok) {
@@ -147,7 +155,7 @@ async function httpGet(url: string, accessToken: string): Promise<any> {
 export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   const data = await httpPost(DEVICE_CODE_URL, {
     client_id: CLIENT_ID,
-    scope: 'XboxLive.signin offline_access openid profile email',
+    scope: 'XboxLive.signin offline_access openid profile email'
   })
   return data as DeviceCodeResponse
 }
@@ -181,7 +189,7 @@ export async function pollForToken(
       const data: any = await httpPost(TOKEN_URL, {
         client_id: CLIENT_ID,
         grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-        device_code: deviceCode,
+        device_code: deviceCode
       })
 
       if (data.error) {
@@ -200,7 +208,7 @@ export async function pollForToken(
         return {
           access_token: data.access_token,
           refresh_token: data.refresh_token,
-          expires_in: data.expires_in,
+          expires_in: data.expires_in
         }
       }
     } catch (e: any) {
@@ -214,7 +222,9 @@ export async function pollForToken(
 /**
  * Step 3: 用 MS Access Token 换 Xbox Live Token
  */
-async function authenticateXboxLive(msAccessToken: string): Promise<{ token: string; userHash: string; xuid: string }> {
+async function authenticateXboxLive(
+  msAccessToken: string
+): Promise<{ token: string; userHash: string; xuid: string }> {
   log.info('[OAuth] Step 3: Xbox Live authentication...')
   const body = {
     RelyingParty: 'http://auth.xboxlive.com',
@@ -222,16 +232,16 @@ async function authenticateXboxLive(msAccessToken: string): Promise<{ token: str
     Properties: {
       AuthMethod: 'RPS',
       SiteName: 'user.auth.xboxlive.com',
-      RpsTicket: `d=${msAccessToken}`,
-    },
+      RpsTicket: `d=${msAccessToken}`
+    }
   }
   const res = await fetch(XBL_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-xbl-contract-version': '1',
+      'x-xbl-contract-version': '1'
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   })
   const data = await res.json()
 
@@ -248,20 +258,22 @@ async function authenticateXboxLive(msAccessToken: string): Promise<{ token: str
 /**
  * Step 4: 用 XBL Token 换 XSTS Token
  */
-async function authenticateXSTS(xblToken: string): Promise<{ token: string; userHash: string; xuid: string }> {
+async function authenticateXSTS(
+  xblToken: string
+): Promise<{ token: string; userHash: string; xuid: string }> {
   log.info('[OAuth] Step 4: XSTS authentication...')
   const body = {
     RelyingParty: 'rp://api.minecraftservices.com/',
     TokenType: 'JWT',
     Properties: {
       SandboxId: 'RETAIL',
-      UserTokens: [xblToken],
-    },
+      UserTokens: [xblToken]
+    }
   }
   const res = await fetch(XSTS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   })
   const data = await res.json()
   log.info('[OAuth] Step 4: XSTS response (FULL):', JSON.stringify(data))
@@ -275,7 +287,7 @@ async function authenticateXSTS(xblToken: string): Promise<{ token: string; user
       2148916235: '您所在的地区不支持 Xbox Live',
       2148916236: '需要验证大人身份',
       2148916237: '需要验证大人身份',
-      2148916238: '未成年账户需要家长添加到家庭组',
+      2148916238: '未成年账户需要家长添加到家庭组'
     }
     throw new Error(xerrMap[data.XErr] || `XSTS 错误: ${data.XErr}`)
   }
@@ -294,12 +306,16 @@ async function authenticateXSTS(xblToken: string): Promise<{ token: string; user
 /**
  * Step 5: 用 XSTS Token 换 Minecraft Access Token
  */
-async function authenticateMinecraft(xstsToken: string, userHash: string, xuid: string): Promise<string> {
+async function authenticateMinecraft(
+  xstsToken: string,
+  userHash: string,
+  xuid: string
+): Promise<string> {
   log.info('[OAuth] Step 5: Minecraft authentication...')
   const res = await fetch(MC_LOGIN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identityToken: `XBL3.0 x=${userHash};${xstsToken}` }),
+    body: JSON.stringify({ identityToken: `XBL3.0 x=${userHash};${xstsToken}` })
   })
   const data = await res.json()
   log.info('[OAuth] Step 5: MC response keys:', Object.keys(data), 'status:', res.status)
@@ -313,9 +329,12 @@ async function authenticateMinecraft(xstsToken: string, userHash: string, xuid: 
 /**
  * Step 6: 获取 Minecraft 游戏档案（UUID + 用户名）
  */
-async function fetchMinecraftProfile(mcAccessToken: string): Promise<{ name: string; uuid: string; skinUrl?: string }> {
+async function fetchMinecraftProfile(
+  mcAccessToken: string
+): Promise<{ name: string; uuid: string; skinUrl?: string }> {
   const data = await httpGet(MC_PROFILE_URL, mcAccessToken)
-  if (!data.id || !data.name) throw new Error('MC_PROFILE_FAILED: 未找到 Minecraft 档案，该账户可能未购买游戏')
+  if (!data.id || !data.name)
+    throw new Error('MC_PROFILE_FAILED: 未找到 Minecraft 档案，该账户可能未购买游戏')
   // id 格式为不带横杠的 UUID，转成标准格式
   const rawId: string = data.id
   const uuid = `${rawId.slice(0, 8)}-${rawId.slice(8, 12)}-${rawId.slice(12, 16)}-${rawId.slice(16, 20)}-${rawId.slice(20)}`
@@ -334,14 +353,14 @@ export async function refreshMicrosoftToken(refreshToken: string): Promise<Micro
     client_id: CLIENT_ID,
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
-    redirect_uri: 'https://login.live.com/oauth20_desktop.srf',
+    redirect_uri: 'https://login.live.com/oauth20_desktop.srf'
   })
 
   if (!data.access_token) throw new Error('TOKEN_REFRESH_FAILED')
   return {
     access_token: data.access_token,
     refresh_token: data.refresh_token ?? refreshToken,
-    expires_in: data.expires_in,
+    expires_in: data.expires_in
   }
 }
 
@@ -375,10 +394,10 @@ export async function authenticateWithMicrosoftToken(
     refreshToken: msTokens.refresh_token,
     expiresIn: msTokens.expires_in,
     skinUrl: profile.skinUrl,
-    xuid: xbl.xuid,  // ← 从 XBL 取，XSTS 响应里没有 xid
+    xuid: xbl.xuid // ← 从 XBL 取，XSTS 响应里没有 xid
   }
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

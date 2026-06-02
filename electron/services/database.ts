@@ -109,9 +109,17 @@ function createTables(): void {
   `)
 
   // 迁移：给已有账户添加 skin_url 列
-  try { db.exec("ALTER TABLE accounts ADD COLUMN skin_url TEXT") } catch { /* 列已存在 */ }
+  try {
+    db.exec('ALTER TABLE accounts ADD COLUMN skin_url TEXT')
+  } catch {
+    /* 列已存在 */
+  }
   // 迁移：给已有账户添加 xuid 列（Xbox/XSTS 认证后的用户 ID）
-  try { db.exec("ALTER TABLE accounts ADD COLUMN xuid TEXT") } catch { /* 列已存在 */ }
+  try {
+    db.exec('ALTER TABLE accounts ADD COLUMN xuid TEXT')
+  } catch {
+    /* 列已存在 */
+  }
 
   // 配置表（键值对）
   db.exec(`
@@ -169,7 +177,9 @@ export { getDbPath }
 export function getConfig(key: string): string | null {
   if (!db) return null
   try {
-    const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined
+    const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as
+      | { value: string }
+      | undefined
     return row?.value ?? null
   } catch {
     return null
@@ -182,11 +192,13 @@ export function getConfig(key: string): string | null {
 export function setConfig(key: string, value: string): void {
   if (!db) return
   try {
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO configs (key, value, updated_at)
       VALUES (?, ?, datetime('now'))
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-    `).run(key, value)
+    `
+    ).run(key, value)
   } catch (err) {
     log.error(`[DB] setConfig 失败: ${key}`, err)
   }

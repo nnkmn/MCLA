@@ -10,8 +10,8 @@ export function registerContentHandlers(): void {
       success: true,
       data: [
         { id: 'curseforge', name: 'CurseForge', icon: 'curseforge' },
-        { id: 'modrinth', name: 'Modrinth', icon: 'modrinth' },
-      ],
+        { id: 'modrinth', name: 'Modrinth', icon: 'modrinth' }
+      ]
     }
   })
 

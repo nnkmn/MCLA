@@ -2,9 +2,17 @@
   <div class="download-item" :class="[task.status, { compact }]">
     <!-- 文件图标/名称 -->
     <div class="item-icon">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
       </svg>
     </div>
 
@@ -27,13 +35,18 @@
     </div>
 
     <!-- 操作 -->
-    <button
-      v-if="canCancel"
-      class="cancel-btn"
-      @click="$emit('cancel', task.id)"
-      title="取消"
-    >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <button v-if="canCancel" class="cancel-btn" @click="$emit('cancel', task.id)" title="取消">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
     </button>
 
     <!-- 状态图标 -->
@@ -47,20 +60,21 @@ import { computed } from 'vue'
 import type { DownloadTask } from '../../types/download'
 import { formatFileSize, formatSpeed } from '../../utils/format'
 
-const props = withDefaults(defineProps<{
-  task: DownloadTask
-  compact?: boolean
-}>(), {
-  compact: false,
-})
+const props = withDefaults(
+  defineProps<{
+    task: DownloadTask
+    compact?: boolean
+  }>(),
+  {
+    compact: false
+  }
+)
 
 defineEmits<{
   (e: 'cancel', id: string): void
 }>()
 
-const canCancel = computed(() =>
-  ['pending', 'downloading', 'paused'].includes(props.task.status)
-)
+const canCancel = computed(() => ['pending', 'downloading', 'paused'].includes(props.task.status))
 
 const isCompleted = computed(() => props.task.status === 'completed')
 const isFailed = computed(() => props.task.status === 'failed')
@@ -81,28 +95,43 @@ function formatSize(b: number): string {
   border-radius: var(--mcla-radius-md);
   transition: all 0.12s;
 
-  &.pending { opacity: 0.75; }
+  &.pending {
+    opacity: 0.75;
+  }
   &.downloading {
-    border-color: rgba(99,102,234,0.25);
-    .item-icon svg { stroke: var(--mcla-primary-500); color: var(--mcla-primary-500); }
+    border-color: rgba(99, 102, 234, 0.25);
+    .item-icon svg {
+      stroke: var(--mcla-primary-500);
+      color: var(--mcla-primary-500);
+    }
   }
   &.completed {
-    border-color: rgba(34,197,94,0.25);
-    background: linear-gradient(to right, rgba(34,197,94,0.03), transparent);
+    border-color: rgba(34, 197, 94, 0.25);
+    background: linear-gradient(to right, rgba(34, 197, 94, 0.03), transparent);
   }
   &.failed {
-    border-color: rgba(239,68,68,0.3);
-    .item-icon svg { stroke: #ef4444; color: #ef4444; }
+    border-color: rgba(239, 68, 68, 0.3);
+    .item-icon svg {
+      stroke: #ef4444;
+      color: #ef4444;
+    }
   }
 
   &.compact {
     padding: 6px 10px;
 
-    .item-name { font-size: 12px; }
-    .progress-track { height: 3px !important; border-radius: 2px; }
+    .item-name {
+      font-size: 12px;
+    }
+    .progress-track {
+      height: 3px !important;
+      border-radius: 2px;
+    }
   }
 
-  &:hover:not(.compact) { box-shadow: var(--mcla-shadow-sm); }
+  &:hover:not(.compact) {
+    box-shadow: var(--mcla-shadow-sm);
+  }
 }
 
 .item-icon {
@@ -110,10 +139,13 @@ function formatSize(b: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   color: var(--mcla-text-muted);
 
-  svg { flex-shrink: 0; }
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .item-info {
@@ -152,7 +184,8 @@ function formatSize(b: number): string {
     transition: width 0.25s ease;
   }
 
-  .speed, .size-info {
+  .speed,
+  .size-info {
     flex-shrink: 0;
     font-size: 11px;
     color: var(--mcla-text-muted);
@@ -175,12 +208,18 @@ function formatSize(b: number): string {
   border-radius: 4px;
   transition: all 0.1s;
 
-  &:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
+  &:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+  }
 }
 
 .status-icon {
-  width: 22px; height: 22px;
-  display: flex; align-items: center; justify-content: center;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   font-size: 12px;
   font-weight: 700;
@@ -190,7 +229,7 @@ function formatSize(b: number): string {
     color: var(--mcla-success);
   }
   &.failed {
-    background: rgba(239,68,68,0.1);
+    background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
   }
 }

@@ -3,10 +3,28 @@
  */
 import { ipcMain } from 'electron'
 import * as gameLauncher from '../services/game.launcher.service'
+import {
+  MinecraftLauncher,
+  LaunchConfig,
+  Account,
+  GameWindowConfig,
+  GameCoreConfig,
+  JavaConfig,
+  type ProgressReport
+} from '../services/starlight.launcher'
 import { getInstanceById } from '../services/instances'
 import type { BrowserWindow } from 'electron'
-import { existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync, rmSync, createWriteStream } from 'fs'
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  mkdirSync,
+  rmSync,
+  createWriteStream,
+  unlinkSync
+} from 'fs'
 import { join } from 'path'
+import * as os from 'os'
 import { logger } from '../utils/logger'
 const log = logger.child('Game-IPC')
 
@@ -91,8 +109,8 @@ async function scanInstalledVersions(gameDir: string): Promise<ScannedVersion[]>
     let jarFile = ''
     try {
       const files = readdirSync(versionDir)
-      jsonFile = files.find(f => f.endsWith('.json')) || ''
-      jarFile = files.find(f => f.endsWith('.jar')) || ''
+      jsonFile = files.find((f) => f.endsWith('.json')) || ''
+      jarFile = files.find((f) => f.endsWith('.jar')) || ''
     } catch {
       continue
     }
@@ -134,7 +152,7 @@ async function scanInstalledVersions(gameDir: string): Promise<ScannedVersion[]>
         baseVersion,
         loaderInfo: loaderInfo.trim(),
         jarPath: jarFile ? join(versionDir, jarFile) : '',
-        jsonPath: jsonPath,
+        jsonPath: jsonPath
       })
     } catch {
       // JSON 解析失败，忽略
@@ -145,30 +163,68 @@ async function scanInstalledVersions(gameDir: string): Promise<ScannedVersion[]>
 }
 
 export function registerGameHandlers(mainWindow: BrowserWindow): void {
-
   // ===== 游戏启动 =====
 
-  ipcMain.handle('game:launch', async (_event, { instanceId, accountId, versionId }: {
-    instanceId?: string
-    accountId?: string
-    versionId?: string
-  }) => {
-    // 优先用 versionId 直接启动（绕过数据库实例依赖）
-    if (versionId) {
-      return gameLauncher.launchByVersion(mainWindow, { versionId, accountId })
-    }
+  ipcMain.handle(
+    'game:launch',
+    async (
+      _event,
+      {
+        instanceId,
+        accountId,
+        versionId
+      }: {
+        instanceId?: string
+        accountId?: string
+        versionId?: string
+      }
+    ) => {
+      // 优先用 versionId 直接启动（绕过数据库实例依赖）
+      if (versionId) {
+        return gameLauncher.launchByVersion(mainWindow, { versionId, accountId })
+      }
 
-    // 兜底：尝试从数据库找实例
-    if (!instanceId) {
-      return { success: false, error: '未指定版本或实例' }
-    }
+      // 兜底：尝试从数据库找实例
+      if (!instanceId) {
+        return { success: false, error: '未指定版本或实例' }
+      }
 
-    const inst = getInstanceById(instanceId)
-    if (!inst) {
-      return { success: false, error: `实例不存在: ${instanceId}` }
-    }
+      const inst = getInstanceById(instanceId)
+      if (!inst) {
+        return { success: false, error: `实例不存在: ${instanceId}` }
+      }
 
-    return gameLauncher.launchGame(mainWindow, { instanceId: inst.id, accountId })
+      return gameLauncher.launchGame(mainWindow, { instanceId: inst.id, accountId })
+    }
+  )
+
+  // ===== 使用 StarLight 风格启动器启动游戏 =====
+  ipcMain.handle('game:launch-starlight', async (_event, config: LaunchConfig) => {
+    try {
+      const launcher = new MinecraftLauncher(config, (msg) => {
+        log.info(`[StarLight.Launcher] ${msg}`)
+      })
+
+      launcher.onOutput = (output) => {
+        log.info(`[MC.OUTPUT] ${output}`)
+      }
+
+      launcher.onError = (error) => {
+        log.error(`[MC.ERROR] ${error}`)
+      }
+
+      const result = await launcher.launchAsync((progress: ProgressReport) => {
+        log.info(`[Launch.Progress] ${progress.phase}: ${progress.message}`)
+        if (mainWindow) {
+          mainWindow.webContents.send('game:launch-progress', progress)
+        }
+      })
+
+      return result
+    } catch (err: any) {
+      log.error('[game:launch-starlight] 启动失败:', err.message)
+      return { success: false, error: err.message }
+    }
   })
 
   ipcMain.handle('game:terminate', () => gameLauncher.terminateGame())
@@ -182,142 +238,235 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
     try {
       const result = await (versionsService?.getAllVersions() ?? [])
       return result
-    } catch(e: any) {
+    } catch (e: any) {
       log.error('[versions:list] ERROR:', e.message, e.stack)
       return []
     }
   })
 
-  ipcMain.handle('versions:get-latest', async () =>
-    versionsService?.getLatestVersion() ?? null)
+  ipcMain.handle('versions:get-latest', async () => versionsService?.getLatestVersion() ?? null)
 
-  ipcMain.handle('versions:get-info', async (_event, versionId: string) =>
-    versionsService?.getVersionInfo(versionId) ?? null)
+  ipcMain.handle(
+    'versions:get-info',
+    async (_event, versionId: string) => versionsService?.getVersionInfo(versionId) ?? null
+  )
 
   // ===== 下载 MC 版本到目录 =====
   // StarLight.Core 方案：从 version_manifest 找到版本 URL，再下载
-  ipcMain.handle('versions:download', async (_event, { versionId, gameDir }: { versionId: string; gameDir: string }) => {
-    log.error('[versions:download] ▶ versionId=', versionId, 'gameDir=', gameDir)
-    const bmclUrl = 'https://bmclapi2.bangbang93.com'
-    const versionDir = join(gameDir, 'versions', versionId)
+  ipcMain.handle(
+    'versions:download',
+    async (_event, { versionId, gameDir }: { versionId: string; gameDir: string }) => {
+      log.error('[versions:download] ▶ versionId=', versionId, 'gameDir=', gameDir)
+      const bmclUrl = 'https://bmclapi2.bangbang93.com'
+      const versionDir = join(gameDir, 'versions', versionId)
 
-    try {
-      mkdirSync(versionDir, { recursive: true })
-
-      // 1. 获取版本清单，找到该版本的 URL
-      log.error('[versions:download] Step1 获取版本清单...')
-      const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
-      if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
-      const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
-      const verEntry = manifest.versions.find(v => v.id === versionId)
-      if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
-
-      // BMCLAPI 返回的 url 已经是镜像地址，直接用
-      const jsonUrl = verEntry.url
-      log.error('[versions:download] Step1 JSON URL:', jsonUrl)
-
-      // 2. 下载版本 JSON
-      const jsonPath = join(versionDir, `${versionId}.json`)
-      await downloadFile(jsonUrl, jsonPath)
-      log.error('[versions:download] Step1 JSON 下载成功')
-
-      // 3. 解析出官方下载地址
-      const vjson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
-      const clientUrl = vjson.downloads?.client?.url
-      log.error('[versions:download] Step2 clientUrl:', clientUrl)
-      if (!clientUrl) {
-        return { ok: false, error: 'version.json 中缺少 downloads.client.url，可能是不支持的远古版' }
-      }
-
-      // 4. 下载 client.jar（官方 URL）
-      const jarPath = join(versionDir, `${versionId}.jar`)
-      log.error('[versions:download] Step3 下载 jar from:', clientUrl)
-      await downloadFile(clientUrl, jarPath)
-      log.error('[versions:download] Step3 jar 下载成功')
-
-      return { ok: true, data: { jarPath, jsonPath } }
-    } catch (err: any) {
-      log.error('[versions:download] 失败:', err.message)
-      return { ok: false, error: err.message }
-    }
-  })
-
-  // ===== 带进度的版本下载（流式） =====
-  // 返回 { taskId } 后立即启动后台下载，过程中通过 webContents.send 推送进度
-  ipcMain.handle('versions:download-start', async (_event, { versionId, gameDir }: {
-    versionId: string; gameDir: string
-  }) => {
-    const taskId = `vdl_${versionId}_${Date.now()}`
-    const bmclUrl = 'https://bmclapi2.bangbang93.com'
-    const versionDir = join(gameDir, 'versions', versionId)
-    const jsonPath = join(versionDir, `${versionId}.json`)
-    const jarPath = join(versionDir, `${versionId}.jar`)
-
-    const sendProgress = (phase: string, phaseLabel: string, progress: number,
-                          downloaded: number, total: number, speed: number) => {
-      mainWindow.webContents.send('version:download-progress', {
-        taskId, versionId, phase, phaseLabel, progress, downloaded, total, speed, gameDir
-      })
-    }
-
-    // 异步执行下载，不阻塞 IPC 响应
-    ;(async () => {
       try {
         mkdirSync(versionDir, { recursive: true })
 
-        // 阶段1：获取版本清单
-        sendProgress('resolving', '解析版本清单...', 5, 0, 1, 0)
+        // 1. 获取版本清单，找到该版本的 URL
+        log.error('[versions:download] Step1 获取版本清单...')
         const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
         if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
-        const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
-        const verEntry = manifest.versions.find(v => v.id === versionId)
+        const manifest = (await manifestRes.json()) as {
+          versions: Array<{ id: string; url: string }>
+        }
+        const verEntry = manifest.versions.find((v) => v.id === versionId)
         if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
 
-        // 阶段2：下载 JSON（流式）
-        sendProgress('downloading_json', '下载版本信息...', 10, 0, 1, 0)
-        await downloadFileWithProgress(verEntry.url, jsonPath, (dl, total) => {
-          const pct = total > 0 ? Math.min(30, 10 + (dl / total) * 20) : 30
-          sendProgress('downloading_json', '下载版本信息...', pct, dl, total, 0)
-        })
-        sendProgress('downloading_json_ok', '版本信息下载完成', 35, 0, 1, 0)
+        // BMCLAPI 返回的 url 已经是镜像地址，直接用
+        const jsonUrl = verEntry.url
+        log.error('[versions:download] Step1 JSON URL:', jsonUrl)
 
-        // 阶段3：解析官方 jar URL
+        // 2. 下载版本 JSON
+        const jsonPath = join(versionDir, `${versionId}.json`)
+        await downloadFile(jsonUrl, jsonPath)
+        log.error('[versions:download] Step1 JSON 下载成功')
+
+        // 3. 解析出官方下载地址
         const vjson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
         const clientUrl = vjson.downloads?.client?.url
-        if (!clientUrl) throw new Error('version.json 中缺少 downloads.client.url，可能是不支持的远古版')
+        log.error('[versions:download] Step2 clientUrl:', clientUrl)
+        if (!clientUrl) {
+          return {
+            ok: false,
+            error: 'version.json 中缺少 downloads.client.url，可能是不支持的远古版'
+          }
+        }
 
-        // 阶段4：下载 client.jar（流式）
-        sendProgress('downloading_jar', '下载核心文件...', 40, 0, 1, 0)
-        await downloadFileWithProgress(clientUrl, jarPath, (dl, total) => {
-          const pct = total > 0 ? Math.min(95, 40 + (dl / total) * 55) : 95
-          sendProgress('downloading_jar', '下载核心文件...', pct, dl, total, dl / ((Date.now() - (Date.now() - 1)) / 1000 + 0.1))
-        })
+        // 4. 下载 client.jar（官方 URL）
+        const jarPath = join(versionDir, `${versionId}.jar`)
+        log.error('[versions:download] Step3 下载 jar from:', clientUrl)
+        await downloadFile(clientUrl, jarPath)
+        log.error('[versions:download] Step3 jar 下载成功')
 
-        sendProgress('completed', '下载完成', 100, 0, 1, 0)
-        mainWindow.webContents.send('version:download-complete', { taskId, versionId, gameDir })
+        return { ok: true, data: { jarPath, jsonPath } }
       } catch (err: any) {
-        log.error('[versions:download-start] 失败:', err.message)
-        sendProgress('failed', `失败: ${err.message}`, 0, 0, 0, 0)
-        mainWindow.webContents.send('version:download-error', { taskId, versionId, error: err.message })
+        log.error('[versions:download] 失败:', err.message)
+        return { ok: false, error: err.message }
       }
-    })()
+    }
+  )
 
-    // 立即返回 taskId，下载在后台运行
-    return { ok: true, data: { taskId } }
-  })
+  // ===== 带进度的版本下载（流式） =====
+  // 返回 { taskId } 后立即启动后台下载，过程中通过 webContents.send 推送进度
+  ipcMain.handle(
+    'versions:download-start',
+    async (
+      _event,
+      {
+        versionId,
+        gameDir
+      }: {
+        versionId: string
+        gameDir: string
+      }
+    ) => {
+      const taskId = `vdl_${versionId}_${Date.now()}`
+      const bmclUrl = 'https://bmclapi2.bangbang93.com'
+      const versionDir = join(gameDir, 'versions', versionId)
+      const jsonPath = join(versionDir, `${versionId}.json`)
+      const jarPath = join(versionDir, `${versionId}.jar`)
+
+      const sendProgress = (
+        phase: string,
+        phaseLabel: string,
+        progress: number,
+        downloaded: number,
+        total: number,
+        speed: number
+      ) => {
+        mainWindow.webContents.send('version:download-progress', {
+          taskId,
+          versionId,
+          phase,
+          phaseLabel,
+          progress,
+          downloaded,
+          total,
+          speed,
+          gameDir
+        })
+      }
+
+      // 异步执行下载，不阻塞 IPC 响应
+      ;(async () => {
+        try {
+          mkdirSync(versionDir, { recursive: true })
+
+          // 阶段1：获取版本清单
+          sendProgress('resolving', '解析版本清单...', 5, 0, 1, 0)
+          const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
+          if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
+          const manifest = (await manifestRes.json()) as {
+            versions: Array<{ id: string; url: string }>
+          }
+          const verEntry = manifest.versions.find((v) => v.id === versionId)
+          if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
+
+          // 阶段2：下载 JSON（流式）
+          sendProgress('downloading_json', '下载版本信息...', 10, 0, 1, 0)
+          await downloadFileWithProgress(verEntry.url, jsonPath, (dl, total) => {
+            const pct = total > 0 ? Math.min(30, 10 + (dl / total) * 20) : 30
+            sendProgress('downloading_json', '下载版本信息...', pct, dl, total, 0)
+          })
+          sendProgress('downloading_json_ok', '版本信息下载完成', 35, 0, 1, 0)
+
+          // 阶段3：解析官方 jar URL
+          const vjson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
+          const clientUrl = vjson.downloads?.client?.url
+          if (!clientUrl)
+            throw new Error('version.json 中缺少 downloads.client.url，可能是不支持的远古版')
+
+          // 阶段4：下载 client.jar（流式）
+          sendProgress('downloading_jar', '下载核心文件...', 40, 0, 1, 0)
+          await downloadFileWithProgress(clientUrl, jarPath, (dl, total) => {
+            const pct = total > 0 ? Math.min(95, 40 + (dl / total) * 55) : 95
+            sendProgress(
+              'downloading_jar',
+              '下载核心文件...',
+              pct,
+              dl,
+              total,
+              dl / ((Date.now() - (Date.now() - 1)) / 1000 + 0.1)
+            )
+          })
+
+          sendProgress('completed', '下载完成', 100, 0, 1, 0)
+          mainWindow.webContents.send('version:download-complete', { taskId, versionId, gameDir })
+        } catch (err: any) {
+          log.error('[versions:download-start] 失败:', err.message)
+          sendProgress('failed', `失败: ${err.message}`, 0, 0, 0, 0)
+          mainWindow.webContents.send('version:download-error', {
+            taskId,
+            versionId,
+            error: err.message
+          })
+        }
+      })()
+
+      // 立即返回 taskId，下载在后台运行
+      return { ok: true, data: { taskId } }
+    }
+  )
+
+  // ===== 下载服务端 jar =====
+  ipcMain.handle(
+    'versions:download-server',
+    async (_event, { versionId, savePath }: { versionId: string; savePath: string }) => {
+      const bmclUrl = 'https://bmclapi2.bangbang93.com'
+
+      try {
+        // 1. 获取版本清单，找到该版本的 URL
+        const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
+        if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
+        const manifest = (await manifestRes.json()) as {
+          versions: Array<{ id: string; url: string }>
+        }
+        const verEntry = manifest.versions.find((v) => v.id === versionId)
+        if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
+
+        // 2. 下载版本 JSON
+        const tempJsonPath = join(os.tmpdir(), `${versionId}_server.json`)
+        await downloadFile(verEntry.url, tempJsonPath)
+
+        // 3. 解析出服务端下载地址
+        const vjson = JSON.parse(readFileSync(tempJsonPath, 'utf-8'))
+        const serverUrl = vjson.downloads?.server?.url
+        if (!serverUrl) {
+          return { ok: false, error: '该版本不提供服务端下载' }
+        }
+
+        // 4. 下载服务端 jar
+        await downloadFile(serverUrl, savePath)
+
+        // 清理临时文件
+        try {
+          unlinkSync(tempJsonPath)
+        } catch {}
+
+        return { ok: true, data: { savePath } }
+      } catch (err: any) {
+        log.error('[versions:download-server] 失败:', err.message)
+        return { ok: false, error: err.message }
+      }
+    }
+  )
 
   // ===== 删除目录下的 MC 版本 =====
-  ipcMain.handle('versions:delete', async (_event, { versionId, gameDir }: { versionId: string; gameDir: string }) => {
-    try {
-      const versionDir = join(gameDir, 'versions', versionId)
-      if (existsSync(versionDir)) {
-        rmSync(versionDir, { recursive: true, force: true })
+  ipcMain.handle(
+    'versions:delete',
+    async (_event, { versionId, gameDir }: { versionId: string; gameDir: string }) => {
+      try {
+        const versionDir = join(gameDir, 'versions', versionId)
+        if (existsSync(versionDir)) {
+          rmSync(versionDir, { recursive: true, force: true })
+        }
+        return { ok: true }
+      } catch (err: any) {
+        return { ok: false, error: err.message }
       }
-      return { ok: true }
-    } catch (err: any) {
-      return { ok: false, error: err.message }
     }
-  })
+  )
 
   // ===== 扫描文件夹已安装版本 =====
 
@@ -332,173 +481,221 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
 
   // ===== 检查单个版本是否已安装 =====
 
-  ipcMain.handle('versions:is-installed', async (_event, { versionId, gameDir }: {
-    versionId: string
-    gameDir: string
-  }) => {
-    try {
-      if (!versionsService) {
-        return { ok: false, error: 'VersionsService 未初始化' }
+  ipcMain.handle(
+    'versions:is-installed',
+    async (
+      _event,
+      {
+        versionId,
+        gameDir
+      }: {
+        versionId: string
+        gameDir: string
       }
-      const installed = await versionsService.isVersionInstalled(versionId, gameDir)
-      return { ok: true, data: installed }
-    } catch (error: any) {
-      return { ok: false, error: error.message }
+    ) => {
+      try {
+        if (!versionsService) {
+          return { ok: false, error: 'VersionsService 未初始化' }
+        }
+        const installed = await versionsService.isVersionInstalled(versionId, gameDir)
+        return { ok: true, data: installed }
+      } catch (error: any) {
+        return { ok: false, error: error.message }
+      }
     }
-  })
+  )
 
   // ===== 补全文件：检测缺失 =====
 
-  ipcMain.handle('versions:validate', async (_event, { versionId, gameDir }: {
-    versionId: string
-    gameDir: string
-  }) => {
-    try {
-      const versionDir = join(gameDir, 'versions', versionId)
-      const jsonPath = join(versionDir, `${versionId}.json`)
-      if (!existsSync(jsonPath)) {
-        return { ok: false, error: '版本 JSON 不存在，请先重新下载该版本' }
+  ipcMain.handle(
+    'versions:validate',
+    async (
+      _event,
+      {
+        versionId,
+        gameDir
+      }: {
+        versionId: string
+        gameDir: string
       }
-
-      const versionJson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
-      const libs = versionJson.libraries || []
-
-      // 解析所有需要的库路径
-      const missing: string[] = []
-      const baseLibPath = join(gameDir, 'libraries')
-
-      for (const lib of libs) {
-        const dl = lib.downloads?.artifact
-        if (!dl) continue
-        const libPath = join(baseLibPath, dl.path)
-        if (!existsSync(libPath)) {
-          missing.push(dl.path)
+    ) => {
+      try {
+        const versionDir = join(gameDir, 'versions', versionId)
+        const jsonPath = join(versionDir, `${versionId}.json`)
+        if (!existsSync(jsonPath)) {
+          return { ok: false, error: '版本 JSON 不存在，请先重新下载该版本' }
         }
-      }
 
-      // 检查 client.jar
-      const jarPath = join(versionDir, `${versionId}.jar`)
-      if (!existsSync(jarPath)) {
-        missing.unshift(`${versionId}/${versionId}.jar`)
-      }
+        const versionJson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
+        const libs = versionJson.libraries || []
 
-      // 如果有继承版本（ModLoader），也要检查父版本 JSON
-      if (versionJson.inheritsFrom) {
-        const parentJsonPath = join(gameDir, 'versions', versionJson.inheritsFrom, `${versionJson.inheritsFrom}.json`)
-        if (!existsSync(parentJsonPath)) {
-          missing.unshift(`父版本 JSON 缺失: ${versionJson.inheritsFrom}`)
+        // 解析所有需要的库路径
+        const missing: string[] = []
+        const baseLibPath = join(gameDir, 'libraries')
+
+        for (const lib of libs) {
+          const dl = lib.downloads?.artifact
+          if (!dl) continue
+          const libPath = join(baseLibPath, dl.path)
+          if (!existsSync(libPath)) {
+            missing.push(dl.path)
+          }
         }
-      }
 
-      return { ok: true, data: { missing, total: libs.length, checked: true } }
-    } catch (err: any) {
-      return { ok: false, error: err.message }
+        // 检查 client.jar
+        const jarPath = join(versionDir, `${versionId}.jar`)
+        if (!existsSync(jarPath)) {
+          missing.unshift(`${versionId}/${versionId}.jar`)
+        }
+
+        // 如果有继承版本（ModLoader），也要检查父版本 JSON
+        if (versionJson.inheritsFrom) {
+          const parentJsonPath = join(
+            gameDir,
+            'versions',
+            versionJson.inheritsFrom,
+            `${versionJson.inheritsFrom}.json`
+          )
+          if (!existsSync(parentJsonPath)) {
+            missing.unshift(`父版本 JSON 缺失: ${versionJson.inheritsFrom}`)
+          }
+        }
+
+        return { ok: true, data: { missing, total: libs.length, checked: true } }
+      } catch (err: any) {
+        return { ok: false, error: err.message }
+      }
     }
-  })
+  )
 
   // ===== 补全文件：下载缺失的库 =====
 
-  ipcMain.handle('versions:download-missing', async (_event, { versionId, gameDir }: {
-    versionId: string
-    gameDir: string
-  }) => {
-    const versionDir = join(gameDir, 'versions', versionId)
-    const jsonPath = join(versionDir, `${versionId}.json`)
-    const baseUrl = versionsService?.getBaseUrl?.() ?? 'https://bmclapi2.bangbang93.com'
-
-    try {
-      if (!existsSync(jsonPath)) {
-        return { ok: false, error: '版本 JSON 不存在' }
+  ipcMain.handle(
+    'versions:download-missing',
+    async (
+      _event,
+      {
+        versionId,
+        gameDir
+      }: {
+        versionId: string
+        gameDir: string
       }
+    ) => {
+      const versionDir = join(gameDir, 'versions', versionId)
+      const jsonPath = join(versionDir, `${versionId}.json`)
+      const baseUrl = versionsService?.getBaseUrl?.() ?? 'https://bmclapi2.bangbang93.com'
 
-      const versionJson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
-      const libs = versionJson.libraries || []
-      const baseLibPath = join(gameDir, 'libraries')
-
-      // 收集缺失的库
-      const missing: Array<{ path: string; url: string }> = []
-      for (const lib of libs) {
-        const dl = lib.downloads?.artifact
-        if (!dl) continue
-        const libPath = join(baseLibPath, dl.path)
-        if (!existsSync(libPath)) {
-          missing.push({ path: dl.path, url: dl.url || `${baseUrl}/libraries/${dl.path}` })
+      try {
+        if (!existsSync(jsonPath)) {
+          return { ok: false, error: '版本 JSON 不存在' }
         }
-      }
 
-      if (!missing.length) {
-        // 下载 client.jar（如果缺失）
-        const jarPath = join(versionDir, `${versionId}.jar`)
-        if (!existsSync(jarPath)) {
-          const jarUrl = `${baseUrl}/mc/version/${versionId}/client`
-          mkdirSync(join(versionDir), { recursive: true })
-          await downloadFile(jarUrl, jarPath)
-        }
-        // 下载父版本 JSON（如果缺失）
-        if (versionJson.inheritsFrom) {
-          const parentJsonPath = join(gameDir, 'versions', versionJson.inheritsFrom, `${versionJson.inheritsFrom}.json`)
-          if (!existsSync(parentJsonPath)) {
-            mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
-            await downloadFile(`${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`, parentJsonPath)
+        const versionJson = JSON.parse(readFileSync(jsonPath, 'utf-8'))
+        const libs = versionJson.libraries || []
+        const baseLibPath = join(gameDir, 'libraries')
+
+        // 收集缺失的库
+        const missing: Array<{ path: string; url: string }> = []
+        for (const lib of libs) {
+          const dl = lib.downloads?.artifact
+          if (!dl) continue
+          const libPath = join(baseLibPath, dl.path)
+          if (!existsSync(libPath)) {
+            missing.push({ path: dl.path, url: dl.url || `${baseUrl}/libraries/${dl.path}` })
           }
         }
-        return { ok: true, data: { downloaded: 0, message: '所有文件已完整，无需下载' } }
-      }
 
-      let downloaded = 0
-      for (const lib of missing) {
-        const libFilePath = join(baseLibPath, lib.path)
-        mkdirSync(join(baseLibPath, lib.path).replace(/[^/\\]+$/, ''), { recursive: true })
-        // 优先用 BMCLAPI 镜像
-        const url = `${baseUrl}/libraries/${lib.path}`
-        try {
-          await downloadFile(url, libFilePath)
-          downloaded++
-          // 推送进度
-          mainWindow.webContents.send('version:download-progress', {
-            versionId,
-            current: downloaded,
-            total: missing.length,
-            file: lib.path,
-          })
-        } catch {
-          // 尝试备用 URL
+        if (!missing.length) {
+          // 下载 client.jar（如果缺失）
+          const jarPath = join(versionDir, `${versionId}.jar`)
+          if (!existsSync(jarPath)) {
+            const jarUrl = `${baseUrl}/mc/version/${versionId}/client`
+            mkdirSync(join(versionDir), { recursive: true })
+            await downloadFile(jarUrl, jarPath)
+          }
+          // 下载父版本 JSON（如果缺失）
+          if (versionJson.inheritsFrom) {
+            const parentJsonPath = join(
+              gameDir,
+              'versions',
+              versionJson.inheritsFrom,
+              `${versionJson.inheritsFrom}.json`
+            )
+            if (!existsSync(parentJsonPath)) {
+              mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
+              await downloadFile(
+                `${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`,
+                parentJsonPath
+              )
+            }
+          }
+          return { ok: true, data: { downloaded: 0, message: '所有文件已完整，无需下载' } }
+        }
+
+        let downloaded = 0
+        for (const lib of missing) {
+          const libFilePath = join(baseLibPath, lib.path)
+          mkdirSync(join(baseLibPath, lib.path).replace(/[^/\\]+$/, ''), { recursive: true })
+          // 优先用 BMCLAPI 镜像
+          const url = `${baseUrl}/libraries/${lib.path}`
           try {
-            await downloadFile(lib.url, libFilePath)
+            await downloadFile(url, libFilePath)
             downloaded++
+            // 推送进度
             mainWindow.webContents.send('version:download-progress', {
               versionId,
               current: downloaded,
               total: missing.length,
-              file: lib.path,
+              file: lib.path
             })
-          } catch (e: any) {
-            log.warn(`[补全] 下载失败: ${lib.path}`, e.message)
+          } catch {
+            // 尝试备用 URL
+            try {
+              await downloadFile(lib.url, libFilePath)
+              downloaded++
+              mainWindow.webContents.send('version:download-progress', {
+                versionId,
+                current: downloaded,
+                total: missing.length,
+                file: lib.path
+              })
+            } catch (e: any) {
+              log.warn(`[补全] 下载失败: ${lib.path}`, e.message)
+            }
           }
         }
-      }
 
-      // 最后下载 client.jar 和父版本 JSON
-      const jarPath = join(versionDir, `${versionId}.jar`)
-      if (!existsSync(jarPath)) {
-        mkdirSync(versionDir, { recursive: true })
-        await downloadFile(`${baseUrl}/mc/version/${versionId}/client`, jarPath)
-        downloaded++
-      }
-      if (versionJson.inheritsFrom) {
-        const parentJsonPath = join(gameDir, 'versions', versionJson.inheritsFrom, `${versionJson.inheritsFrom}.json`)
-        if (!existsSync(parentJsonPath)) {
-          mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
-          await downloadFile(`${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`, parentJsonPath)
+        // 最后下载 client.jar 和父版本 JSON
+        const jarPath = join(versionDir, `${versionId}.jar`)
+        if (!existsSync(jarPath)) {
+          mkdirSync(versionDir, { recursive: true })
+          await downloadFile(`${baseUrl}/mc/version/${versionId}/client`, jarPath)
           downloaded++
         }
-      }
+        if (versionJson.inheritsFrom) {
+          const parentJsonPath = join(
+            gameDir,
+            'versions',
+            versionJson.inheritsFrom,
+            `${versionJson.inheritsFrom}.json`
+          )
+          if (!existsSync(parentJsonPath)) {
+            mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
+            await downloadFile(
+              `${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`,
+              parentJsonPath
+            )
+            downloaded++
+          }
+        }
 
-      return { ok: true, data: { downloaded, total: missing.length } }
-    } catch (err: any) {
-      return { ok: false, error: err.message }
+        return { ok: true, data: { downloaded, total: missing.length } }
+      } catch (err: any) {
+        return { ok: false, error: err.message }
+      }
     }
-  })
+  )
 
   // ===== ModLoader handlers (已在 modloader.ts 中注册) =====
   // - modloader:get-loaders

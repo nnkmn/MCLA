@@ -3,7 +3,16 @@
     <!-- 顶部导航栏 -->
     <div class="detail-header">
       <button class="back-btn" @click="$router.push('/instances')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
         返回实例列表
       </button>
 
@@ -17,10 +26,30 @@
           @click="toggleFavorite"
           title="收藏"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" :fill="instance.isFavorited ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            :fill="instance.isFavorited ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            />
+          </svg>
         </button>
         <button class="action-btn" @click="openFolder" title="打开游戏目录">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          </svg>
         </button>
       </div>
     </div>
@@ -53,7 +82,9 @@
           </div>
           <div class="info-item">
             <label>游戏目录</label>
-            <span class="value path-value" :title="instance.path">{{ instance.path || '未设置' }}</span>
+            <span class="value path-value" :title="instance.path">{{
+              instance.path || '未设置'
+            }}</span>
           </div>
           <div class="info-item">
             <label>最后游玩</label>
@@ -123,17 +154,50 @@
         <div class="section-header">
           <h3 class="section-title">
             已安装 Mod
-            <span class="mod-count" v-if="localMods.length > 0">({{ activeModCount }}/{{ localMods.length }})</span>
+            <span class="mod-count" v-if="localMods.length > 0"
+              >({{ activeModCount }}/{{ localMods.length }})</span
+            >
           </h3>
           <div class="section-actions">
             <button class="icon-btn" @click="refreshMods" title="刷新">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+              </svg>
             </button>
             <button class="icon-btn" @click="openModsFolder" title="打开 mods 目录">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+              </svg>
             </button>
             <button class="icon-btn" @click="openConfigDir" title="打开 config 目录">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -146,7 +210,18 @@
 
         <!-- 空状态 -->
         <div v-else-if="localMods.length === 0" class="empty-state">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--mcla-text-muted)" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          <svg
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--mcla-text-muted)"
+            stroke-width="1.5"
+          >
+            <path
+              d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"
+            />
+          </svg>
           <p>暂无已安装的 Mod</p>
           <router-link to="/downloads" class="link-btn">去下载 Mod →</router-link>
         </div>
@@ -160,7 +235,17 @@
             :class="{ 'mod-disabled': mod.status === 'disabled' }"
           >
             <div class="mod-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 00-4 0v2"/></svg>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 00-4 0v2" />
+              </svg>
             </div>
             <div class="mod-info">
               <span class="mod-name">{{ mod.displayName || mod.fileName }}</span>
@@ -179,8 +264,31 @@
                 @click="toggleMod(mod)"
                 :title="mod.status === 'active' ? '禁用' : '启用'"
               >
-                <svg v-if="mod.status === 'active'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg
+                  v-if="mod.status === 'active'"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                <svg
+                  v-else
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </button>
             </div>
           </div>
@@ -193,10 +301,29 @@
           <h3 class="section-title">配置文件</h3>
           <div class="section-actions">
             <button class="icon-btn" @click="loadConfigFiles" title="刷新">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+              </svg>
             </button>
             <button class="icon-btn" @click="openConfigDir" title="打开 config 目录">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+              </svg>
             </button>
           </div>
         </div>
@@ -216,14 +343,36 @@
             @click="openConfigEditor(cfg)"
           >
             <div class="config-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
             </div>
             <div class="config-info">
               <span class="config-name">{{ cfg.name }}</span>
-              <span class="config-meta">{{ formatFileSize(cfg.size) }} · {{ formatDate(cfg.modified) }}</span>
+              <span class="config-meta"
+                >{{ formatFileSize(cfg.size) }} · {{ formatDate(cfg.modified) }}</span
+              >
             </div>
             <button class="edit-icon-btn" @click.stop="openConfigEditor(cfg)" title="编辑">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
             </button>
           </div>
         </div>
@@ -231,7 +380,12 @@
     </div>
 
     <!-- Config 编辑弹窗 -->
-    <PxModal v-if="editingConfig" @close="closeConfigEditor" :title="'编辑: ' + editingConfig.name" width="720px">
+    <PxModal
+      v-if="editingConfig"
+      @close="closeConfigEditor"
+      :title="'编辑: ' + editingConfig.name"
+      width="720px"
+    >
       <div class="config-editor">
         <div class="editor-toolbar">
           <span class="editor-hint">支持 .toml / .json / .cfg 格式，保存后立即生效</span>
@@ -280,19 +434,21 @@ const editForm = ref({
   javaPath: '',
   minMemory: 1024,
   maxMemory: 4096,
-  jvmArgs: '',
+  jvmArgs: ''
 })
 
 // 本地 Mod 列表（直接从 IPC 获取，不用 store）
-const localMods = ref<Array<{
-  filePath: string
-  fileName: string
-  displayName: string
-  version: string
-  author: string
-  fileSize: number
-  status: LocalModStatus
-}>>([])
+const localMods = ref<
+  Array<{
+    filePath: string
+    fileName: string
+    displayName: string
+    version: string
+    author: string
+    fileSize: number
+    status: LocalModStatus
+  }>
+>([])
 const modsLoading = ref(false)
 
 // 配置文件列表
@@ -316,7 +472,7 @@ const configTextarea = ref<HTMLTextAreaElement | null>(null)
 
 // ====== 计算属性 ======
 const instanceId = computed(() => route.params.id as string)
-const activeModCount = computed(() => localMods.value.filter(m => m.status === 'active').length)
+const activeModCount = computed(() => localMods.value.filter((m) => m.status === 'active').length)
 
 const loaderLabel = computed(() => {
   if (!instance.value) return '-'
@@ -363,7 +519,7 @@ async function fetchDetail() {
         lastPlayed: raw.last_played || null,
         playTime: raw.play_time || 0,
         createdAt: raw.created_at,
-        updatedAt: raw.updated_at,
+        updatedAt: raw.updated_at
       }
       editForm.value.javaPath = instance.value.javaPath
       editForm.value.minMemory = instance.value.minMemory
@@ -391,7 +547,7 @@ async function loadMods() {
         version: m.version || '',
         author: (Array.isArray(m.authors) ? m.authors.join(', ') : m.authors) || '',
         fileSize: m.size || 0,
-        status: m.enabled ? 'active' : 'disabled',
+        status: m.enabled ? 'active' : 'disabled'
       }))
     }
   } catch (e) {
@@ -434,7 +590,7 @@ async function openConfigDir() {
   }
 }
 
-async function toggleMod(mod: typeof localMods.value[0]) {
+async function toggleMod(mod: (typeof localMods.value)[0]) {
   const action = mod.status === 'active' ? 'disable' : 'enable'
   const res = await window.electronAPI?.mod[action](mod.filePath)
   if (res?.ok) {
@@ -516,7 +672,7 @@ async function saveSettings() {
       javaPath: editForm.value.javaPath,
       minMemory: editForm.value.minMemory,
       maxMemory: editForm.value.maxMemory,
-      jvmArgs: editForm.value.jvmArgs,
+      jvmArgs: editForm.value.jvmArgs
     })
   } finally {
     saving.value = false
@@ -538,7 +694,7 @@ function statusLabel(status: LocalModStatus): string {
     active: '已启用',
     disabled: '已禁用',
     incompatible: '不兼容',
-    error: '错误',
+    error: '错误'
   }
   return map[status] || status
 }
@@ -603,8 +759,15 @@ watch(instanceId, () => {
       cursor: pointer;
       transition: all var(--mcla-transition-fast);
 
-      &:hover { color: var(--mcla-primary); border-color: var(--mcla-primary-300); }
-      &.active { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+      &:hover {
+        color: var(--mcla-primary);
+        border-color: var(--mcla-primary-300);
+      }
+      &.active {
+        color: #f59e0b;
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+      }
     }
   }
 }
@@ -630,13 +793,18 @@ watch(instanceId, () => {
 }
 
 .spinner {
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border: 3px solid var(--mcla-border-color);
   border-top-color: var(--mcla-primary-500);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .info-section {
   background: var(--mcla-bg-elevated);
@@ -751,8 +919,14 @@ watch(instanceId, () => {
   cursor: pointer;
   transition: all var(--mcla-transition-fast);
 
-  &:hover:not(:disabled) { filter: brightness(1.06); box-shadow: var(--mcla-shadow-glow-primary); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    filter: brightness(1.06);
+    box-shadow: var(--mcla-shadow-glow-primary);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .empty-state {
@@ -760,7 +934,9 @@ watch(instanceId, () => {
   padding: 48px 0;
   color: var(--mcla-text-muted);
 
-  p { margin: 12px 0 16px; }
+  p {
+    margin: 12px 0 16px;
+  }
 
   .link-btn {
     display: inline-block;
@@ -773,7 +949,9 @@ watch(instanceId, () => {
     border-radius: var(--mcla-radius-md);
     transition: all var(--mcla-transition-fast);
 
-    &:hover { background: var(--mcla-primary-light); }
+    &:hover {
+      background: var(--mcla-primary-light);
+    }
   }
 }
 

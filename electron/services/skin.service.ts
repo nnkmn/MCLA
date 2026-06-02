@@ -46,9 +46,10 @@ export async function downloadSkin(skinUrl: string, uuid: string): Promise<strin
   }
 
   const headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'image/png,image/*,*/*',
-    'Referer': 'https://www.minecraft.net/',
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    Accept: 'image/png,image/*,*/*',
+    Referer: 'https://www.minecraft.net/'
   }
 
   try {
@@ -59,7 +60,7 @@ export async function downloadSkin(skinUrl: string, uuid: string): Promise<strin
       headers,
       // 跟随重定向
       maxRedirects: 5,
-      validateStatus: (status) => status < 400,
+      validateStatus: (status) => status < 400
     })
 
     if (!response.data || (response.data as Buffer).length === 0) {

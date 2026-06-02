@@ -5,9 +5,16 @@
       <!-- 微软账户：头像占位 -->
       <template v-if="account.type === 'microsoft'">
         <div class="avatar-ms">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.2">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#6366f1"
+            stroke-width="1.2"
+          >
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
       </template>
@@ -15,12 +22,14 @@
       <template v-else>
         <div class="avatar-steve">
           <svg width="36" height="36" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="0" width="16" height="16" rx="2" fill="#C69C6D"/>
-            <rect x="2" y="1" width="12" height="5" fill="#E07A28"/><rect x="3" y="0" width="10" height="2" fill="#E07A28"/>
-            <rect x="2" y="5" width="12" height="9" fill="#D4A574"/>
-            <rect x="4" y="7" width="2" height="2" fill="#3A8B47"/><rect x="10" y="7" width="2" height="2" fill="#3A8B47"/>
-            <rect x="7" y="9" width="2" height="2" fill="#C69C6D"/>
-            <rect x="5" y="12" width="6" height="1" fill="#8B5A3C"/>
+            <rect x="0" y="0" width="16" height="16" rx="2" fill="#C69C6D" />
+            <rect x="2" y="1" width="12" height="5" fill="#E07A28" />
+            <rect x="3" y="0" width="10" height="2" fill="#E07A28" />
+            <rect x="2" y="5" width="12" height="9" fill="#D4A574" />
+            <rect x="4" y="7" width="2" height="2" fill="#3A8B47" />
+            <rect x="10" y="7" width="2" height="2" fill="#3A8B47" />
+            <rect x="7" y="9" width="2" height="2" fill="#C69C6D" />
+            <rect x="5" y="12" width="6" height="1" fill="#8B5A3C" />
           </svg>
         </div>
       </template>
@@ -47,12 +56,12 @@
         class="action-btn primary"
         @click="$emit('set-active', account.id)"
         title="设为当前"
-      >切换</button>
-      <button
-        class="action-btn danger"
-        @click="$emit('delete', account.id)"
-        title="删除"
-      >删除</button>
+      >
+        切换
+      </button>
+      <button class="action-btn danger" @click="$emit('delete', account.id)" title="删除">
+        删除
+      </button>
     </div>
   </div>
 </template>
@@ -95,7 +104,7 @@ const shortUuid = computed(() => {
 
   &.active {
     border-color: var(--mcla-primary-400);
-    background: linear-gradient(to right, rgba(99,102,234,0.04), transparent);
+    background: linear-gradient(to right, rgba(99, 102, 234, 0.04), transparent);
   }
 }
 
@@ -104,22 +113,30 @@ const shortUuid = computed(() => {
 
   .avatar-ms,
   .avatar-steve {
-    width: 48px; height: 48px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--mcla-radius-md);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
   }
 
   .avatar-ms {
     background: var(--mcla-gradient-primary);
-    svg { color: #fff !important; }
+    svg {
+      color: #fff !important;
+    }
   }
 
   .avatar-steve {
     border-radius: 6px;
     image-rendering: pixelated;
-    svg { width: 100%; height: 100%; }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
   }
 
   .type-tag {
@@ -169,13 +186,14 @@ const shortUuid = computed(() => {
     top: 50%;
     right: 0;
     transform: translateY(-50%);
-    width: 8px; height: 8px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--mcla-text-muted);
 
     &.online {
       background: #22c55e;
-      box-shadow: 0 0 6px rgba(34,197,94,0.5);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
     }
   }
 }
@@ -202,12 +220,16 @@ const shortUuid = computed(() => {
 
     &.primary {
       color: var(--mcla-primary-600);
-      &:hover { background: var(--mcla-primary-light); }
+      &:hover {
+        background: var(--mcla-primary-light);
+      }
     }
 
     &.danger {
       color: #ef4444;
-      &:hover { background: rgba(239,68,68,0.08); }
+      &:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
     }
   }
 }

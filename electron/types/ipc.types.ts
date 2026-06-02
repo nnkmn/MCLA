@@ -66,7 +66,12 @@ export interface InstanceCreateArgs extends Partial<GameInstance> {
 }
 export interface InstanceUpdateArgs {
   id: string
-  changes: Partial<Pick<GameInstance, 'name' | 'version' | 'modLoader' | 'javaPath' | 'jvmArgs' | 'minMemory' | 'maxMemory'>>
+  changes: Partial<
+    Pick<
+      GameInstance,
+      'name' | 'version' | 'modLoader' | 'javaPath' | 'jvmArgs' | 'minMemory' | 'maxMemory'
+    >
+  >
 }
 export interface InstanceDeleteArgs {
   id: string
@@ -85,8 +90,8 @@ export interface AccountData {
   type: 'microsoft' | 'offline'
   username: string
   uuid?: string
-  accessToken?: string    // 加密存储
-  refreshToken?: string    // 加密存储（微软账户）
+  accessToken?: string // 加密存储
+  refreshToken?: string // 加密存储（微软账户）
   skinType?: 'default' | 'steve' | 'alex' | 'custom' | 'official'
   customSkinPath?: string
   officialSkinName?: string
@@ -115,6 +120,7 @@ export type AccountLoginOfflineReturn = AccountData
 export interface SearchModsArgs {
   query?: string
   source?: 'curseforge' | 'modrinth'
+  platform?: 'curseforge' | 'modrinth'
   category?: string
   gameVersion?: string
   loaderType?: ModLoaderType
@@ -241,7 +247,7 @@ export interface ModloaderGetProgressArgs {
 }
 export interface ModloaderInstallStatus {
   status: 'idle' | 'downloading' | 'installing' | 'complete' | 'error'
-  progress: number      // 0-100
+  progress: number // 0-100
   currentStep?: string
   error?: string
 }
@@ -333,7 +339,10 @@ export interface IpcInvokeMap {
 
   // 账户
   'account:list': { args: AccountListArgs; return: AccountListReturn }
-  'account:login-microsoft': { args: AccountLoginMicrosoftArgs; return: AccountLoginMicrosoftReturn }
+  'account:login-microsoft': {
+    args: AccountLoginMicrosoftArgs
+    return: AccountLoginMicrosoftReturn
+  }
   'account:login-offline': { args: AccountLoginOfflineArgs; return: AccountLoginOfflineReturn }
   'account:delete': { args: AccountDeleteArgs; return: void }
   'account:set-active': { args: AccountSetActiveArgs; return: void }

@@ -42,12 +42,16 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     throw new Error(`实例不存在: ${options.instanceId}`)
   }
 
-  let account: { name: string; uuid: string; accessToken?: string; xuid?: string } | null = null
+  let account: GameAccount | null = null
   if (options.accountId) {
-    account = db.prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE id = ?').get(options.accountId) as AccountRow | null
+    account = db
+      .prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE id = ?')
+      .get(options.accountId) as AccountRow | null
   }
   if (!account) {
-    account = db.prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE is_active = 1 LIMIT 1').get() as AccountRow | null
+    account = db
+      .prepare('SELECT name, uuid, access_token, xuid FROM accounts WHERE is_active = 1 LIMIT 1')
+      .get() as AccountRow | null
   }
   if (!account) {
     account = { name: 'Steve', uuid: offlineUUID('Steve'), xuid: '0' }
@@ -70,7 +74,7 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     maxMem,
     mcVersion,
     nativesPath: path.join(mcDir, 'versions', mcVersion, `${mcVersion}-natives`),
-    customJvm: instance.jvm_args || '',
+    customJvm: instance.jvm_args || ''
   })
 
   const mcArgs = buildMcArgs({
@@ -80,7 +84,7 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     loaderType,
     width: instance.width || 854,
     height: instance.height || 480,
-    fullscreen: instance.fullscreen === 1,
+    fullscreen: instance.fullscreen === 1
   })
 
   return {
@@ -90,7 +94,7 @@ export function buildLaunchConfig(options: BuildLaunchConfigOptions): LaunchConf
     workDir: path.join(mcDir),
     instanceId: instance.id,
     mcVersion,
-    loaderType,
+    loaderType
   }
 }
 
@@ -113,16 +117,9 @@ function buildJvmArgs(opts: {
   ]
 
   if (compareVersions(opts.mcVersion, '1.18') >= 0) {
-    args.push(
-      '-XX:+UseG1GC',
-      '-XX:MaxGCPauseMillis=50',
-      '-XX:+DisableExplicitGC',
-    )
+    args.push('-XX:+UseG1GC', '-XX:MaxGCPauseMillis=50', '-XX:+DisableExplicitGC')
   } else {
-    args.push(
-      '-XX:+UseConcMarkSweepGC',
-      '-XX:CMSInitiatingOccupancyFraction=75',
-    )
+    args.push('-XX:+UseConcMarkSweepGC', '-XX:CMSInitiatingOccupancyFraction=75')
   }
 
   if (opts.customJvm.trim()) {
@@ -131,9 +128,10 @@ function buildJvmArgs(opts: {
 
   return args
 }
+import { GameAccount } from './game.launcher.service'
 
 function buildMcArgs(opts: {
-  account: { name: string; uuid: string; accessToken?: string; xuid?: string }
+  account: GameAccount
   mcVersion: string
   mcDir: string
   loaderType: string
@@ -146,15 +144,24 @@ function buildMcArgs(opts: {
 
   const args = [
     mainClass,
-    '--username', account.name,
-    '--uuid', account.uuid,
-    '--accessToken', account.accessToken || 'offline',
-    '--userType', 'msa',
-    '--version', mcVersion,
-    '--gameDir', mcDir,
-    '--assetsDir', path.join(mcDir, 'assets'),
-    '--assetIndex', getAssetIndex(mcVersion),
-    '--versionType', 'release',
+    '--username',
+    account.name,
+    '--uuid',
+    account.uuid,
+    '--accessToken',
+    account.accessToken || 'offline',
+    '--userType',
+    'msa',
+    '--version',
+    mcVersion,
+    '--gameDir',
+    mcDir,
+    '--assetsDir',
+    path.join(mcDir, 'assets'),
+    '--assetIndex',
+    getAssetIndex(mcVersion),
+    '--versionType',
+    'release'
   ]
 
   if (account.xuid && account.xuid.trim() !== '' && account.xuid !== '0') {
@@ -196,7 +203,9 @@ function getMainClass(mcVersion: string, loaderType: string): string {
 }
 
 function getConfigValue(db: any, key: string): string | null {
-  const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined
+  const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as
+    | { value: string }
+    | undefined
   return row?.value || null
 }
 
@@ -218,7 +227,7 @@ function offlineUUID(name: string): string {
     hash.substring(8, 12),
     hash.substring(12, 16),
     hash.substring(16, 20),
-    hash.substring(20, 32),
+    hash.substring(20, 32)
   ].join('-')
 }
 

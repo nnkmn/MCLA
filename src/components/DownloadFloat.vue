@@ -5,28 +5,65 @@
         <!-- 头部 -->
         <div class="fp-header">
           <span class="fp-title">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             下载管理
             <span v-if="activeCount > 0" class="fp-badge">{{ activeCount }}</span>
           </span>
           <div class="fp-actions">
-            <button class="fp-btn" @click="clearCompleted" title="清除已完成" v-if="completedCount > 0">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            <button
+              class="fp-btn"
+              @click="clearCompleted"
+              title="清除已完成"
+              v-if="completedCount > 0"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path
+                  d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                />
               </svg>
             </button>
             <button class="fp-btn" @click="openManager" title="查看详情">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
               </svg>
             </button>
             <button class="fp-btn fp-close" @click="close" title="关闭">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
@@ -36,20 +73,23 @@
         <div class="fp-tasks">
           <!-- 无任务时 -->
           <div v-if="allTasks.length === 0" class="fp-empty">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             <p>暂无下载任务</p>
           </div>
 
           <!-- 进行中的任务 -->
-          <div
-            v-for="task in activeTasks"
-            :key="task.id"
-            class="fp-task fp-task-active"
-          >
+          <div v-for="task in activeTasks" :key="task.id" class="fp-task fp-task-active">
             <div class="fp-task-info">
               <div class="fp-task-name">{{ task.name }}</div>
               <div class="fp-task-meta">
@@ -63,8 +103,16 @@
             <div class="fp-task-footer">
               <span class="fp-pct">{{ task.progress }}%</span>
               <button class="fp-cancel-btn" @click="cancelDownload(task.id)" title="取消">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
@@ -78,7 +126,16 @@
           >
             <div class="fp-task-name">{{ task.name }}</div>
             <div class="fp-task-phase">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
               已完成
             </div>
             <button class="fp-task-dismiss" @click="dismiss(task.id)">移除</button>
@@ -92,7 +149,18 @@
           >
             <div class="fp-task-name">{{ task.name }}</div>
             <div class="fp-task-phase">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
               失败
             </div>
             <button class="fp-task-dismiss" @click="dismiss(task.id)">移除</button>
@@ -117,15 +185,19 @@ const store = useDownloadStore()
 const allTasks = computed(() => Array.from(store.versionTasks.values()))
 
 const hasAny = computed(() => allTasks.value.length > 0)
-const activeCount = computed(() => allTasks.value.filter(t => t.phase !== 'completed' && t.phase !== 'failed').length)
-const completedCount = computed(() => allTasks.value.filter(t => t.phase === 'completed' || t.phase === 'failed').length)
+const activeCount = computed(
+  () => allTasks.value.filter((t) => t.phase !== 'completed' && t.phase !== 'failed').length
+)
+const completedCount = computed(
+  () => allTasks.value.filter((t) => t.phase === 'completed' || t.phase === 'failed').length
+)
 
-const activeTasks = computed(() => allTasks.value.filter(t =>
-  t.phase !== 'completed' && t.phase !== 'failed'
-))
+const activeTasks = computed(() =>
+  allTasks.value.filter((t) => t.phase !== 'completed' && t.phase !== 'failed')
+)
 
-const completedTasks = computed(() => allTasks.value.filter(t => t.phase === 'completed'))
-const failedTasks = computed(() => allTasks.value.filter(t => t.phase === 'failed'))
+const completedTasks = computed(() => allTasks.value.filter((t) => t.phase === 'completed'))
+const failedTasks = computed(() => allTasks.value.filter((t) => t.phase === 'failed'))
 
 function formatSpeed(bytesPerSec: number): string {
   if (bytesPerSec > 1024 * 1024) return (bytesPerSec / 1024 / 1024).toFixed(1) + ' MB/s'
@@ -146,8 +218,8 @@ function dismiss(versionId: string) {
 }
 
 function clearCompleted() {
-  completedTasks.value.forEach(t => store.removeVersionTask(t.id))
-  failedTasks.value.forEach(t => store.removeVersionTask(t.id))
+  completedTasks.value.forEach((t) => store.removeVersionTask(t.id))
+  failedTasks.value.forEach((t) => store.removeVersionTask(t.id))
 }
 
 async function cancelDownload(id: string) {
@@ -163,10 +235,10 @@ async function cancelDownload(id: string) {
   right: 12px;
   width: 300px;
   background: rgba(18, 18, 24, 0.97);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 9999;
   backdrop-filter: blur(12px);
 }
@@ -176,7 +248,7 @@ async function cancelDownload(id: string) {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .fp-title {
@@ -198,7 +270,7 @@ async function cancelDownload(id: string) {
   height: 24px;
   border-radius: 6px;
   border: none;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   color: #888;
   display: flex;
   align-items: center;
@@ -206,8 +278,14 @@ async function cancelDownload(id: string) {
   cursor: pointer;
   transition: all 0.2s;
 }
-.fp-btn:hover { background: rgba(255,255,255,0.12); color: #ccc; }
-.fp-close:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+.fp-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ccc;
+}
+.fp-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
 
 .fp-tasks {
   padding: 8px;
@@ -220,7 +298,7 @@ async function cancelDownload(id: string) {
 
 .fp-task {
   padding: 10px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
 }
 
@@ -231,8 +309,12 @@ async function cancelDownload(id: string) {
   gap: 8px;
 }
 
-.fp-task-ok { border-left: 2px solid #22c55e; }
-.fp-task-err { border-left: 2px solid #ef4444; }
+.fp-task-ok {
+  border-left: 2px solid #22c55e;
+}
+.fp-task-err {
+  border-left: 2px solid #ef4444;
+}
 
 .fp-task-name {
   font-size: 12px;
@@ -249,7 +331,7 @@ async function cancelDownload(id: string) {
 
 .fp-bar-wrap {
   height: 3px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 4px;
@@ -260,8 +342,13 @@ async function cancelDownload(id: string) {
   border-radius: 2px;
   transition: width 0.4s ease;
 }
-.fp-task-ok .fp-bar { background: #22c55e; }
-.fp-task-err .fp-bar { background: #ef4444; width: 100% !important; }
+.fp-task-ok .fp-bar {
+  background: #22c55e;
+}
+.fp-task-err .fp-bar {
+  background: #ef4444;
+  width: 100% !important;
+}
 
 .fp-task-footer {
   display: flex;
@@ -281,7 +368,7 @@ async function cancelDownload(id: string) {
 
 .fp-task-dismiss {
   font-size: 10px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: none;
   color: #666;
   padding: 2px 8px;
@@ -289,22 +376,26 @@ async function cancelDownload(id: string) {
   cursor: pointer;
   flex-shrink: 0;
 }
-.fp-task-dismiss:hover { color: #aaa; }
+.fp-task-dismiss:hover {
+  color: #aaa;
+}
 
 .fp-view-all {
   display: block;
   width: 100%;
   padding: 10px;
-  background: rgba(99,102,241,0.08);
+  background: rgba(99, 102, 241, 0.08);
   border: none;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   color: #6366f1;
   font-size: 12px;
   cursor: pointer;
   text-align: center;
   transition: background 0.2s;
 }
-.fp-view-all:hover { background: rgba(99,102,241,0.14); }
+.fp-view-all:hover {
+  background: rgba(99, 102, 241, 0.14);
+}
 
 /* ====== 增强样式 ====== */
 .fp-badge {
@@ -331,8 +422,12 @@ async function cancelDownload(id: string) {
   color: #555;
   font-size: 12px;
 
-  p { margin: 0; }
-  svg { opacity: 0.5; }
+  p {
+    margin: 0;
+  }
+  svg {
+    opacity: 0.5;
+  }
 }
 
 .fp-task-info {
@@ -356,7 +451,7 @@ async function cancelDownload(id: string) {
   height: 18px;
   border-radius: 4px;
   border: none;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   color: #666;
   display: flex;
   align-items: center;
@@ -367,7 +462,7 @@ async function cancelDownload(id: string) {
 }
 
 .fp-cancel-btn:hover {
-  background: rgba(239,68,68,0.2);
+  background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
 }
 
@@ -396,14 +491,20 @@ async function cancelDownload(id: string) {
   flex-shrink: 0;
 }
 
-.fp-task-ok .fp-task-phase { color: #22c55e; }
-.fp-task-err .fp-task-phase { color: #ef4444; }
+.fp-task-ok .fp-task-phase {
+  color: #22c55e;
+}
+.fp-task-err .fp-task-phase {
+  color: #ef4444;
+}
 
 /* 动画 */
-.float-enter-active, .float-leave-active {
+.float-enter-active,
+.float-leave-active {
   transition: all 0.25s ease;
 }
-.float-enter-from, .float-leave-to {
+.float-enter-from,
+.float-leave-to {
   opacity: 0;
   transform: translateY(12px) scale(0.96);
 }

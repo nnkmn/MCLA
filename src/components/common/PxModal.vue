@@ -20,14 +20,17 @@
             <slot name="header">
               <h3 :id="titleId" class="px-modal__title">{{ title }}</h3>
             </slot>
-            <button
-              v-if="closable"
-              class="px-modal__close"
-              @click="close"
-              aria-label="关闭"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <button v-if="closable" class="px-modal__close" @click="close" aria-label="关闭">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
@@ -70,12 +73,12 @@ const props = withDefaults(defineProps<PxModalProps>(), {
   closeOnEsc: true,
   blur: false,
   teleportTo: 'body',
-  transitionName: 'px-modal',
+  transitionName: 'px-modal'
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'close': []
+  close: []
 }>()
 
 const dialogRef = ref<HTMLElement | null>(null)
@@ -98,19 +101,25 @@ function onEsc(e: KeyboardEvent) {
 }
 
 // 弹开时聚焦到对话框
-watch(() => props.modelValue, async (val) => {
-  if (val) {
-    await nextTick()
-    dialogRef.value?.focus()
+watch(
+  () => props.modelValue,
+  async (val) => {
+    if (val) {
+      await nextTick()
+      dialogRef.value?.focus()
+    }
+    // 滚动锁定
+    document.body.style.overflow = val ? 'hidden' : ''
   }
-  // 滚动锁定
-  document.body.style.overflow = val ? 'hidden' : ''
-})
+)
 
 // 清理
-watch(() => props.modelValue, (val) => {
-  if (!val) document.body.style.overflow = ''
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!val) document.body.style.overflow = ''
+  }
+)
 </script>
 
 <style scoped>
@@ -125,7 +134,9 @@ watch(() => props.modelValue, (val) => {
   z-index: 10002;
   padding: 16px;
 }
-.px-modal--blur { backdrop-filter: blur(3px); }
+.px-modal--blur {
+  backdrop-filter: blur(3px);
+}
 
 /* ===== Dialog ===== */
 .px-modal {
@@ -139,10 +150,18 @@ watch(() => props.modelValue, (val) => {
   box-shadow: var(--mcla-shadow-xl);
   outline: none;
 }
-.px-modal--sm { max-width: 360px; }
-.px-modal--md { max-width: 480px; }
-.px-modal--lg { max-width: 640px; }
-.px-modal--xl { max-width: 800px; }
+.px-modal--sm {
+  max-width: 360px;
+}
+.px-modal--md {
+  max-width: 480px;
+}
+.px-modal--lg {
+  max-width: 640px;
+}
+.px-modal--xl {
+  max-width: 800px;
+}
 
 /* ===== Header ===== */
 .px-modal__header {
@@ -162,8 +181,10 @@ watch(() => props.modelValue, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px; height: 28px;
-  border: none; background: none;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
   color: var(--mcla-text-tertiary);
   border-radius: var(--mcla-radius-sm);
   cursor: pointer;
@@ -200,7 +221,9 @@ watch(() => props.modelValue, (val) => {
 }
 .px-modal-enter-active .px-modal,
 .px-modal-leave-active .px-modal {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .px-modal-enter-from,
 .px-modal-leave-to {

@@ -4,264 +4,422 @@
     <template v-if="activeCategory === 'launch'">
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('launch')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
           启动设置
-          <svg class="sec-arrow" :class="{ open: collapsed.launch }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.launch }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.launch">
-        <!-- 版本隔离 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">版本隔离</label>
-            <p class="row-desc">每个版本使用独立的游戏目录，避免文件冲突</p>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.versionIsolation">
-              <option value="none">不隔离</option>
-              <option value="version">按版本隔离</option>
-              <option value="versionAndGroup">按版本和分组隔离</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 游戏窗口标题 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">游戏窗口标题</label>
-            <p class="row-desc">自定义游戏窗口显示的标题文本</p>
-          </div>
-          <div class="row-control">
-            <input type="text" class="inp" v-model="s.windowTitle" placeholder="Minecraft {version}" />
-          </div>
-        </div>
-
-        <!-- 启动器可见性 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">启动游戏时</label>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.launchVisibility">
-              <option value="hide">隐藏启动器</option>
-              <option value="minimize">最小化启动器</option>
-              <option value="keep">保持不变</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 进程优先级 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">游戏进程优先级</label>
-            <p class="row-desc">影响游戏占用的 CPU 资源比例</p>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.processPriority">
-              <option value="low">低</option>
-              <option value="belowNormal">低于正常</option>
-              <option value="normal" selected>正常</option>
-              <option value="aboveNormal">高于正常</option>
-              <option value="high">高</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 游戏窗口大小 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">游戏窗口大小</label>
-          </div>
-          <div class="row-control">
-            <div class="input-group compact">
-              <input type="number" class="inp short" v-model="s.winW" placeholder="854" min="1" />
-              <span class="sep">&times;</span>
-              <input type="number" class="inp short" v-model="s.winH" placeholder="480" min="1" />
-              <span class="sep">px</span>
-              <label class="chk" style="margin-left: 8px;"><input type="checkbox" v-model="s.fullscreen" /> 全屏</label>
+          <!-- 版本隔离 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">版本隔离</label>
+              <p class="row-desc">每个版本使用独立的游戏目录，避免文件冲突</p>
             </div>
-          </div>
-        </div>
-
-        <!-- 游戏 Java -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">游戏 Java</label>
-            <p class="row-desc">选择运行游戏使用的 Java 版本</p>
-          </div>
-          <div class="row-control">
-            <div class="input-group">
-              <select class="sel" v-model="s.javaPreset">
-                <option value="auto">自动选择</option>
-                <option value="java8">Java 8</option>
-                <option value="java17">Java 17</option>
-                <option value="java21">Java 21</option>
-                <option value="custom">自定义路径</option>
+            <div class="row-control">
+              <select class="sel" v-model="s.versionIsolation">
+                <option value="none">不隔离</option>
+                <option value="version">按版本隔离</option>
+                <option value="versionAndGroup">按版本和分组隔离</option>
               </select>
+            </div>
+          </div>
+
+          <!-- 游戏窗口标题 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">游戏窗口标题</label>
+              <p class="row-desc">自定义游戏窗口显示的标题文本</p>
+            </div>
+            <div class="row-control">
               <input
-                v-if="s.javaPreset === 'custom'"
-                type="text" class="inp" v-model="s.javaPath" placeholder="C:\Program Files\Java\..."
+                type="text"
+                class="inp"
+                v-model="s.windowTitle"
+                placeholder="Minecraft {version}"
               />
-              <button v-if="s.javaPreset === 'custom'" class="btn-sm" @click="browseJava">浏览</button>
+            </div>
+          </div>
+
+          <!-- 启动器可见性 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">启动游戏时</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.launchVisibility">
+                <option value="hide">隐藏启动器</option>
+                <option value="minimize">最小化启动器</option>
+                <option value="keep">保持不变</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 进程优先级 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">游戏进程优先级</label>
+              <p class="row-desc">影响游戏占用的 CPU 资源比例</p>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.processPriority">
+                <option value="low">低</option>
+                <option value="belowNormal">低于正常</option>
+                <option value="normal" selected>正常</option>
+                <option value="aboveNormal">高于正常</option>
+                <option value="high">高</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 游戏窗口大小 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">游戏窗口大小</label>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input type="number" class="inp short" v-model="s.winW" placeholder="854" min="1" />
+                <span class="sep">&times;</span>
+                <input type="number" class="inp short" v-model="s.winH" placeholder="480" min="1" />
+                <span class="sep">px</span>
+                <label class="chk" style="margin-left: 8px"
+                  ><input type="checkbox" v-model="s.fullscreen" /> 全屏</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- 游戏 Java -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">游戏 Java</label>
+              <p class="row-desc">选择运行游戏使用的 Java 版本</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group">
+                <select class="sel" v-model="s.javaPreset">
+                  <option value="auto">自动选择</option>
+                  <option value="java8">Java 8</option>
+                  <option value="java17">Java 17</option>
+                  <option value="java21">Java 21</option>
+                  <option value="custom">自定义路径</option>
+                </select>
+                <input
+                  v-if="s.javaPreset === 'custom'"
+                  type="text"
+                  class="inp"
+                  v-model="s.javaPath"
+                  placeholder="C:\Program Files\Java\..."
+                />
+                <button v-if="s.javaPreset === 'custom'" class="btn-sm" @click="browseJava">
+                  浏览
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('memory')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h.01"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+            <path d="M6 12h.01M10 12h.01" />
+          </svg>
           内存分配
-          <svg class="sec-arrow" :class="{ open: collapsed.memory }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.memory }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.memory">
-        <!-- 内存模式 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">内存分配模式</label>
+          <!-- 内存模式 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">内存分配模式</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.memoryMode">
+                <option value="auto">自动分配</option>
+                <option value="custom">自定义</option>
+              </select>
+            </div>
           </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.memoryMode">
-              <option value="auto">自动分配</option>
-              <option value="custom">自定义</option>
-            </select>
-          </div>
-        </div>
 
-        <!-- 自定义内存 -->
-        <template v-if="s.memoryMode === 'custom'">
-          <div class="row">
-            <div class="row-main">
-              <label class="row-label">最小内存</label>
-            </div>
-            <div class="row-control">
-              <div class="input-group compact">
-                <input type="range" class="range" v-model.number="s.memoryMin" min="512" max="16384" step="512" />
-                <span class="range-val">{{ s.memoryMin }} MB</span>
+          <!-- 自定义内存 -->
+          <template v-if="s.memoryMode === 'custom'">
+            <div class="row">
+              <div class="row-main">
+                <label class="row-label">最小内存</label>
               </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="row-main">
-              <label class="row-label">最大内存</label>
-            </div>
-            <div class="row-control">
-              <div class="input-group compact">
-                <input type="range" class="range" v-model.number="s.memoryMax" min="1024" max="32768" step="512" />
-                <span class="range-val">{{ s.memoryMax }} MB</span>
-              </div>
-              <div class="memory-bar">
-                <div class="bar-fill" :style="{ width: memoryPercent + '%' }">
-                  <span class="bar-text">{{ memoryPercent }}%</span>
+              <div class="row-control">
+                <div class="input-group compact">
+                  <input
+                    type="range"
+                    class="range"
+                    v-model.number="s.memoryMin"
+                    min="512"
+                    max="16384"
+                    step="512"
+                  />
+                  <span class="range-val">{{ s.memoryMin }} MB</span>
                 </div>
               </div>
-              <p class="row-hint">建议不超过系统可用内存的 80%</p>
             </div>
-          </div>
-        </template>
-        </div><!-- /sec-body -->
+            <div class="row">
+              <div class="row-main">
+                <label class="row-label">最大内存</label>
+              </div>
+              <div class="row-control">
+                <div class="input-group compact">
+                  <input
+                    type="range"
+                    class="range"
+                    v-model.number="s.memoryMax"
+                    min="1024"
+                    max="32768"
+                    step="512"
+                  />
+                  <span class="range-val">{{ s.memoryMax }} MB</span>
+                </div>
+                <div class="memory-bar">
+                  <div class="bar-fill" :style="{ width: memoryPercent + '%' }">
+                    <span class="bar-text">{{ memoryPercent }}%</span>
+                  </div>
+                </div>
+                <p class="row-hint">建议不超过系统可用内存的 80%</p>
+              </div>
+            </div>
+          </template>
+        </div>
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('skin')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
           离线皮肤
-          <svg class="sec-arrow" :class="{ open: collapsed.skin }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.skin }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.skin">
-        <div class="skin-warning">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          由于技术问题，此功能只保证对 1.19.2 以前的版本有效！
-        </div>
-
-        <div class="skin-radio-group">
-          <label class="skin-radio-item" v-for="opt in skinOptions" :key="opt.value"
-            :class="{ active: s.offlineSkin === opt.value }"
-            @click="onSkinSelect(opt.value)">
-            <span class="skin-radio-dot" :class="{ checked: s.offlineSkin === opt.value }"></span>
-            {{ opt.label }}
-          </label>
-        </div>
-
-        <!-- 正版皮肤：展开玩家名 + 操作按钮 -->
-        <div class="skin-expand" v-if="s.offlineSkin === 'official'">
-          <div class="skin-expand-row">
-            <label class="skin-expand-label">正版玩家名</label>
-            <input type="text" class="inp skin-expand-inp" v-model="s.officialSkinName" placeholder="" />
+          <div class="skin-warning">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            由于技术问题，此功能只保证对 1.19.2 以前的版本有效！
           </div>
-          <div class="skin-expand-actions">
-            <button class="btn-outline" @click="saveSkin">保存皮肤</button>
-            <button class="btn-outline" @click="refreshSkin">刷新</button>
+
+          <div class="skin-radio-group">
+            <label
+              class="skin-radio-item"
+              v-for="opt in skinOptions"
+              :key="opt.value"
+              :class="{ active: s.offlineSkin === opt.value }"
+              @click="onSkinSelect(opt.value)"
+            >
+              <span class="skin-radio-dot" :class="{ checked: s.offlineSkin === opt.value }"></span>
+              {{ opt.label }}
+            </label>
+          </div>
+
+          <!-- 正版皮肤：展开玩家名 + 操作按钮 -->
+          <div class="skin-expand" v-if="s.offlineSkin === 'official'">
+            <div class="skin-expand-row">
+              <label class="skin-expand-label">正版玩家名</label>
+              <input
+                type="text"
+                class="inp skin-expand-inp"
+                v-model="s.officialSkinName"
+                placeholder=""
+              />
+            </div>
+            <div class="skin-expand-actions">
+              <button class="btn-outline" @click="saveSkin">保存皮肤</button>
+              <button class="btn-outline" @click="refreshSkin">刷新</button>
+            </div>
           </div>
         </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('advanced')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
           高级选项
-          <svg class="sec-arrow" :class="{ open: collapsed.advanced }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.advanced }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.advanced">
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">Java 虚拟机参数</label>
-            <p class="row-desc">Java 虚拟机的额外启动参数</p>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">Java 虚拟机参数</label>
+              <p class="row-desc">Java 虚拟机的额外启动参数</p>
+            </div>
+            <div class="row-control full">
+              <textarea
+                class="textarea"
+                v-model="s.jvmArgs"
+                rows="3"
+                placeholder="-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions ..."
+              ></textarea>
+            </div>
           </div>
-          <div class="row-control full">
-            <textarea class="textarea" v-model="s.jvmArgs" rows="3" placeholder="-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions ..."></textarea>
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">游戏参数</label>
-            <p class="row-desc">传递给 Minecraft 主程序的额外参数</p>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">游戏参数</label>
+              <p class="row-desc">传递给 Minecraft 主程序的额外参数</p>
+            </div>
+            <div class="row-control full">
+              <textarea
+                class="textarea"
+                v-model="s.gameArgs"
+                rows="2"
+                placeholder="--tweakClass com.example.Tweak"
+              ></textarea>
+            </div>
           </div>
-          <div class="row-control full">
-            <textarea class="textarea" v-model="s.gameArgs" rows="2" placeholder="--tweakClass com.example.Tweak"></textarea>
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">启动前执行命令</label>
-            <p class="row-desc">游戏启动前自动执行的命令</p>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">启动前执行命令</label>
+              <p class="row-desc">游戏启动前自动执行的命令</p>
+            </div>
+            <div class="row-control full">
+              <input
+                type="text"
+                class="inp"
+                v-model="s.preLaunchCmd"
+                placeholder="taskkill /f /im java.exe"
+              />
+            </div>
           </div>
-          <div class="row-control full">
-            <input type="text" class="inp" v-model="s.preLaunchCmd" placeholder="taskkill /f /im java.exe" />
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">内存管理</label>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">内存管理</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.memoryManage">
+                <option value="g1gc">调优 G1GC</option>
+                <option value="zgc">ZGC</option>
+                <option value="parallel">Parallel GC</option>
+                <option value="none">不优化</option>
+              </select>
+            </div>
           </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.memoryManage">
-              <option value="g1gc">调优 G1GC</option>
-              <option value="zgc">ZGC</option>
-              <option value="parallel">Parallel GC</option>
-              <option value="none">不优化</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="row-control full">
-            <div class="adv-checkbox-group">
-              <label class="chk"><input type="checkbox" v-model="s.disableJavaLaunchWrapper" /> 禁用 Java Launch Wrapper</label>
-              <label class="chk"><input type="checkbox" v-model="s.disableLwjglUnsafeAgent" /> 禁用 LWJGL Unsafe Agent</label>
-              <label class="chk"><input type="checkbox" v-model="s.useHighPerformanceGPU" /> 使用高性能显卡</label>
+          <div class="row">
+            <div class="row-control full">
+              <div class="adv-checkbox-group">
+                <label class="chk"
+                  ><input type="checkbox" v-model="s.disableJavaLaunchWrapper" /> 禁用 Java Launch
+                  Wrapper</label
+                >
+                <label class="chk"
+                  ><input type="checkbox" v-model="s.disableLwjglUnsafeAgent" /> 禁用 LWJGL Unsafe
+                  Agent</label
+                >
+                <label class="chk"
+                  ><input type="checkbox" v-model="s.useHighPerformanceGPU" /> 使用高性能显卡</label
+                >
+              </div>
             </div>
           </div>
         </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
     </template>
 
@@ -269,171 +427,298 @@
     <template v-if="activeCategory === 'personalize'">
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('appearance')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="13.5" cy="6.5" r="2.5" />
+            <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z" />
+          </svg>
           外观
-          <svg class="sec-arrow" :class="{ open: collapsed.appearance }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.appearance }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.appearance">
-        <!-- 不透明度 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">界面不透明度</label>
+          <!-- 不透明度 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">界面不透明度</label>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="range"
+                  class="range"
+                  v-model.number="s.opacity"
+                  min="30"
+                  max="100"
+                  step="5"
+                />
+                <span class="range-val">{{ s.opacity }}%</span>
+              </div>
+            </div>
           </div>
-          <div class="row-control">
-            <div class="input-group compact">
-              <input type="range" class="range" v-model.number="s.opacity" min="30" max="100" step="5" />
-              <span class="range-val">{{ s.opacity }}%</span>
+
+          <!-- 主题色 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">主题色</label>
+            </div>
+            <div class="row-control">
+              <div class="color-options">
+                <button
+                  v-for="c in colorPresets"
+                  :key="c.name"
+                  class="color-swatch"
+                  :class="{ active: s.themeColor === c.value }"
+                  :style="{ background: c.value }"
+                  @click="applyThemeColor(c.value)"
+                  :title="c.name"
+                ></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 语言 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">界面语言</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.lang">
+                <option value="zh-CN">简体中文</option>
+                <option value="zh-TW">繁體中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+              </select>
             </div>
           </div>
         </div>
-
-        <!-- 主题色 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">主题色</label>
-          </div>
-          <div class="row-control">
-            <div class="color-options">
-              <button
-                v-for="c in colorPresets"
-                :key="c.name"
-                class="color-swatch"
-                :class="{ active: s.themeColor === c.value }"
-                :style="{ background: c.value }"
-                @click="applyThemeColor(c.value)"
-                :title="c.name"
-              ></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 语言 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">界面语言</label>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.lang">
-              <option value="zh-CN">简体中文</option>
-              <option value="zh-TW">繁體中文</option>
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
-            </select>
-          </div>
-        </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('background')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
           背景
-          <svg class="sec-arrow" :class="{ open: collapsed.background }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.background }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.background">
-        <!-- 背景图片 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">背景图片</label>
+          <!-- 背景图片 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">背景图片</label>
+            </div>
+            <div class="row-control">
+              <div class="input-group">
+                <select class="sel" v-model="s.bgImageMode">
+                  <option value="none">无背景图</option>
+                  <option value="custom">自定义图片</option>
+                </select>
+                <button v-if="s.bgImageMode === 'custom'" class="btn-sm" @click="browseBgImage">
+                  选择图片
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="row-control">
-            <div class="input-group">
-              <select class="sel" v-model="s.bgImageMode">
-                <option value="none">无背景图</option>
-                <option value="custom">自定义图片</option>
-              </select>
-              <button v-if="s.bgImageMode === 'custom'" class="btn-sm" @click="browseBgImage">选择图片</button>
+
+          <div class="row" v-if="s.bgImageMode === 'custom'">
+            <div class="row-main">
+              <label class="row-label"></label>
+            </div>
+            <div class="row-control">
+              <label class="chk"
+                ><input type="checkbox" v-model="s.bgColorOverlay" /> 叠加彩色背景</label
+              >
+            </div>
+          </div>
+
+          <!-- 背景音乐 -->
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">背景音乐</label>
+              <p class="row-desc">在启动器主页播放背景音乐</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group">
+                <select class="sel" v-model="s.bgMusicMode">
+                  <option value="none">关闭</option>
+                  <option value="custom">自定义音乐</option>
+                </select>
+                <button v-if="s.bgMusicMode === 'custom'" class="btn-sm">选择文件夹</button>
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="row" v-if="s.bgImageMode === 'custom'">
-          <div class="row-main">
-            <label class="row-label"></label>
-          </div>
-          <div class="row-control">
-            <label class="chk"><input type="checkbox" v-model="s.bgColorOverlay" /> 叠加彩色背景</label>
-          </div>
-        </div>
-
-        <!-- 背景音乐 -->
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">背景音乐</label>
-            <p class="row-desc">在启动器主页播放背景音乐</p>
-          </div>
-          <div class="row-control">
-            <div class="input-group">
-              <select class="sel" v-model="s.bgMusicMode">
-                <option value="none">关闭</option>
-                <option value="custom">自定义音乐</option>
-              </select>
-              <button v-if="s.bgMusicMode === 'custom'" class="btn-sm">选择文件夹</button>
-            </div>
-          </div>
-        </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('titlebar')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
           标题栏
-          <svg class="sec-arrow" :class="{ open: collapsed.titlebar }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.titlebar }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.titlebar">
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">标题栏模式</label>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.titleBarMode">
-              <option value="default">默认标题栏</option>
-              <option value="none">隐藏标题栏</option>
-              <option value="text">仅显示文本</option>
-              <option value="image">自定义图片</option>
-            </select>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">标题栏模式</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.titleBarMode">
+                <option value="default">默认标题栏</option>
+                <option value="none">隐藏标题栏</option>
+                <option value="text">仅显示文本</option>
+                <option value="image">自定义图片</option>
+              </select>
+            </div>
           </div>
         </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('homepage')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
           主页
-          <svg class="sec-arrow" :class="{ open: collapsed.homepage }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.homepage }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.homepage">
-        <div class="row">
-          <div class="row-main">
-            <label class="row-label">主页内容</label>
-          </div>
-          <div class="row-control">
-            <select class="sel" v-model="s.homeContent">
-              <option value="blank">空白页</option>
-              <option value="preset">使用预设主页</option>
-              <option value="local">读取本地文件</option>
-              <option value="online">联网更新</option>
-            </select>
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">主页内容</label>
+            </div>
+            <div class="row-control">
+              <select class="sel" v-model="s.homeContent">
+                <option value="blank">空白页</option>
+                <option value="preset">使用预设主页</option>
+                <option value="local">读取本地文件</option>
+                <option value="online">联网更新</option>
+              </select>
+            </div>
           </div>
         </div>
-        </div><!-- /sec-body -->
+        <!-- /sec-body -->
       </section>
 
       <section class="sec">
         <h3 class="sec-title" @click="toggleSec('features')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+            />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
           功能隐藏
-          <svg class="sec-arrow" :class="{ open: collapsed.features }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.features }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </h3>
 
         <div class="sec-body" v-show="collapsed.features">
-          <p class="sec-desc">你可以隐藏不需要的页面或关闭特定功能。在任意界面按 F12 可以暂时显示被隐藏的功能。</p>
+          <p class="sec-desc">
+            你可以隐藏不需要的页面或关闭特定功能。在任意界面按 F12 可以暂时显示被隐藏的功能。
+          </p>
           <div class="feature-hide-table">
             <template v-for="row in featureRows" :key="row.label">
               <span class="fh-row-label">{{ row.label }}</span>
@@ -444,14 +729,30 @@
                 </label>
               </template>
               <!-- 补空格占位，保证每行满4列 -->
-              <span v-for="i in (4 - row.items.length)" :key="'pad-' + i + row.label" class="fh-cell fh-pad" />
+              <span
+                v-for="i in 4 - row.items.length"
+                :key="'pad-' + i + row.label"
+                class="fh-cell fh-pad"
+              />
             </template>
           </div>
-          <div class="warn-bar warn-orange" style="margin-top:12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div class="warn-bar warn-orange" style="margin-top: 12px">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
             关闭功能隐藏设置，千万别忘了，要不然设置就改不回来了……
           </div>
-        </div><!-- /sec-body -->
+        </div>
+        <!-- /sec-body -->
       </section>
     </template>
 
@@ -459,7 +760,18 @@
     <template v-if="activeCategory === 'other'">
       <section class="sec">
         <h3 class="sec-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
           下载设置
         </h3>
 
@@ -495,7 +807,14 @@
           </div>
           <div class="row-control">
             <div class="input-group compact">
-              <input type="range" class="range" v-model.number="s.maxThreads" min="1" max="64" step="1" />
+              <input
+                type="range"
+                class="range"
+                v-model.number="s.maxThreads"
+                min="1"
+                max="64"
+                step="1"
+              />
               <span class="range-val">{{ s.maxThreads }} 线程</span>
             </div>
           </div>
@@ -507,7 +826,13 @@
           </div>
           <div class="row-control">
             <div class="input-group compact">
-              <input type="number" class="inp short" v-model.number="s.speedLimit" min="0" step="1024" />
+              <input
+                type="number"
+                class="inp short"
+                v-model.number="s.speedLimit"
+                min="0"
+                step="1024"
+              />
               <span class="sep">KB/s</span>
               <span class="row-hint">0 为不限速</span>
             </div>
@@ -517,7 +842,17 @@
 
       <section class="sec">
         <h3 class="sec-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
           社区资源
         </h3>
 
@@ -579,42 +914,86 @@
 
       <section class="sec">
         <h3 class="sec-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
           数据管理
         </h3>
 
         <div class="btn-row">
           <button class="action-btn outline" @click="openMcDir">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+            </svg>
             打开 .minecraft 目录
           </button>
           <button class="action-btn outline">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+            </svg>
             打开启动器目录
           </button>
         </div>
 
-        <div class="btn-row" style="margin-top: 10px;">
+        <div class="btn-row" style="margin-top: 10px">
           <button class="action-btn outline">清除下载缓存</button>
           <button class="action-btn outline">清除版本缓存</button>
         </div>
 
-        <div class="btn-row danger-zone" style="margin-top: 18px;">
+        <div class="btn-row danger-zone" style="margin-top: 18px">
           <button class="action-btn danger">重置所有设置</button>
         </div>
       </section>
 
       <section class="sec">
         <h3 class="sec-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
           关于与鸣谢
         </h3>
         <p class="about-redirect-desc">
           关于 MCLA、鸣谢、开源项目使用说明等内容已移至「更多」页面。
         </p>
-        <div class="btn-row" style="margin-top: 14px;">
+        <div class="btn-row" style="margin-top: 14px">
           <button class="action-btn primary" @click="router.push('/more')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-14c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4zm0 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-14c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4zm0 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"
+              />
+            </svg>
             前往更多页面
           </button>
         </div>
@@ -640,21 +1019,23 @@ onMounted(async () => {
 
 // section 折叠状态（true = 展开）
 const collapsed = reactive<Record<string, boolean>>({
-  launch:     true,
-  memory:     true,
-  skin:       false,   // 默认折叠
-  advanced:   false,   // 默认折叠
+  launch: true,
+  memory: true,
+  skin: false, // 默认折叠
+  advanced: false, // 默认折叠
   appearance: true,
   background: true,
-  titlebar:   true,
-  homepage:   true,
-  features:   true,
-  download:   true,
-  community:  true,
-  data:       true,
-  about:      true,
+  titlebar: true,
+  homepage: true,
+  features: true,
+  download: true,
+  community: true,
+  data: true,
+  about: true
 })
-function toggleSec(key: string) { collapsed[key] = !collapsed[key] }
+function toggleSec(key: string) {
+  collapsed[key] = !collapsed[key]
+}
 
 const s = reactive({
   // 启动
@@ -700,7 +1081,7 @@ const s = reactive({
   modSource: 'both',
   cfApiKey: '',
   fileNameFormat: 'name-version',
-  modManageStyle: 'card',
+  modManageStyle: 'card'
 })
 
 const memoryPercent = computed(() => {
@@ -723,45 +1104,45 @@ const featureRows = reactive([
   {
     label: '主页面',
     items: [
-      { key: 'hideDownload',    name: '下载',   hidden: false, disabled: false },
-      { key: 'hideOnline1',     name: '联机',   hidden: true,  disabled: true  },
-      { key: 'hideSettings',    name: '设置',   hidden: false, disabled: false },
-      { key: 'hideMore',        name: '更多',   hidden: false, disabled: false },
-    ],
+      { key: 'hideDownload', name: '下载', hidden: false, disabled: false },
+      { key: 'hideOnline1', name: '联机', hidden: true, disabled: true },
+      { key: 'hideSettings', name: '设置', hidden: false, disabled: false },
+      { key: 'hideMore', name: '更多', hidden: false, disabled: false }
+    ]
   },
   {
     label: '设置 子页面',
     items: [
-      { key: 'hideLaunch',      name: '启动',   hidden: false, disabled: false },
-      { key: 'hideOnline2',     name: '联机',   hidden: true,  disabled: true  },
+      { key: 'hideLaunch', name: '启动', hidden: false, disabled: false },
+      { key: 'hideOnline2', name: '联机', hidden: true, disabled: true },
       { key: 'hidePersonalize', name: '个性化', hidden: false, disabled: false },
-      { key: 'hideOther',       name: '其他',   hidden: false, disabled: false },
-    ],
+      { key: 'hideOther', name: '其他', hidden: false, disabled: false }
+    ]
   },
   {
     label: '更多 子页面',
     items: [
-      { key: 'hideHelp',        name: '帮助',      hidden: false, disabled: false },
-      { key: 'hideAbout',       name: '关于与鸣谢', hidden: false, disabled: false },
-      { key: 'hideBaibao',      name: '百宝箱',    hidden: false, disabled: false },
-      { key: 'hideFeedback',    name: '反馈',      hidden: false, disabled: false },
-    ],
+      { key: 'hideHelp', name: '帮助', hidden: false, disabled: false },
+      { key: 'hideAbout', name: '关于与鸣谢', hidden: false, disabled: false },
+      { key: 'hideBaibao', name: '百宝箱', hidden: false, disabled: false },
+      { key: 'hideFeedback', name: '反馈', hidden: false, disabled: false }
+    ]
   },
   {
     label: '特定功能',
     items: [
-      { key: 'hideEmailHide',   name: '邮箱隐藏',  hidden: false, disabled: false },
-      { key: 'hideVersionMgr',  name: '版本管理',  hidden: false, disabled: false },
-      { key: 'hideModUpdate',   name: 'Mod 更新',  hidden: false, disabled: false },
-      { key: 'hideFeatureHide', name: '功能隐藏',  hidden: false, disabled: false },
-    ],
-  },
+      { key: 'hideEmailHide', name: '邮箱隐藏', hidden: false, disabled: false },
+      { key: 'hideVersionMgr', name: '版本管理', hidden: false, disabled: false },
+      { key: 'hideModUpdate', name: 'Mod 更新', hidden: false, disabled: false },
+      { key: 'hideFeatureHide', name: '功能隐藏', hidden: false, disabled: false }
+    ]
+  }
 ])
 
 async function browseJava() {
   const path = await window.electronAPI?.dialog.selectFile({
     title: '选择 java.exe',
-    filters: [{ name: 'Java 可执行文件', extensions: ['exe'] }],
+    filters: [{ name: 'Java 可执行文件', extensions: ['exe'] }]
   })
   if (path) {
     s.javaPath = path
@@ -771,7 +1152,7 @@ async function browseJava() {
 async function browseSkin() {
   const path = await window.electronAPI?.dialog?.selectFile({
     title: '选择皮肤文件（PNG）',
-    filters: [{ name: 'PNG 图片', extensions: ['png'] }],
+    filters: [{ name: 'PNG 图片', extensions: ['png'] }]
   })
   if (path) {
     s.customSkinPath = path
@@ -781,7 +1162,7 @@ async function browseSkin() {
 async function browseBgImage() {
   const path = await window.electronAPI?.dialog?.selectFile({
     title: '选择背景图片',
-    filters: [{ name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'] }],
+    filters: [{ name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'] }]
   })
   if (path) {
     s.bgImagePath = path
@@ -801,11 +1182,11 @@ async function openMcDir() {
 }
 
 const skinOptions = [
-  { value: 'random',   label: '随机' },
-  { value: 'default',  label: 'Steve' },
-  { value: 'alex',     label: 'Alex' },
+  { value: 'random', label: '随机' },
+  { value: 'default', label: 'Steve' },
+  { value: 'alex', label: 'Alex' },
   { value: 'official', label: '正版皮肤' },
-  { value: 'custom',   label: '自定义' },
+  { value: 'custom', label: '自定义' }
 ]
 
 function onSkinSelect(val: string) {
@@ -880,7 +1261,10 @@ function applyThemeColor(hex: string) {
   // 核心主色
   root.style.setProperty('--mcla-primary', hex)
   // 自动生成色阶（简化版：基于亮度插值）
-  root.style.setProperty('--mcla-gradient-primary', `linear-gradient(135deg, ${hex}, ${adjustHex(hex, 35)})`)
+  root.style.setProperty(
+    '--mcla-gradient-primary',
+    `linear-gradient(135deg, ${hex}, ${adjustHex(hex, 35)})`
+  )
   root.style.setProperty('--mcla-shadow-glow-primary', `0 4px 20px ${hexToRgba(hex, 0.35)}`)
 }
 
@@ -900,7 +1284,7 @@ function adjustHex(hex: string, offset: number): string {
   r = Math.min(255, Math.max(0, r + offset))
   g = Math.min(255, Math.max(0, g + offset))
   b = Math.min(255, Math.max(0, b + offset))
-  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 </script>
 
@@ -910,9 +1294,16 @@ function adjustHex(hex: string, offset: number): string {
   overflow-y: auto;
   height: 100%;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
+  }
 }
 
 /* ---- 区块 ---- */
@@ -930,13 +1321,18 @@ function adjustHex(hex: string, offset: number): string {
     padding-bottom: 10px;
     border-bottom: 1.5px solid var(--mcla-border-light);
 
-    svg { color: var(--mcla-blue); flex-shrink: 0; }
+    svg {
+      color: var(--mcla-blue);
+      flex-shrink: 0;
+    }
 
     .sec-arrow {
       margin-left: auto;
       color: var(--mcla-text-muted, #888);
       transition: transform 0.2s ease;
-      &.open { transform: rotate(180deg); }
+      &.open {
+        transform: rotate(180deg);
+      }
     }
   }
 }
@@ -972,7 +1368,9 @@ function adjustHex(hex: string, offset: number): string {
     flex: 1;
     min-width: 0;
 
-    &.full { flex-basis: 100%; }
+    &.full {
+      flex-basis: 100%;
+    }
   }
 
   .row-hint {
@@ -995,11 +1393,16 @@ function adjustHex(hex: string, offset: number): string {
 
   &:focus {
     border-color: var(--mcla-blue);
-    box-shadow: 0 0 0 3px rgba(21,101,192,0.08);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
   }
 
-  &.short { flex: 0 0 80px; text-align: center; }
-  &::placeholder { color: var(--mcla-text-muted); }
+  &.short {
+    flex: 0 0 80px;
+    text-align: center;
+  }
+  &::placeholder {
+    color: var(--mcla-text-muted);
+  }
 }
 
 .sel {
@@ -1008,7 +1411,9 @@ function adjustHex(hex: string, offset: number): string {
   border-radius: 7px;
   font-size: 13px;
   color: var(--mcla-text);
-  background: var(--mcla-bg-elevated) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6f9a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: var(--mcla-bg-elevated)
+    url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6f9a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   outline: none;
   cursor: pointer;
   appearance: none;
@@ -1016,7 +1421,7 @@ function adjustHex(hex: string, offset: number): string {
 
   &:focus {
     border-color: var(--mcla-blue);
-    box-shadow: 0 0 0 3px rgba(21,101,192,0.08);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
   }
 }
 
@@ -1036,7 +1441,7 @@ function adjustHex(hex: string, offset: number): string {
 
   &:focus {
     border-color: var(--mcla-blue);
-    box-shadow: 0 0 0 3px rgba(21,101,192,0.08);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
   }
 }
 
@@ -1046,8 +1451,14 @@ function adjustHex(hex: string, offset: number): string {
   align-items: center;
   flex-wrap: wrap;
 
-  .inp, .sel { flex: 1; min-width: 120px; }
-  &.compact { flex-wrap: nowrap; }
+  .inp,
+  .sel {
+    flex: 1;
+    min-width: 120px;
+  }
+  &.compact {
+    flex-wrap: nowrap;
+  }
 }
 
 .btn-sm {
@@ -1092,9 +1503,11 @@ function adjustHex(hex: string, offset: number): string {
     border-radius: 50%;
     background: var(--mcla-blue);
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
     transition: transform 0.12s;
-    &:hover { transform: scale(1.15); }
+    &:hover {
+      transform: scale(1.15);
+    }
   }
 }
 
@@ -1119,7 +1532,7 @@ function adjustHex(hex: string, offset: number): string {
 .bar-fill {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--mcla-blue), #42A5F5);
+  background: linear-gradient(90deg, var(--mcla-blue), #42a5f5);
   transition: width 0.3s ease;
   display: flex;
   align-items: center;
@@ -1131,7 +1544,7 @@ function adjustHex(hex: string, offset: number): string {
     font-weight: 700;
     color: #fff;
     padding-right: 6px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -1144,8 +1557,9 @@ function adjustHex(hex: string, offset: number): string {
   color: var(--mcla-text);
   cursor: pointer;
 
-  input[type="checkbox"] {
-    width: 16px; height: 16px;
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
     accent-color: var(--mcla-blue);
     cursor: pointer;
   }
@@ -1159,17 +1573,22 @@ function adjustHex(hex: string, offset: number): string {
 }
 
 .color-swatch {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2.5px solid transparent;
   cursor: pointer;
   transition: all 0.14s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 
-  &:hover { transform: scale(1.12); }
+  &:hover {
+    transform: scale(1.12);
+  }
   &.active {
     border-color: var(--mcla-text);
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--mcla-text);
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px var(--mcla-text);
   }
 }
 
@@ -1206,7 +1625,9 @@ function adjustHex(hex: string, offset: number): string {
   cursor: pointer;
   transition: background 0.12s;
 
-  &:hover:not(.fh-pad):not(.disabled) { background: var(--mcla-bg); }
+  &:hover:not(.fh-pad):not(.disabled) {
+    background: var(--mcla-bg);
+  }
 
   &.hidden .feat-name {
     color: var(--mcla-text-muted, #aaa);
@@ -1217,26 +1638,36 @@ function adjustHex(hex: string, offset: number): string {
   &.disabled {
     cursor: not-allowed;
     opacity: 0.55;
-    .feat-name { color: var(--mcla-text-muted, #aaa); }
+    .feat-name {
+      color: var(--mcla-text-muted, #aaa);
+    }
   }
 
-  input[type="checkbox"] {
-    width: 14px; height: 14px;
+  input[type='checkbox'] {
+    width: 14px;
+    height: 14px;
     accent-color: var(--mcla-blue);
     cursor: pointer;
     flex-shrink: 0;
   }
 
-  input[type="checkbox"]:disabled { cursor: not-allowed; }
+  input[type='checkbox']:disabled {
+    cursor: not-allowed;
+  }
 
   .feat-name {
     font-size: 13px;
     color: var(--mcla-text);
-    transition: color 0.15s, opacity 0.15s;
+    transition:
+      color 0.15s,
+      opacity 0.15s;
   }
 }
 
-.fh-pad { cursor: default; pointer-events: none; }
+.fh-pad {
+  cursor: default;
+  pointer-events: none;
+}
 
 .warn-orange {
   background: rgba(245, 158, 11, 0.1);
@@ -1248,7 +1679,10 @@ function adjustHex(hex: string, offset: number): string {
   display: flex;
   align-items: center;
   gap: 6px;
-  svg { flex-shrink: 0; color: #f59e0b; }
+  svg {
+    flex-shrink: 0;
+    color: #f59e0b;
+  }
 }
 
 /* ---- 功能网格（旧，保留兼容） ---- */
@@ -1267,10 +1701,13 @@ function adjustHex(hex: string, offset: number): string {
   cursor: pointer;
   transition: background 0.12s;
 
-  &:hover { background: var(--mcla-bg); }
+  &:hover {
+    background: var(--mcla-bg);
+  }
 
-  input[type="checkbox"] {
-    width: 16px; height: 16px;
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
     accent-color: var(--mcla-blue);
     cursor: pointer;
   }
@@ -1307,19 +1744,27 @@ function adjustHex(hex: string, offset: number): string {
   cursor: pointer;
   transition: all 0.13s;
 
-  svg { flex-shrink: 0; }
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
     border-color: var(--mcla-blue);
     color: var(--mcla-blue);
   }
 
-  &.outline:hover { background: rgba(21,101,192,0.04); }
+  &.outline:hover {
+    background: rgba(21, 101, 192, 0.04);
+  }
 
   &.danger {
-    border-color: rgba(229,57,53,0.4);
+    border-color: rgba(229, 57, 53, 0.4);
     color: var(--mcla-red);
-    &:hover { background: var(--mcla-red); border-color: var(--mcla-red); color: #fff; }
+    &:hover {
+      background: var(--mcla-red);
+      border-color: var(--mcla-red);
+      color: #fff;
+    }
   }
 }
 
@@ -1332,21 +1777,31 @@ function adjustHex(hex: string, offset: number): string {
   border: 1px solid var(--mcla-border-light);
 
   .about-logo {
-    width: 72px; height: 72px;
+    width: 72px;
+    height: 72px;
     margin: 0 auto 12px;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(21,101,192,0.2);
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.2);
 
     img {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
     }
   }
 
-  .about-name { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
-  .about-ver  { margin: 0 0 14px; font-size: 12px; color: var(--mcla-text-muted); }
+  .about-name {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .about-ver {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--mcla-text-muted);
+  }
 
   .about-info {
     font-size: 12px;
@@ -1368,7 +1823,10 @@ function adjustHex(hex: string, offset: number): string {
   text-decoration: none;
   margin-right: 18px;
   transition: opacity 0.12s;
-  &:hover { text-decoration: underline; opacity: 0.75; }
+  &:hover {
+    text-decoration: underline;
+    opacity: 0.75;
+  }
 }
 
 /* ---- 离线皮肤警告条 ---- */
@@ -1377,14 +1835,17 @@ function adjustHex(hex: string, offset: number): string {
   align-items: center;
   gap: 8px;
   padding: 9px 14px;
-  background: rgba(251, 140, 0, 0.10);
-  border: 1px solid rgba(251, 140, 0, 0.30);
+  background: rgba(251, 140, 0, 0.1);
+  border: 1px solid rgba(251, 140, 0, 0.3);
   border-radius: 7px;
   font-size: 12px;
   color: #b85c00;
   margin-bottom: 12px;
 
-  svg { flex-shrink: 0; color: #fb8c00; }
+  svg {
+    flex-shrink: 0;
+    color: #fb8c00;
+  }
 }
 
 /* ---- 离线皮肤单选组 ---- */
@@ -1406,12 +1867,18 @@ function adjustHex(hex: string, offset: number): string {
   user-select: none;
   transition: color 0.12s;
 
-  &.active { color: var(--mcla-text); font-weight: 500; }
-  &:hover:not(.active) { color: var(--mcla-text); }
+  &.active {
+    color: var(--mcla-text);
+    font-weight: 500;
+  }
+  &:hover:not(.active) {
+    color: var(--mcla-text);
+  }
 }
 
 .skin-radio-dot {
-  width: 14px; height: 14px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 1.5px solid var(--mcla-border);
   flex-shrink: 0;
@@ -1468,7 +1935,9 @@ function adjustHex(hex: string, offset: number): string {
   background: var(--mcla-bg-elevated);
   color: var(--mcla-text);
   cursor: pointer;
-  transition: border-color 0.13s, background 0.13s;
+  transition:
+    border-color 0.13s,
+    background 0.13s;
 
   &:hover {
     border-color: var(--mcla-blue);

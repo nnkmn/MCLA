@@ -14,11 +14,16 @@ import { registerAllIpcHandlers, updateMainWindowRefs } from './ipc'
 import { CrashService } from './services/crash.service'
 import { ModService } from './services/mod.service'
 import { logger } from './utils/logger'
+
 const log = logger.child('Main')
 
 /** 判断是否为开发环境 */
 function isDev(): boolean {
-  return process.env.NODE_ENV === 'development' || (app && !app.isPackaged)
+  return process.env.NODE_ENV === 'development' || !app.isPackaged
+}
+
+if (process.env.NODE_ENV === 'development') {
+  require('dotenv').config()
 }
 
 // ── 服务实例（模块级，供 IPC 使用）──────────────────────────
@@ -34,7 +39,7 @@ function writeLog(...args: any[]) {
     log.error('[MAIN NO_LOG]', ...args)
     return
   }
-  const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+  const msg = args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
   const line = `[${new Date().toISOString()}] ${msg}\n`
   try {
     appendFileSync(logFile, line)
@@ -56,9 +61,10 @@ process.on('unhandledRejection', (reason) => {
 
 function createWindow(): BrowserWindow {
   // dev 模式使用 out/ 目录，生产用 resourcesPath
-  const resPath = process.env.NODE_ENV === 'development'
-    ? join(__dirname, '..', 'renderer')
-    : process.resourcesPath
+  const resPath =
+    process.env.NODE_ENV === 'development'
+      ? join(__dirname, '..', 'renderer')
+      : process.resourcesPath
   writeLog('createWindow resourcesPath:', resPath)
 
   // 用 nativeImage 加载图标（extraResources 映射到 resources/icons/）
@@ -79,8 +85,8 @@ function createWindow(): BrowserWindow {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false,
-    },
+      nodeIntegration: false
+    }
   })
 
   // dev 模式打开 DevTools
@@ -110,9 +116,10 @@ function createWindow(): BrowserWindow {
   } else {
     // dev: resPath = out/renderer/ (直接是渲染文件根目录)
     // prod: resPath = resources/，渲染文件在 resources/renderer/
-    const htmlPath = process.env.NODE_ENV === 'development'
-      ? join(resPath, 'index.html')
-      : join(resPath, 'renderer', 'index.html')
+    const htmlPath =
+      process.env.NODE_ENV === 'development'
+        ? join(resPath, 'index.html')
+        : join(resPath, 'renderer', 'index.html')
     mainWindow.loadFile(htmlPath)
   }
 
@@ -125,7 +132,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow): void {
     versionsService,
     modLoaderService,
     crashService,
-    modService,
+    modService
   })
 }
 
@@ -149,8 +156,11 @@ app.whenReady().then(() => {
   const downloadService = new DownloadService(db)
 
   // 初始化内容服务（CurseForge + Modrinth）
-  // 优先从数据库读 CF key，降级到环境变量
+  // 优先从数据库配置获取，其次从环境变量获取
   const cfApiKey = getSecureConfig('curseforge_api_key') || process.env.CURSEFORGE_API_KEY || ''
+  if (!cfApiKey) {
+    log.warn('[Content Service] CurseForge API Key not configured, some features may be limited')
+  }
   initializeContentService(cfApiKey, 'MCLA-Launcher/1.0', downloadService)
 
   // 初始化崩溃分析服务
@@ -199,14 +209,14 @@ app.whenReady().then(() => {
     writeLog('[IPC] >>> Handlers registration FAILED:', err.message, err.stack)
   }
 
-// activate：重建窗口，但不重复注册 IPC handlers（已在 whenReady 中注册过）
-// 仅更新各 IPC 模块中的 mainWindow 引用
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    const newWin = createWindow()
-    updateMainWindowRefs(newWin)
-  }
-})
+  // activate：重建窗口，但不重复注册 IPC handlers（已在 whenReady 中注册过）
+  // 仅更新各 IPC 模块中的 mainWindow 引用
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      const newWin = createWindow()
+      updateMainWindowRefs(newWin)
+    }
+  })
 })
 
 app.on('window-all-closed', () => {
@@ -218,6 +228,12 @@ app.on('window-all-closed', () => {
 // 打印已注册的 handlers（调试用）
 app.on('web-contents-created', (_, contents) => {
   contents.on('did-finish-load', () => {
-    writeLog('Renderer loaded, ipcMain handlers:', Object.keys((require('electron') as { ipcMain?: { _events?: Record<string, unknown> } }).ipcMain?._events || {}))
+    writeLog(
+      'Renderer loaded, ipcMain handlers:',
+      Object.keys(
+        (require('electron') as { ipcMain?: { _events?: Record<string, unknown> } }).ipcMain
+          ?._events || {}
+      )
+    )
   })
 })

@@ -34,23 +34,19 @@ export const useVersionsStore = defineStore('versions', () => {
   // ====== 计算属性 ======
 
   /** 最新正式版 */
-  const latestRelease = computed(() =>
-    versions.value.find(v => v.type === 'release')
-  )
+  const latestRelease = computed(() => versions.value.find((v) => v.type === 'release'))
 
   /** 版本选择列表（用于下拉框） */
   const versionOptions = computed(() =>
-    versions.value.map(v => ({
+    versions.value.map((v) => ({
       value: v.id,
       label: v.name,
-      type: v.type,
+      type: v.type
     }))
   )
 
   /** 筛选正式版 */
-  const releaseVersions = computed(() =>
-    versions.value.filter(v => v.type === 'release')
-  )
+  const releaseVersions = computed(() => versions.value.filter((v) => v.type === 'release'))
 
   // ====== 操作 ======
 
@@ -70,7 +66,7 @@ export const useVersionsStore = defineStore('versions', () => {
         name: v.id,
         type: v.type,
         releaseTime: v.releaseTime,
-        url: v.url,
+        url: v.url
       }))
       cacheTime.value = Date.now()
       return versions.value
@@ -92,7 +88,7 @@ export const useVersionsStore = defineStore('versions', () => {
         id: v.version,
         name: `Fabric ${v.version}`,
         version: v.version,
-        stable: v.stable !== false,
+        stable: v.stable !== false
       }))
 
       // Forge
@@ -101,7 +97,7 @@ export const useVersionsStore = defineStore('versions', () => {
         id: v.version,
         name: `Forge ${v.version}`,
         version: v.version,
-        stable: true,
+        stable: true
       }))
     } catch (e: any) {
     } finally {
@@ -111,7 +107,7 @@ export const useVersionsStore = defineStore('versions', () => {
 
   /** 根据版本 ID 获取详细信息 */
   function getVersionById(id: string): MCVersion | undefined {
-    return versions.value.find(v => v.id === id)
+    return versions.value.find((v) => v.id === id)
   }
 
   /** 清除缓存 */
@@ -144,6 +140,6 @@ export const useVersionsStore = defineStore('versions', () => {
     fetchModLoaderVersions,
     getVersionById,
     clearCache,
-    setCurrentVersion,
+    setCurrentVersion
   }
 })

@@ -13,10 +13,10 @@ const log = logger.child('JavaService')
 
 export interface JavaInfo {
   id: string
-  path: string           // java.exe 完整路径
-  version: string        // 如 "17.0.9"
-  majorVersion: number   // 主版本号 8/11/17/21
-  vendor: string         // OpenJDK / Oracle / Adoptium
+  path: string // java.exe 完整路径
+  version: string // 如 "17.0.9"
+  majorVersion: number // 主版本号 8/11/17/21
+  vendor: string // OpenJDK / Oracle / Adoptium
   arch: '64' | '32'
   isDefault: boolean
 }
@@ -48,11 +48,15 @@ export async function getDefaultJava(mcVersion?: string): Promise<JavaInfo | nul
   const versionSvc = new VersionsService(getDatabase())
 
   // 读取用户预设
-  const presetRow = db.prepare("SELECT value FROM configs WHERE key = 'java_preset'").get() as { value: string } | undefined
+  const presetRow = db.prepare("SELECT value FROM configs WHERE key = 'java_preset'").get() as
+    | { value: string }
+    | undefined
   const preset = presetRow?.value || 'auto'
 
   // 读取自定义路径
-  const customPathRow = db.prepare("SELECT value FROM configs WHERE key = 'java_custom_path'").get() as { value: string } | undefined
+  const customPathRow = db
+    .prepare("SELECT value FROM configs WHERE key = 'java_custom_path'")
+    .get() as { value: string } | undefined
   const customPath = customPathRow?.value || ''
 
   // 1. custom 模式：直接用用户指定路径
@@ -76,16 +80,16 @@ export async function getDefaultJava(mcVersion?: string): Promise<JavaInfo | nul
   let candidates: JavaInfo[] = all
 
   if (preset === 'java8') {
-    candidates = all.filter(j => j.majorVersion === 8)
+    candidates = all.filter((j) => j.majorVersion === 8)
   } else if (preset === 'java17') {
-    candidates = all.filter(j => j.majorVersion === 17)
+    candidates = all.filter((j) => j.majorVersion === 17)
   } else if (preset === 'java21') {
-    candidates = all.filter(j => j.majorVersion === 21)
+    candidates = all.filter((j) => j.majorVersion === 21)
   } else if (preset === 'auto' && mcVersion) {
     // 自动模式：根据游戏版本来推荐
     const { recommended } = versionSvc.getRecommendedJavaVersion(mcVersion)
     const targetMajor = parseInt(recommended)
-    candidates = all.filter(j => j.majorVersion >= targetMajor)
+    candidates = all.filter((j) => j.majorVersion >= targetMajor)
     // 按推荐程度排序：优先匹配推荐版本，其次更高版本
     candidates.sort((a, b) => {
       if (a.majorVersion === targetMajor && b.majorVersion !== targetMajor) return -1
@@ -101,7 +105,9 @@ export async function getDefaultJava(mcVersion?: string): Promise<JavaInfo | nul
   }
 
   const chosen = candidates[0]
-  log.info(`[JavaService] 自动检测到 ${all.length} 个 Java（预设: ${preset}，MC: ${mcVersion || '?'}，选中: ${chosen?.vendor} ${chosen?.version}）`)
+  log.info(
+    `[JavaService] 自动检测到 ${all.length} 个 Java（预设: ${preset}，MC: ${mcVersion || '?'}，选中: ${chosen?.vendor} ${chosen?.version}）`
+  )
   return chosen
 }
 
@@ -109,11 +115,13 @@ export async function getDefaultJava(mcVersion?: string): Promise<JavaInfo | nul
 export function setDefaultJava(javaPath: string): void {
   const db = getDatabase()
   const now = new Date().toISOString()
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO configs (key, value, type, updated_at)
     VALUES ('default_java', ?, 'string', ?)
     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-  `).run(javaPath, now)
+  `
+  ).run(javaPath, now)
 }
 
 /** 验证指定 Java 路径是否有效 */
@@ -179,15 +187,22 @@ function getWindowsCandidates(): string[] {
   const appData = process.env['APPDATA'] || ''
 
   const roots = [
-    pf, pf86, local,
+    pf,
+    pf86,
+    local,
     'C:\\Program Files\\Eclipse Adoptium',
     'C:\\Program Files\\Microsoft',
-    `${appData}\\Local\\Programs`,
+    `${appData}\\Local\\Programs`
   ]
 
   const vendors = [
-    'Java', 'Eclipse Adoptium', 'AdoptOpenJDK', 'OpenJDK',
-    'BellSoft', 'Azul', 'GraalVM CE',
+    'Java',
+    'Eclipse Adoptium',
+    'AdoptOpenJDK',
+    'OpenJDK',
+    'BellSoft',
+    'Azul',
+    'GraalVM CE'
   ]
   const versions = ['jdk-21', 'jdk-17', 'jdk-11', 'jdk-8', 'jre-8', 'jdk1.8.0']
 
@@ -212,11 +227,18 @@ function getWindowsCandidates(): string[] {
   candidates.push(
     'C:\\Program Files\\Common Files\\Oracle\\Java\\javapath\\java.exe',
     'C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path\\java.exe',
-    path.join(pf, 'Oracle\\Java\\javapath', 'java.exe'),
+    path.join(pf, 'Oracle\\Java\\javapath', 'java.exe')
   )
 
   // Minecraft 官方启动器自带 JRE
-  const mcJre = path.join(local, 'Packages', 'Microsoft.4297127D64EC6_8wekyb3d8bbwe', 'LocalCache', 'Local', 'runtime')
+  const mcJre = path.join(
+    local,
+    'Packages',
+    'Microsoft.4297127D64EC6_8wekyb3d8bbwe',
+    'LocalCache',
+    'Local',
+    'runtime'
+  )
   if (fs.existsSync(mcJre)) {
     try {
       for (const dir of fs.readdirSync(mcJre)) {
@@ -232,14 +254,14 @@ function getWindowsCandidates(): string[] {
 function getMacCandidates(): string[] {
   const candidates: string[] = [
     '/Library/Java/JavaVirtualMachines',
-    '/System/Library/Java/JavaVirtualMachines',
-  ].flatMap(base => {
+    '/System/Library/Java/JavaVirtualMachines'
+  ].flatMap((base) => {
     if (!fs.existsSync(base)) return []
     try {
-      return fs.readdirSync(base).map(d =>
-        path.join(base, d, 'Contents', 'Home', 'bin', 'java')
-      )
-    } catch { return [] }
+      return fs.readdirSync(base).map((d) => path.join(base, d, 'Contents', 'Home', 'bin', 'java'))
+    } catch {
+      return []
+    }
   })
 
   if (process.env['JAVA_HOME']) {
@@ -261,10 +283,7 @@ function getLinuxCandidates(): string[] {
     } catch {}
   }
 
-  candidates.push(
-    '/usr/bin/java',
-    '/usr/local/bin/java',
-  )
+  candidates.push('/usr/bin/java', '/usr/local/bin/java')
 
   if (process.env['JAVA_HOME']) {
     candidates.push(path.join(process.env['JAVA_HOME'], 'bin', 'java'))
@@ -280,7 +299,7 @@ async function probeJava(javaExe: string): Promise<JavaInfo | null> {
     const output = execSync(`"${javaExe}" -version 2>&1`, {
       timeout: 5000,
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe']
     })
 
     return parseJavaInfo(javaExe, output)
@@ -327,7 +346,10 @@ function parseJavaInfo(javaExe: string, output: string): JavaInfo | null {
   const arch: '64' | '32' = output.includes('64-Bit') || output.includes('64-bit') ? '64' : '32'
 
   // 生成稳定 ID（路径 hash）
-  const id = `java_${Buffer.from(javaExe).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 12)}`
+  const id = `java_${Buffer.from(javaExe)
+    .toString('base64')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .substring(0, 12)}`
 
   return {
     id,
@@ -336,7 +358,7 @@ function parseJavaInfo(javaExe: string, output: string): JavaInfo | null {
     majorVersion,
     vendor,
     arch,
-    isDefault: false,
+    isDefault: false
   }
 }
 

@@ -22,8 +22,7 @@ let fileLogging = true
 let _logDir: string | null = null
 function getLogDirLazy(): string {
   if (!_logDir) {
-    const dir =
-      process.env['MCLA_LOG_DIR'] || join(app.getPath('userData'), 'logs')
+    const dir = process.env['MCLA_LOG_DIR'] || join(app.getPath('userData'), 'logs')
     // 确保日志目录存在
     try {
       if (!existsSync(dir)) {
@@ -44,26 +43,31 @@ function getTimestamp(): string {
 function formatMessage(level: LogLevel, module: string, ...args: unknown[]): string {
   const ts = getTimestamp()
   const prefix = `[${ts}][${level}]${module ? ` [${module}]` : ''}`
-  const rest = args.map(a => {
-    if (a instanceof Error) {
-      return `${a.message}\n${a.stack || ''}`
-    }
-    if (typeof a === 'object' && a !== null) {
-      try {
-        return JSON.stringify(a)
-      } catch {
-        return String(a)
+  const rest = args
+    .map((a) => {
+      if (a instanceof Error) {
+        return `${a.message}\n${a.stack || ''}`
       }
-    }
-    return String(a)
-  }).join(' ')
+      if (typeof a === 'object' && a !== null) {
+        try {
+          return JSON.stringify(a)
+        } catch {
+          return String(a)
+        }
+      }
+      return String(a)
+    })
+    .join(' ')
   const safe = redactSensitive(rest)
   return `${prefix} ${safe}`
 }
 
 function redactSensitive(text: string): string {
   // 脱敏 JWT（三段 base64，access_token / refresh_token）
-  let s = text.replace(/\b[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, '[REDACTED-JWT]')
+  let s = text.replace(
+    /\b[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
+    '[REDACTED-JWT]'
+  )
   // 脱敏独立长 hex 字符串（32+ 位，前后非 hex 字符，避免误伤 UUID）
   s = s.replace(/(^|[^0-9a-fA-F])[0-9a-fA-F]{32,}(?=[^0-9a-fA-F]|$)/g, '$1[REDACTED-HEX]')
   return s
@@ -115,7 +119,7 @@ function createLogger(moduleName?: string): Logger {
     },
     child(subModule: string): Logger {
       return createLogger(moduleName ? `${moduleName}:${subModule}` : subModule)
-    },
+    }
   }
 }
 

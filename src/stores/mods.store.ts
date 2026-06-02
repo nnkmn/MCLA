@@ -23,17 +23,18 @@ export const useModsStore = defineStore('mods', () => {
 
     // 状态筛选
     if (filterStatus.value !== 'all') {
-      result = result.filter(m => m.status === filterStatus.value)
+      result = result.filter((m) => m.status === filterStatus.value)
     }
 
     // 搜索关键词
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase()
       // 处理 fileName 可选性，确保搜索时包含 fileName 也包含 displayName
-      result = result.filter(m =>
-        m.displayName.toLowerCase().includes(q) ||
-        (m.fileName?.toLowerCase() || '').includes(q) ||
-        m.author.toLowerCase().includes(q)
+      result = result.filter(
+        (m) =>
+          m.displayName.toLowerCase().includes(q) ||
+          (m.fileName?.toLowerCase() || '').includes(q) ||
+          m.author.toLowerCase().includes(q)
       )
     }
 
@@ -43,9 +44,9 @@ export const useModsStore = defineStore('mods', () => {
   /** 统计信息 */
   const stats = computed(() => ({
     total: mods.value.length,
-    active: mods.value.filter(m => m.status === 'active').length,
-    disabled: mods.value.filter(m => m.status === 'disabled').length,
-    incompatible: mods.value.filter(m => m.status === 'incompatible').length,
+    active: mods.value.filter((m) => m.status === 'active').length,
+    disabled: mods.value.filter((m) => m.status === 'disabled').length,
+    incompatible: mods.value.filter((m) => m.status === 'incompatible').length
   }))
 
   // ====== 操作 ======
@@ -65,12 +66,12 @@ export const useModsStore = defineStore('mods', () => {
           description: m.description || '',
           author: m.author || '',
           instanceId: currentInstanceId.value || '',
-          status: m.disabled ? 'disabled' as LocalModStatus : 'active' as LocalModStatus,
+          status: m.disabled ? ('disabled' as LocalModStatus) : ('active' as LocalModStatus),
           filePath: m.filePath || '',
           fileSize: m.fileSize || 0,
           dependencies: m.dependencies || [],
           dependsOn: m.dependsOn || [],
-          installedAt: m.installedAt || '',
+          installedAt: m.installedAt || ''
         }))
       } else {
         mods.value = []
@@ -84,7 +85,7 @@ export const useModsStore = defineStore('mods', () => {
 
   /** 启用/禁用 Mod（切换状态） */
   async function toggleMod(modId: string) {
-    const mod = mods.value.find(m => m.id === modId)
+    const mod = mods.value.find((m) => m.id === modId)
     if (!mod || !mod.filePath) return
     const newStatus: LocalModStatus = mod.status === 'active' ? 'disabled' : 'active'
     try {
@@ -101,11 +102,11 @@ export const useModsStore = defineStore('mods', () => {
 
   /** 删除 Mod */
   async function removeMod(modId: string) {
-    const mod = mods.value.find(m => m.id === modId)
+    const mod = mods.value.find((m) => m.id === modId)
     if (!mod || !mod.filePath) return
     try {
       await window.electronAPI?.mod?.uninstall(mod.filePath)
-      mods.value = mods.value.filter(m => m.id !== modId)
+      mods.value = mods.value.filter((m) => m.id !== modId)
     } catch (e: any) {
       error.value = e.message || '删除失败'
     }
@@ -132,6 +133,6 @@ export const useModsStore = defineStore('mods', () => {
     toggleMod,
     removeMod,
     setFilter,
-    setSearch,
+    setSearch
   }
 })

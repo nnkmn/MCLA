@@ -1,17 +1,25 @@
+<!--
+  ⚠️ 此文件未被引用 (2026-05-19)
+  这是一个备用的下载浮动组件设计（折叠按钮+展开面板）
+  当前项目使用的是 src/components/DownloadFloat.vue
+  保留在此仅供参考，可能在未来版本中使用
+-->
 <template>
   <Teleport to="body">
     <transition name="dm-fade">
       <!-- 折叠状态：小按钮 -->
-      <div
-        v-if="!expanded"
-        class="dm-collapsed"
-        @click="expanded = true"
-        title="下载管理"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
+      <div v-if="!expanded" class="dm-collapsed" @click="expanded = true" title="下载管理">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
         <span v-if="activeCount > 0" class="dm-badge">{{ activeCount }}</span>
       </div>
@@ -22,13 +30,21 @@
           <span class="dm-title">下载管理</span>
           <span class="dm-count" v-if="items.length">{{ items.length }} 项</span>
           <button class="dm-close-btn" @click="expanded = false" title="收起">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
-        <div v-if="items.length === 0" class="dm-empty">
-          暂无进行中的下载
-        </div>
+        <div v-if="items.length === 0" class="dm-empty">暂无进行中的下载</div>
 
         <div v-else class="dm-list">
           <div
@@ -38,23 +54,49 @@
             :class="'dm-status-' + item.status"
           >
             <div class="dm-item-icon">
-              <svg v-if="item.status === 'downloading'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+              <svg
+                v-if="item.status === 'downloading'"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              <svg v-else-if="item.status === 'completed'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg
+                v-else-if="item.status === 'completed'"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#10b981"
+                stroke-width="2.5"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <svg
+                v-else
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ef4444"
+                stroke-width="2.5"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </div>
 
             <div class="dm-item-body">
               <div class="dm-item-name">{{ item.name }}</div>
               <div class="dm-item-progress">
                 <div class="dm-bar-track">
-                  <div
-                    class="dm-bar-fill"
-                    :style="{ width: item.progress + '%' }"
-                  ></div>
+                  <div class="dm-bar-fill" :style="{ width: item.progress + '%' }"></div>
                 </div>
                 <span class="dm-item-pct">{{ Math.round(item.progress) }}%</span>
               </div>
@@ -73,7 +115,10 @@
               @click="cancelDownload(item)"
               title="取消"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5" />
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5" />
+              </svg>
             </button>
           </div>
         </div>
@@ -90,10 +135,10 @@ interface DownloadItem {
   id: string
   name: string
   status: 'downloading' | 'completed' | 'error' | 'cancelled'
-  progress: number        // 0-100
-  downloaded: number     // bytes
-  total: number         // bytes
-  speed: number         // bytes/sec
+  progress: number // 0-100
+  downloaded: number // bytes
+  total: number // bytes
+  speed: number // bytes/sec
   error?: string
 }
 
@@ -102,9 +147,7 @@ const expanded = ref(false)
 const items = ref<DownloadItem[]>([])
 
 // 进行中的下载数量
-const activeCount = computed(() =>
-  items.value.filter(i => i.status === 'downloading').length
-)
+const activeCount = computed(() => items.value.filter((i) => i.status === 'downloading').length)
 
 // ── 格式化 ──────────────────────────────────────────────────────────────────
 function formatSize(bytes: number): string {
@@ -120,7 +163,7 @@ function formatSpeed(bps: number): string {
 
 // ── 查找或创建 item ─────────────────────────────────────────────────────────
 function findOrCreate(id: string, name: string): DownloadItem {
-  let item = items.value.find(i => i.id === id)
+  let item = items.value.find((i) => i.id === id)
   if (!item) {
     item = { id, name, status: 'downloading', progress: 0, downloaded: 0, total: 0, speed: 0 }
     items.value.push(item)
@@ -183,7 +226,7 @@ function onVersionComplete(_data: any) {
 
 function onVersionError(data: any) {
   const id = data.taskId || 'unknown'
-  const item = items.value.find(i => i.id === id)
+  const item = items.value.find((i) => i.id === id)
   if (item) {
     item.status = 'error'
     item.error = data.error || '下载失败'
@@ -219,7 +262,7 @@ async function cancelDownload(item: DownloadItem) {
 }
 
 function removeItem(id: string) {
-  const idx = items.value.findIndex(i => i.id === id)
+  const idx = items.value.findIndex((i) => i.id === id)
   if (idx !== -1) items.value.splice(idx, 1)
 }
 
@@ -364,7 +407,9 @@ onUnmounted(() => {
   flex: 1;
   padding: 6px 0;
 
-  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
   &::-webkit-scrollbar-thumb {
     background: var(--mcla-border-color);
     border-radius: 2px;
@@ -390,8 +435,12 @@ onUnmounted(() => {
   color: var(--mcla-text-muted);
 }
 
-.dm-status-completed .dm-item-icon { color: #10b981; }
-.dm-status-error .dm-item-icon { color: #ef4444; }
+.dm-status-completed .dm-item-icon {
+  color: #10b981;
+}
+.dm-status-error .dm-item-icon {
+  color: #ef4444;
+}
 
 .dm-item-body {
   flex: 1;
@@ -429,8 +478,13 @@ onUnmounted(() => {
   transition: width 0.3s ease;
 }
 
-.dm-status-completed .dm-bar-fill { background: #10b981; }
-.dm-status-error .dm-bar-fill { background: #ef4444; width: 100% !important; }
+.dm-status-completed .dm-bar-fill {
+  background: #10b981;
+}
+.dm-status-error .dm-bar-fill {
+  background: #ef4444;
+  width: 100% !important;
+}
 
 .dm-item-pct {
   font-size: 11px;

@@ -2,8 +2,16 @@
   <div class="mod-search-bar">
     <!-- 搜索输入 -->
     <div class="search-input-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="M21 21l-4.35-4.35" />
       </svg>
       <input
         ref="searchInput"
@@ -43,8 +51,16 @@
 
     <!-- 搜索按钮 -->
     <button class="search-btn" @click="handleSearch" :disabled="!query.trim()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="M21 21l-4.35-4.35" />
       </svg>
       搜索
     </button>
@@ -55,20 +71,23 @@
 import { ref, onMounted } from 'vue'
 import type { ContentPlatform } from '../../types/download'
 
-const props = withDefaults(defineProps<{
-  modelValue?: string
-  source?: ContentPlatform
-  activeCategory?: string
-  showCategories?: boolean
-  categories?: { id: string; label: string }[]
-  placeholder?: string
-}>(), {
-  modelValue: '',
-  source: 'modrinth',
-  activeCategory: '',
-  showCategories: false,
-  placeholder: '搜索 Mod、资源包、整合包...',
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    source?: ContentPlatform
+    activeCategory?: string
+    showCategories?: boolean
+    categories?: { id: string; label: string }[]
+    placeholder?: string
+  }>(),
+  {
+    modelValue: '',
+    source: 'modrinth',
+    activeCategory: '',
+    showCategories: false,
+    placeholder: '搜索 Mod、资源包、整合包...'
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: string): void
@@ -83,7 +102,7 @@ const currentSource = ref<ContentPlatform>(props.source)
 
 const platforms = [
   { id: 'modrinth' as ContentPlatform, label: 'Modrinth' },
-  { id: 'curseforge' as ContentPlatform, label: 'CurseForge' },
+  { id: 'curseforge' as ContentPlatform, label: 'CurseForge' }
 ]
 
 function switchPlatform(p: ContentPlatform) {
@@ -151,7 +170,9 @@ onMounted(() => {
     color: var(--mcla-text-primary);
     font-size: 14px;
 
-    &::placeholder { color: var(--mcla-text-muted); }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+    }
   }
 
   .clear-btn {
@@ -163,7 +184,9 @@ onMounted(() => {
     cursor: pointer;
     line-height: 1;
 
-    &:hover { color: var(--mcla-text-primary); }
+    &:hover {
+      color: var(--mcla-text-primary);
+    }
   }
 }
 
@@ -188,9 +211,11 @@ onMounted(() => {
     &.active {
       background: #fff;
       color: var(--mcla-primary-700);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
-    &:hover:not(.active) { color: var(--mcla-text-secondary); }
+    &:hover:not(.active) {
+      color: var(--mcla-text-secondary);
+    }
   }
 }
 
@@ -215,7 +240,9 @@ onMounted(() => {
       color: var(--mcla-primary-600);
       font-weight: 600;
     }
-    &:hover:not(.active) { color: var(--mcla-text-secondary); }
+    &:hover:not(.active) {
+      color: var(--mcla-text-secondary);
+    }
   }
 }
 
@@ -234,7 +261,13 @@ onMounted(() => {
   white-space: nowrap;
   transition: all var(--mcla-transition-fast);
 
-  &:hover:not(:disabled) { filter: brightness(1.06); box-shadow: var(--mcla-shadow-glow-primary); }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    filter: brightness(1.06);
+    box-shadow: var(--mcla-shadow-glow-primary);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 </style>

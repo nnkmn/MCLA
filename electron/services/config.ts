@@ -59,11 +59,13 @@ export function setConfig(key: string, value: any, type?: ConfigEntry['type']): 
   // 转换存储值
   const storedValue = typeof value === 'object' ? JSON.stringify(value) : String(value)
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO configs (key, value, type, updated_at)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(key) DO UPDATE SET value = excluded.value, type = excluded.type, updated_at = excluded.updated_at
-  `).run(key, storedValue, detectedType, now)
+  `
+  ).run(key, storedValue, detectedType, now)
 }
 
 // 删除配置项
@@ -89,18 +91,22 @@ export function getAllConfigs(): Record<string, any> {
 // ====== 敏感配置存取（自动加解密） ======
 
 /** 需要加密存储的配置 key 列表 */
-const SENSITIVE_KEYS = new Set([
-  'curseforge_api_key',
-])
+const SENSITIVE_KEYS = new Set(['curseforge_api_key'])
 
 /** 获取敏感配置值（自动解密） */
 export function getSecureConfig(key: string): string | null {
   const db = getDatabase()
-  const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as { value: string } | undefined
+  const row = db.prepare('SELECT value FROM configs WHERE key = ?').get(key) as
+    | { value: string }
+    | undefined
   if (!row?.value) return null
   // 兼容旧明文数据
   if (row.value.length > 64 && /^[0-9a-f]+$/.test(row.value)) {
-    try { return decryptFromHex(row.value) } catch { /* 旧明文 */ }
+    try {
+      return decryptFromHex(row.value)
+    } catch {
+      /* 旧明文 */
+    }
   }
   return row.value
 }
@@ -110,9 +116,11 @@ export function setSecureConfig(key: string, value: string): void {
   const db = getDatabase()
   const encValue = encryptToHex(value)
   const now = new Date().toISOString()
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO configs (key, value, type, updated_at)
     VALUES (?, ?, 'secure', ?)
     ON CONFLICT(key) DO UPDATE SET value = excluded.value, type = excluded.type, updated_at = excluded.updated_at
-  `).run(key, encValue, now)
+  `
+  ).run(key, encValue, now)
 }

@@ -8,7 +8,7 @@
       <div
         :class="['px-progress__bar', { 'px-progress__bar--animated': animated }]"
         :style="{ width: displayPercent + '%', background: gradient || undefined }"
-        :role=" indeterminate ? undefined : 'progressbar'"
+        :role="indeterminate ? undefined : 'progressbar'"
         :aria-valuenow="indeterminate ? undefined : displayPercent"
         aria-valuemin="0"
         aria-valuemax="100"
@@ -21,13 +21,13 @@
 import { computed } from 'vue'
 
 export interface PxProgressProps {
-  value: number       // 0-100
+  value: number // 0-100
   label?: string
   showLabel?: boolean
   showPercent?: boolean
   size?: 'sm' | 'md' | 'lg'
   animated?: boolean
-  gradient?: string    // 自定义渐变，如 'var(--mcla-gradient-success)'
+  gradient?: string // 自定义渐变，如 'var(--mcla-gradient-success)'
   indeterminate?: boolean
 }
 
@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<PxProgressProps>(), {
   size: 'md',
   animated: false,
   gradient: '',
-  indeterminate: false,
+  indeterminate: false
 })
 
 const displayPercent = computed(() => {
@@ -73,9 +73,15 @@ const displayPercent = computed(() => {
   border-radius: var(--mcla-radius-full);
   overflow: hidden;
 }
-.px-progress__track--sm { height: 4px; }
-.px-progress__track--md { height: 8px; }
-.px-progress__track--lg { height: 12px; }
+.px-progress__track--sm {
+  height: 4px;
+}
+.px-progress__track--md {
+  height: 8px;
+}
+.px-progress__track--lg {
+  height: 12px;
+}
 
 .px-progress__bar {
   height: 100%;
@@ -100,7 +106,11 @@ const displayPercent = computed(() => {
 }
 
 @keyframes px-progress-stripes {
-  from { background-position: 1rem 0; }
-  to { background-position: 0 0; }
+  from {
+    background-position: 1rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
 }
 </style>

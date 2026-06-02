@@ -41,7 +41,7 @@ const DEFAULT_EXCLUDES = [
   'resourcepacks',
   'screenshots',
   '.cache',
-  'crash',
+  'crash'
 ]
 
 const CONFIG_INCLUDES = ['options.txt', 'optionsof.txt', 'servers.dat']
@@ -74,7 +74,10 @@ export async function scanMinecraftDir(dirPath: string): Promise<{
       const versionDirs = await fs.promises.readdir(versionJsonPath)
       // 找最新的版本目录
       const sorted = versionDirs
-        .map(v => ({ name: v, mtime: fs.statSync(path.join(versionJsonPath, v)).mtime.getTime() }))
+        .map((v) => ({
+          name: v,
+          mtime: fs.statSync(path.join(versionJsonPath, v)).mtime.getTime()
+        }))
         .sort((a, b) => b.mtime - a.mtime)
 
       if (sorted.length > 0) {
@@ -111,7 +114,11 @@ export async function scanMinecraftDir(dirPath: string): Promise<{
           }
 
           // 检查 neoforge
-          const neoforgeJson = path.join(versionJsonPath, latestVerDir, `${latestVerDir}-neoforge.json`)
+          const neoforgeJson = path.join(
+            versionJsonPath,
+            latestVerDir,
+            `${latestVerDir}-neoforge.json`
+          )
           if (fs.existsSync(neoforgeJson)) {
             loaderType = 'neoforge'
             try {
@@ -139,14 +146,14 @@ export async function scanMinecraftDir(dirPath: string): Promise<{
     try {
       const modsDir = path.join(dirPath, 'mods')
       if (fs.existsSync(modsDir)) {
-        modsCount = (await fs.promises.readdir(modsDir)).filter(f => f.endsWith('.jar')).length
+        modsCount = (await fs.promises.readdir(modsDir)).filter((f) => f.endsWith('.jar')).length
       }
     } catch {}
     try {
       const configDir = path.join(dirPath, 'config')
       if (fs.existsSync(configDir)) {
         const cfgFiles = await fs.promises.readdir(configDir, { withFileTypes: true })
-        configCount = cfgFiles.filter(e => e.isFile()).length
+        configCount = cfgFiles.filter((e) => e.isFile()).length
       }
     } catch {}
 
@@ -163,7 +170,7 @@ export async function scanMinecraftDir(dirPath: string): Promise<{
       versionJsonPath: versionJsonResolved,
       modsCount,
       configCount,
-      suggestions,
+      suggestions
     }
   } catch (e: any) {
     return { valid: false, suggestions: [e.message || '扫描失败'] }
@@ -212,10 +219,10 @@ export async function exportInstance(
         maxMemory: instance.max_memory,
         width: instance.width,
         height: instance.height,
-        createdAt: instance.created_at,
+        createdAt: instance.created_at
       },
       includedFiles: [],
-      excludedDirs: [],
+      excludedDirs: []
     }
 
     // 写入 manifest.json
@@ -314,7 +321,8 @@ export async function importInstance(
 
     // 读取 manifest
     const manifestEntry = zip.file('manifest.json')
-    if (!manifestEntry) return { ok: false, error: '不是有效的 MCLA 导出文件（缺少 manifest.json）' }
+    if (!manifestEntry)
+      return { ok: false, error: '不是有效的 MCLA 导出文件（缺少 manifest.json）' }
 
     const manifest: ExportPackage = JSON.parse(await manifestEntry.async('string'))
     if (!manifest.version || !manifest.manifest) {
@@ -340,7 +348,7 @@ export async function importInstance(
     }
 
     const validLoaderTypes = ['vanilla', 'forge', 'fabric', 'neoforge', 'quilt'] as const
-    type LoaderType = typeof validLoaderTypes[number]
+    type LoaderType = (typeof validLoaderTypes)[number]
     const rawLoader = manifest.manifest.loaderType as string
     const resolvedLoader: LoaderType = validLoaderTypes.includes(rawLoader as LoaderType)
       ? (rawLoader as LoaderType)
@@ -357,7 +365,7 @@ export async function importInstance(
       minMemory: manifest.manifest.minMemory || 1024,
       maxMemory: manifest.manifest.maxMemory || 4096,
       width: manifest.manifest.width || 854,
-      height: manifest.manifest.height || 480,
+      height: manifest.manifest.height || 480
     })
 
     if (newInstance) {

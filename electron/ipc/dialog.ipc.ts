@@ -34,26 +34,32 @@ export function registerDialogHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('dialog:select-folder', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openDirectory'],
-      title: '选择 .minecraft 文件夹',
+      title: '选择 .minecraft 文件夹'
     })
     if (result.canceled || result.filePaths.length === 0) return null
     return result.filePaths[0]
   })
 
-  ipcMain.handle('dialog:select-file', async (_event, options: {
-    title?: string
-    filters?: Array<{ name: string; extensions: string[] }>
-    defaultPath?: string
-  }) => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openFile'],
-      title: options.title || '选择文件',
-      filters: options.filters || [],
-      defaultPath: options.defaultPath,
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    return result.filePaths[0]
-  })
+  ipcMain.handle(
+    'dialog:select-file',
+    async (
+      _event,
+      options: {
+        title?: string
+        filters?: Array<{ name: string; extensions: string[] }>
+        defaultPath?: string
+      }
+    ) => {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        title: options.title || '选择文件',
+        filters: options.filters || [],
+        defaultPath: options.defaultPath
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      return result.filePaths[0]
+    }
+  )
 
   ipcMain.handle('path:minecraft', () => getMinecraftPath())
   ipcMain.handle('path:exists', (_event, p: string) => existsSync(p))
@@ -107,7 +113,7 @@ export function registerDialogHandlers(mainWindow: BrowserWindow): void {
   })
   ipcMain.handle('folders:remove', (_event, path: string) => {
     const current = configService.getConfig<string[]>(GAME_FOLDERS_KEY) ?? []
-    const updated = current.filter(p => p !== path)
+    const updated = current.filter((p) => p !== path)
     configService.setConfig(GAME_FOLDERS_KEY, updated)
     return updated
   })
@@ -130,6 +136,16 @@ export function registerDialogHandlers(mainWindow: BrowserWindow): void {
         fs.mkdirSync(absPath, { recursive: true })
       }
       await shell.openPath(absPath)
+      return { ok: true }
+    } catch (e: any) {
+      return { ok: false, error: e.message }
+    }
+  })
+
+  // 用系统浏览器打开外部链接
+  ipcMain.handle('shell:open-external', async (_event, url: string) => {
+    try {
+      await shell.openExternal(url)
       return { ok: true }
     } catch (e: any) {
       return { ok: false, error: e.message }

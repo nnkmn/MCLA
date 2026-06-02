@@ -2,14 +2,20 @@
   <div class="mod-card" @click="$emit('click', mod)">
     <!-- 封面图 -->
     <div class="mod-cover">
-      <img
-        v-if="mod.iconUrl"
-        :src="mod.iconUrl"
-        :alt="mod.name"
-        loading="lazy"
-      />
+      <img v-if="mod.iconUrl" :src="mod.iconUrl" :alt="mod.name" loading="lazy" />
       <div v-else class="cover-placeholder">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"
+          />
+        </svg>
       </div>
     </div>
 
@@ -22,11 +28,24 @@
       <!-- 底部元数据 -->
       <div class="mod-meta">
         <span class="meta-tag downloads">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
           {{ formatNum(mod.downloads) }}
         </span>
         <span v-if="mod.follows" class="meta-tag follows">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+            />
+          </svg>
           {{ formatNum(mod.follows) }}
         </span>
         <span class="meta-tag source-badge" :class="mod.source">
@@ -36,17 +55,24 @@
 
       <!-- 加载器兼容标签 -->
       <div v-if="mod.loaders?.length" class="loader-tags">
-        <span
-          v-for="loader in mod.loaders.slice(0, 4)"
-          :key="loader"
-          class="loader-chip"
-        >{{ loader }}</span>
+        <span v-for="loader in mod.loaders.slice(0, 4)" :key="loader" class="loader-chip">{{
+          loader
+        }}</span>
       </div>
     </div>
 
     <!-- 操作按钮 -->
     <button class="download-btn" @click.stop="$emit('download', mod)" title="下载">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+      </svg>
     </button>
   </div>
 </template>
@@ -95,11 +121,18 @@ function formatNum(n: number): string {
   overflow: hidden;
   background: var(--mcla-bg-hover);
 
-  img { width: 100%; height: 100%; object-fit: cover; }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
   .cover-placeholder {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--mcla-text-muted);
   }
 }
@@ -151,8 +184,12 @@ function formatNum(n: number): string {
     font-size: 11.5px;
     color: var(--mcla-text-muted);
 
-    &.downloads svg { stroke: var(--mcla-success); }
-    &.follows svg { fill: #f472b6; }
+    &.downloads svg {
+      stroke: var(--mcla-success);
+    }
+    &.follows svg {
+      fill: #f472b6;
+    }
   }
 
   .source-badge {
@@ -163,12 +200,12 @@ function formatNum(n: number): string {
     text-transform: uppercase;
 
     &.curseforge {
-      background: rgba(240,73,48,0.1);
-      color: #F04930;
+      background: rgba(240, 73, 48, 0.1);
+      color: #f04930;
     }
     &.modrinth {
-      background: rgba(33,150,83,0.1);
-      color: #1DB954;
+      background: rgba(33, 150, 83, 0.1);
+      color: #1db954;
     }
   }
 }
@@ -199,6 +236,9 @@ function formatNum(n: number): string {
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { filter: brightness(1.08); transform: scale(1.05); }
+  &:hover {
+    filter: brightness(1.08);
+    transform: scale(1.05);
+  }
 }
 </style>

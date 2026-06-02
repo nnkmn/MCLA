@@ -6,12 +6,29 @@
           <!-- 标题栏 -->
           <header class="vs-header">
             <button class="vs-back" @click="close">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <span class="vs-title">版本设置 - {{ versionName }}</span>
             <div class="vs-wc">
-              <button class="vs-wc-btn" @click="minimize"><svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg></button>
-              <button class="vs-wc-btn vs-close" @click="close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="vs-wc-btn" @click="close">
+                <svg width="10" height="1" viewBox="0 0 10 1">
+                  <rect width="10" height="1" fill="currentColor" />
+                </svg>
+              </button>
+              <button class="vs-wc-btn vs-close" @click="close">
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+                </svg>
+              </button>
             </div>
           </header>
 
@@ -38,7 +55,18 @@
                 <!-- 版本信息卡片 -->
                 <div class="ver-info-card">
                   <div class="ver-icon">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--pcl-blue)" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                    <svg
+                      width="36"
+                      height="36"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--pcl-blue)"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+                      />
+                    </svg>
                   </div>
                   <div class="ver-detail">
                     <p class="ver-full-name">{{ versionName }}</p>
@@ -69,8 +97,14 @@
                   </div>
                   <div class="form-btns">
                     <button class="form-action-btn" @click="editVersionName">修改版本名</button>
-                    <button class="form-action-btn" @click="editVersionDescription">修改版本描述</button>
-                    <button class="form-action-btn" :class="{ active: isFavorited }" @click="toggleFavorite">
+                    <button class="form-action-btn" @click="editVersionDescription">
+                      修改版本描述
+                    </button>
+                    <button
+                      class="form-action-btn"
+                      :class="{ active: isFavorited }"
+                      @click="toggleFavorite"
+                    >
                       {{ isFavorited ? '★ 已收藏' : '☆ 加入收藏夹' }}
                     </button>
                   </div>
@@ -90,7 +124,9 @@
                 <section class="vs-section">
                   <h3 class="sec-title">高级管理</h3>
                   <div class="form-btns">
-                    <button class="form-action-btn outline" @click="exportScript">导出启动脚本</button>
+                    <button class="form-action-btn outline" @click="exportScript">
+                      导出启动脚本
+                    </button>
                     <button class="form-action-btn outline" @click="completeFiles">补全文件</button>
                     <button class="form-action-btn danger" @click="deleteVersion">删除版本</button>
                   </div>
@@ -101,7 +137,17 @@
               <template v-if="activeTab === 'settings'">
                 <!-- 提示条 -->
                 <div class="vs-tip-bar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
                   这些设置只对该游戏版本生效，不影响其他版本。
                   <button class="tip-close" @click="showTip = false">×</button>
                 </div>
@@ -153,10 +199,17 @@
 
                   <!-- 滑块（自定义模式显示） -->
                   <div v-if="memMode === 'custom'" class="slider-area">
-                    <input type="range" class="mem-slider" min="512" max="16384" step="256" v-model="memCustom" />
+                    <input
+                      type="range"
+                      class="mem-slider"
+                      min="512"
+                      max="16384"
+                      step="256"
+                      v-model="memCustom"
+                    />
                   </div>
 
-                  <div v-if="memMode !== 'global'" class="form-row" style="margin-top:10px;">
+                  <div v-if="memMode !== 'global'" class="form-row" style="margin-top: 10px">
                     <label>启动游戏前进行内存优化</label>
                     <select class="form-select short-select">
                       <option>跟随全局设置</option>
@@ -196,14 +249,27 @@
                 <section class="vs-section collapsible" :class="{ collapsed: !showAdvanced }">
                   <h3 class="sec-title clickable" @click="showAdvanced = !showAdvanced">
                     高级选项
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                         :style="{ transform: showAdvanced ? 'rotate(180deg)' : '' }"
-                         style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      :style="{ transform: showAdvanced ? 'rotate(180deg)' : '' }"
+                      style="transition: transform 0.2s"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
                   </h3>
                   <div v-show="showAdvanced" class="adv-content">
                     <div class="form-row">
                       <label>Java 虚拟机参数</label>
-                      <textarea class="form-textarea" rows="2" placeholder="跟随全局设置"></textarea>
+                      <textarea
+                        class="form-textarea"
+                        rows="2"
+                        placeholder="跟随全局设置"
+                      ></textarea>
                     </div>
                     <div class="form-row">
                       <label>游戏参数</label>
@@ -224,25 +290,48 @@
                     </div>
                     <div class="checkbox-group">
                       <label class="checkbox-label"><input type="checkbox" /> 禁止更新 Mod</label>
-                      <label class="checkbox-label"><input type="checkbox" /> 忽略 Java 兼容性警告</label>
+                      <label class="checkbox-label"
+                        ><input type="checkbox" /> 忽略 Java 兼容性警告</label
+                      >
                       <label class="checkbox-label"><input type="checkbox" /> 关闭文件校验</label>
-                      <label class="checkbox-label"><input type="checkbox" /> 禁用 Java Launch Wrapper</label>
-                      <label class="checkbox-label"><input type="checkbox" /> 禁用 LWJGL Unsafe Agent</label>
-                      <label class="checkbox-label"><input type="checkbox" v-model="useHighPerformanceGPU" /> 使用高性能显卡</label>
+                      <label class="checkbox-label"
+                        ><input type="checkbox" /> 禁用 Java Launch Wrapper</label
+                      >
+                      <label class="checkbox-label"
+                        ><input type="checkbox" /> 禁用 LWJGL Unsafe Agent</label
+                      >
+                      <label class="checkbox-label"
+                        ><input type="checkbox" v-model="useHighPerformanceGPU" />
+                        使用高性能显卡</label
+                      >
                     </div>
                   </div>
                 </section>
 
                 <!-- 底部按钮 -->
                 <button class="btn-global-settings" @click="$router.push('/settings')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                   全局设置
                 </button>
               </template>
 
               <!-- ===== Mod 管理 ===== -->
               <template v-if="activeTab === 'mods'">
-                <ModManager :gameDir="gameDir" />
+                <ModManager
+                  :gameDir="gameDir"
+                  :mcVersion="versionBase"
+                  :loader="detectedLoader"
+                  @navigate="close"
+                />
               </template>
 
               <!-- ===== 导出 ===== -->
@@ -252,11 +341,20 @@
                   <div class="export-header-row">
                     <div class="form-row compact">
                       <label>整合包名称</label>
-                      <input type="text" class="form-input" value="1.20.1-Fabric 0.16.9-OptiFine_I6" />
+                      <input
+                        type="text"
+                        class="form-input"
+                        value="1.20.1-Fabric 0.16.9-OptiFine_I6"
+                      />
                     </div>
                     <div class="form-row compact">
                       <label>整合包版本</label>
-                      <input type="text" class="form-input short" value="1.0.0" style="flex:0 0 120px;" />
+                      <input
+                        type="text"
+                        class="form-input short"
+                        value="1.0.0"
+                        style="flex: 0 0 120px"
+                      />
                     </div>
                   </div>
                 </section>
@@ -267,47 +365,110 @@
                   <div class="export-tree">
                     <!-- 游戏本体 -->
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span class="tree-label-bold">游戏本体</span><span class="tree-sub">正版版 1.20.1 Fabric 0.16.9</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span class="tree-label-bold"
+                          >游戏本体</span
+                        ><span class="tree-sub">正版版 1.20.1 Fabric 0.16.9</span></label
+                      >
                     </div>
                     <!-- Mod 组 -->
                     <div class="tree-node tree-parent">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span class="tree-label-bold">Mod</span><span class="tree-sub">模组</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span class="tree-label-bold">Mod</span
+                        ><span class="tree-sub">模组</span></label
+                      >
                       <div class="tree-children">
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" /><span>已禁用的 Mod</span></label></div>
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" checked /><span>Mod 设置</span></label></div>
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" /><span>已绘制的地图</span><span class="tree-sub">地图类 Mod 为现有的存档、服务器记录的地图、路标等</span></label></div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" /><span>已禁用的 Mod</span></label
+                          >
+                        </div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" checked /><span>Mod 设置</span></label
+                          >
+                        </div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" /><span>已绘制的地图</span
+                            ><span class="tree-sub"
+                              >地图类 Mod 为现有的存档、服务器记录的地图、路标等</span
+                            ></label
+                          >
+                        </div>
                       </div>
                     </div>
                     <!-- 资源包组 -->
                     <div class="tree-node tree-parent">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span class="tree-label-bold">资源包</span><span class="tree-sub">纹理包/材质包</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span class="tree-label-bold">资源包</span
+                        ><span class="tree-sub">纹理包/材质包</span></label
+                      >
                       <div class="tree-children">
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" checked /><span>Minecraft-Mod-Language-Modpack-Converted-1.20.1.zip</span></label></div>
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" checked /><span>[1.20.1]MASA全家桶汉化包.zip</span></label></div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" checked /><span
+                              >Minecraft-Mod-Language-Modpack-Converted-1.20.1.zip</span
+                            ></label
+                          >
+                        </div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" checked /><span
+                              >[1.20.1]MASA全家桶汉化包.zip</span
+                            ></label
+                          >
+                        </div>
                       </div>
                     </div>
                     <!-- 光影包组 -->
                     <div class="tree-node tree-parent">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span class="tree-label-bold">光影包</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span class="tree-label-bold"
+                          >光影包</span
+                        ></label
+                      >
                       <div class="tree-children">
-                        <div class="tree-child"><label class="tree-checkbox"><input type="checkbox" checked /><span>assets</span><span class="tree-sub">schematics 文件夹</span></label></div>
+                        <div class="tree-child">
+                          <label class="tree-checkbox"
+                            ><input type="checkbox" checked /><span>assets</span
+                            ><span class="tree-sub">schematics 文件夹</span></label
+                          >
+                        </div>
                       </div>
                     </div>
                     <!-- 其他可选项 -->
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" /><span>导出的结构</span><span class="tree-sub">schematics 文件夹</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" /><span>导出的结构</span
+                        ><span class="tree-sub">schematics 文件夹</span></label
+                      >
                     </div>
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" /><span>录像回放</span><span class="tree-sub">Replay Mod 的录像文件</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" /><span>录像回放</span
+                        ><span class="tree-sub">Replay Mod 的录像文件</span></label
+                      >
                     </div>
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" /><span>单人游戏存档</span><span class="tree-sub">世界/地图</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" /><span>单人游戏存档</span
+                        ><span class="tree-sub">世界/地图</span></label
+                      >
                     </div>
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span>PCL 启动器程序</span><span class="tree-sub">打包正版版 PCL，以便没有启动器的玩家安装整合包</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span>PCL 启动器程序</span
+                        ><span class="tree-sub"
+                          >打包正版版 PCL，以便没有启动器的玩家安装整合包</span
+                        ></label
+                      >
                     </div>
                     <div class="tree-node">
-                      <label class="tree-checkbox"><input type="checkbox" checked /><span>PCL 个性化内容</span><span class="tree-sub">功能隐藏设置、主页、背景音乐和图片等</span></label>
+                      <label class="tree-checkbox"
+                        ><input type="checkbox" checked /><span>PCL 个性化内容</span
+                        ><span class="tree-sub">功能隐藏设置、主页、背景音乐和图片等</span></label
+                      >
                     </div>
                   </div>
                 </section>
@@ -316,15 +477,28 @@
                 <section class="vs-section collapsible" :class="{ collapsed: !showExportAdvanced }">
                   <h3 class="sec-title clickable" @click="showExportAdvanced = !showExportAdvanced">
                     高级选项
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                         :style="{ transform: showExportAdvanced ? 'rotate(180deg)' : '' }"
-                         style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      :style="{ transform: showExportAdvanced ? 'rotate(180deg)' : '' }"
+                      style="transition: transform 0.2s"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
                   </h3>
                   <div v-show="showExportAdvanced" class="adv-content">
-                    <label class="checkbox-label block"><input type="checkbox" /> 打包资源文件，以避免在导入时下载</label>
-                    <label class="checkbox-label block"><input type="checkbox" /> 仅从 Modrinth 下载资源文件</label>
+                    <label class="checkbox-label block"
+                      ><input type="checkbox" /> 打包资源文件，以避免在导入时下载</label
+                    >
+                    <label class="checkbox-label block"
+                      ><input type="checkbox" /> 仅从 Modrinth 下载资源文件</label
+                    >
                     <div class="export-tip-box">
-                      配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。<br/>
+                      配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。<br />
                       要修改这些选项，请先点击「保存配置」，在编辑配置文件后再导入。
                     </div>
                   </div>
@@ -340,7 +514,16 @@
                 <!-- 底部大按钮 -->
                 <div class="export-bottom-btn-wrap">
                   <button class="btn-export-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                    </svg>
                     开始导出
                   </button>
                 </div>
@@ -353,22 +536,36 @@
 
     <!-- 补全文件弹窗 -->
     <transition name="modal-fade">
-      <div v-if="showCompleteModal" class="ver-settings-overlay" @click.self="showCompleteModal = false">
-        <div class="ver-settings-window" style="width:520px;">
+      <div
+        v-if="showCompleteModal"
+        class="ver-settings-overlay"
+        @click.self="showCompleteModal = false"
+      >
+        <div class="ver-settings-window" style="width: 520px">
           <header class="vs-header">
             <button class="vs-back" @click="showCompleteModal = false">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <span class="vs-title">补全文件</span>
             <div class="vs-wc">
               <button class="vs-wc-btn vs-close" @click="showCompleteModal = false">
-                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+                </svg>
               </button>
             </div>
           </header>
 
-          <div class="vs-body" style="padding:20px;max-height:70vh;overflow-y:auto;">
-
+          <div class="vs-body" style="padding: 20px; max-height: 70vh; overflow-y: auto">
             <!-- 检测中 -->
             <div v-if="completeState === 'checking'" class="complete-status checking">
               <div class="complete-spinner"></div>
@@ -378,15 +575,39 @@
 
             <!-- 检测完成：文件完整 -->
             <div v-else-if="completeState === 'complete'" class="complete-status success">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#22c55e"
+                stroke-width="2"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
               <p class="complete-status-text">所有文件完整，无需补全</p>
-              <p class="complete-status-sub">{{ completeTarget }} · 共检测 {{ completeTotal }} 个库文件</p>
+              <p class="complete-status-sub">
+                {{ completeTarget }} · 共检测 {{ completeTotal }} 个库文件
+              </p>
             </div>
 
             <!-- 检测完成：有缺失 -->
             <div v-else-if="completeState === 'missing'" class="complete-status warning">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p class="complete-status-text">发现 <strong>{{ missingFiles.length }}</strong> 个缺失文件</p>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f59e0b"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p class="complete-status-text">
+                发现 <strong>{{ missingFiles.length }}</strong> 个缺失文件
+              </p>
               <p class="complete-status-sub">即将从 BMCLAPI 下载补全</p>
 
               <!-- 缺失文件列表（仅显示前 10 个） -->
@@ -401,7 +622,11 @@
               </div>
 
               <!-- 下载按钮 -->
-              <button class="form-action-btn" style="margin-top:16px;width:100%;" @click="startDownloadMissing">
+              <button
+                class="form-action-btn"
+                style="margin-top: 16px; width: 100%"
+                @click="startDownloadMissing"
+              >
                 开始下载
               </button>
             </div>
@@ -421,20 +646,47 @@
 
             <!-- 下载完成 -->
             <div v-else-if="completeState === 'done'" class="complete-status success">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#22c55e"
+                stroke-width="2"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
               <p class="complete-status-text">补全完成！</p>
               <p class="complete-status-sub">已补全 {{ dlTotal }} 个文件</p>
-              <button class="form-action-btn" style="margin-top:16px;" @click="showCompleteModal = false">完成</button>
+              <button
+                class="form-action-btn"
+                style="margin-top: 16px"
+                @click="showCompleteModal = false"
+              >
+                完成
+              </button>
             </div>
 
             <!-- 错误 -->
             <div v-else-if="completeState === 'error'" class="complete-status error">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ef4444"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
               <p class="complete-status-text">补全失败</p>
-              <p class="complete-status-sub" style="color:#ef4444;">{{ completeError }}</p>
-              <button class="form-action-btn" style="margin-top:16px;" @click="completeFiles">重试</button>
+              <p class="complete-status-sub" style="color: #ef4444">{{ completeError }}</p>
+              <button class="form-action-btn" style="margin-top: 16px" @click="completeFiles">
+                重试
+              </button>
             </div>
-
           </div>
         </div>
       </div>
@@ -446,16 +698,27 @@
         <div class="ver-settings-window input-modal-win">
           <header class="vs-header">
             <button class="vs-back" @click="cancelInputModal">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <span class="vs-title">{{ inputModalTitle }}</span>
             <div class="vs-wc">
               <button class="vs-wc-btn vs-close" @click="cancelInputModal">
-                <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+                </svg>
               </button>
             </div>
           </header>
-          <div class="vs-body" style="padding:20px;flex-direction:column;gap:12px;">
+          <div class="vs-body" style="padding: 20px; flex-direction: column; gap: 12px">
             <input
               v-if="!inputModalMultiline"
               v-model="inputModalValue"
@@ -464,7 +727,7 @@
               :placeholder="inputModalPlaceholder"
               @keydown.enter="confirmInputModal"
               @keydown.esc="cancelInputModal"
-              style="width:100%;"
+              style="width: 100%"
             />
             <textarea
               v-else
@@ -472,10 +735,10 @@
               class="form-textarea"
               :placeholder="inputModalPlaceholder"
               rows="4"
-              style="width:100%;resize:vertical;min-height:80px;"
+              style="width: 100%; resize: vertical; min-height: 80px"
               @keydown.esc="cancelInputModal"
             />
-            <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end">
               <button class="form-action-btn" @click="cancelInputModal">取消</button>
               <button class="form-action-btn primary" @click="confirmInputModal">确定</button>
             </div>
@@ -502,6 +765,10 @@ const emit = defineEmits<{
   (e: 'version-deleted'): void
 }>()
 
+function close() {
+  emit('update:visible', false)
+}
+
 const activeTab = ref('overview')
 
 const versionBase = computed(() => {
@@ -512,6 +779,16 @@ const versionBase = computed(() => {
 const loaderInfo = computed(() => {
   const parts = props.versionName.split('-')
   return parts.length > 1 ? parts.slice(1).join('-') : ''
+})
+
+/** 从版本名解析加载器类型（用于 Mod 下载页自动填充） */
+const detectedLoader = computed(() => {
+  const name = props.versionName.toLowerCase()
+  if (name.includes('fabric')) return 'fabric'
+  if (name.includes('forge')) return 'forge'
+  if (name.includes('neoforge')) return 'neoforge'
+  if (name.includes('quilt')) return 'quilt'
+  return ''
 })
 
 // 示例数据
@@ -527,7 +804,12 @@ const inputModalPlaceholder = ref('')
 const inputModalMultiline = ref(false)
 let inputModalResolve: ((value: string | null) => void) | null = null
 
-function openInputModal(title: string, value: string, placeholder: string, multiline = false): Promise<string | null> {
+function openInputModal(
+  title: string,
+  value: string,
+  placeholder: string,
+  multiline = false
+): Promise<string | null> {
   return new Promise((resolve) => {
     inputModalTitle.value = title
     inputModalValue.value = value
@@ -624,7 +906,7 @@ async function exportScript() {
     '@echo off',
     `title ${props.versionName}`,
     'cd /d "%~dp0"',
-    `start javaw -jar "${name}.jar"`,
+    `start javaw -jar "${name}.jar"`
   ].join('\r\n')
 
   const blob = new Blob([script], { type: 'text/plain' })
@@ -639,9 +921,14 @@ async function exportScript() {
 // ====== 删除版本 ======
 async function deleteVersion() {
   if (!props.instanceId) return
-  if (!confirm(`确定要删除版本「${props.versionName}」吗？\n这将删除版本文件夹及其所有文件，无法恢复！`)) return
+  if (
+    !confirm(
+      `确定要删除版本「${props.versionName}」吗？\n这将删除版本文件夹及其所有文件，无法恢复！`
+    )
+  )
+    return
   if (!confirm('再次确认：此操作不可逆！')) return
-  await window.electronAPI?.instance.delete(props.instanceId, true)
+  await window.electronAPI?.instance.delete(props.instanceId)
   emit('version-deleted')
 }
 
@@ -676,11 +963,12 @@ let dlProgressUnsubscribe: (() => void) | null = null
 async function completeFiles() {
   // 从 gameDir 提取版本 ID（gameDir 格式: .../.minecraft/versions/1.20.1-Fabric）
   const parts = props.gameDir.split(/[/\\]/)
-  const versionsIdx = parts.findIndex(p => p === 'versions')
+  const versionsIdx = parts.findIndex((p) => p === 'versions')
   const versionId = versionsIdx >= 0 ? parts[versionsIdx + 1] : props.versionName
   // 找到 .minecraft 目录
-  const mcIdx = parts.findIndex(p => p === '.minecraft')
-  const gameDir = mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
+  const mcIdx = parts.findIndex((p) => p === '.minecraft')
+  const gameDir =
+    mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
 
   showCompleteModal.value = true
   completeState.value = 'checking'
@@ -691,10 +979,10 @@ async function completeFiles() {
   // 监听下载进度
   dlProgressUnsubscribe = window.electronAPI?.versions.onDownloadProgress?.((data) => {
     if (data.versionId !== versionId) return
-    dlCurrent.value = data.current
+    dlCurrent.value = data.downloaded
     dlTotal.value = data.total
-    dlProgress.value = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0
-    dlCurrentFile.value = data.file
+    dlProgress.value = data.total > 0 ? Math.round((data.downloaded / data.total) * 100) : 0
+    dlCurrentFile.value = data.phaseLabel
   })
 
   try {
@@ -722,10 +1010,11 @@ async function completeFiles() {
 
 async function startDownloadMissing() {
   const parts = props.gameDir.split(/[/\\]/)
-  const versionsIdx = parts.findIndex(p => p === 'versions')
+  const versionsIdx = parts.findIndex((p) => p === 'versions')
   const versionId = versionsIdx >= 0 ? parts[versionsIdx + 1] : props.versionName
-  const mcIdx = parts.findIndex(p => p === '.minecraft')
-  const gameDir = mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
+  const mcIdx = parts.findIndex((p) => p === '.minecraft')
+  const gameDir =
+    mcIdx >= 0 ? parts.slice(0, mcIdx + 1).join('/') : props.gameDir.replace(/[/\\][^/\\]+$/, '')
 
   dlCurrent.value = 0
   dlTotal.value = missingFiles.value.length || 1
@@ -751,23 +1040,23 @@ const navItems = [
   {
     id: 'overview',
     label: '概览',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
   },
   {
     id: 'settings',
     label: '设置',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'
   },
   {
     id: 'mods',
     label: 'Mod 管理',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>'
   },
   {
     id: 'export',
     label: '导出',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
-  },
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>'
+  }
 ]
 </script>
 
@@ -778,7 +1067,7 @@ const navItems = [
 .ver-settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -815,12 +1104,22 @@ const navItems = [
 }
 
 .vs-back {
-  width: 30px; height: 30px; border: none; background: transparent;
-  color: var(--mcla-text-secondary); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--mcla-radius-sm); transition: all 0.12s;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--mcla-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mcla-radius-sm);
+  transition: all 0.12s;
   -webkit-app-region: no-drag;
-  &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
+  &:hover {
+    background: var(--mcla-bg-hover);
+    color: var(--mcla-text-primary);
+  }
 }
 
 .vs-title {
@@ -838,11 +1137,24 @@ const navItems = [
   -webkit-app-region: no-drag;
 
   .vs-wc-btn {
-    width: 42px; height: 42px; border: none; background: transparent;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: var(--mcla-text-tertiary); transition: background 0.12s;
-    &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
-    &.vs-close:hover { background: rgba(239,68,68,0.15); color: var(--mcla-error); }
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mcla-text-tertiary);
+    transition: background 0.12s;
+    &:hover {
+      background: var(--mcla-bg-hover);
+      color: var(--mcla-text-primary);
+    }
+    &.vs-close:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--mcla-error);
+    }
   }
 }
 
@@ -880,18 +1192,24 @@ const navItems = [
   transition: all 0.12s;
   position: relative;
 
-  > span { flex-shrink: 0; display: flex; color: var(--mcla-text-muted); }
+  > span {
+    flex-shrink: 0;
+    display: flex;
+    color: var(--mcla-text-muted);
+  }
 
   &:hover {
     color: var(--mcla-primary-muted);
-    background: rgba(99,102,234,0.08);
-    > span { color: var(--mcla-primary-muted); }
+    background: rgba(99, 102, 234, 0.08);
+    > span {
+      color: var(--mcla-primary-muted);
+    }
   }
 
   &.active {
     color: var(--mcla-primary-muted);
     font-weight: 600;
-    background: rgba(99,102,234,0.06);
+    background: rgba(99, 102, 234, 0.06);
 
     &::before {
       content: '';
@@ -904,7 +1222,9 @@ const navItems = [
       border-radius: 0 2px 2px 0;
     }
 
-    > span { color: var(--mcla-primary-muted); }
+    > span {
+      color: var(--mcla-primary-muted);
+    }
   }
 }
 
@@ -915,9 +1235,16 @@ const navItems = [
   padding: 20px 24px;
   background: var(--mcla-bg-primary);
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: var(--mcla-border-color); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mcla-border-color);
+    border-radius: 3px;
+  }
 }
 
 /* ---- 版本信息卡片 ---- */
@@ -932,16 +1259,28 @@ const navItems = [
   margin-bottom: 14px;
 
   .ver-icon {
-    width: 44px; height: 44px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--mcla-radius-md);
-    background: rgba(99,102,234,0.1);
-    display: flex; align-items: center; justify-content: center;
+    background: rgba(99, 102, 234, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
 
   .ver-detail {
-    .ver-full-name { margin: 0; font-size: 15px; font-weight: 700; color: var(--mcla-text-primary); }
-    .ver-sub   { margin: 3px 0 0; font-size: 12px; color: var(--mcla-text-muted); }
+    .ver-full-name {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--mcla-text-primary);
+    }
+    .ver-sub {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -968,7 +1307,9 @@ const navItems = [
   }
 
   /* 区块内的按钮组不需要额外上边距 */
-  .form-btns { margin-top: 4px; }
+  .form-btns {
+    margin-top: 4px;
+  }
 }
 
 /* ---- 表单行 ---- */
@@ -998,9 +1339,17 @@ const navItems = [
   outline: none;
   transition: border-color 0.14s;
 
-  &:focus { border-color: var(--mcla-primary); box-shadow: 0 0 0 3px rgba(99,102,234,0.15); }
-  &.short { flex: 0 0 80px; }
-  &.mono { font-family: var(--mcla-font-mono); font-size: 12px; }
+  &:focus {
+    border-color: var(--mcla-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 234, 0.15);
+  }
+  &.short {
+    flex: 0 0 80px;
+  }
+  &.mono {
+    font-family: var(--mcla-font-mono);
+    font-size: 12px;
+  }
 }
 
 .form-textarea {
@@ -1017,21 +1366,28 @@ const navItems = [
   min-height: 60px;
   transition: border-color 0.14s;
 
-  &:focus { border-color: var(--mcla-primary); box-shadow: 0 0 0 3px rgba(99,102,234,0.15); }
+  &:focus {
+    border-color: var(--mcla-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 234, 0.15);
+  }
 }
 
 .input-with-btn {
   display: flex;
   gap: 8px;
   flex: 1;
-  .form-input { flex: 1; }
+  .form-input {
+    flex: 1;
+  }
 }
 
 .uuid-row {
   display: flex;
   gap: 8px;
   flex: 1;
-  .form-input { flex: 1; }
+  .form-input {
+    flex: 1;
+  }
 }
 
 .browse-btn {
@@ -1046,8 +1402,13 @@ const navItems = [
   transition: all 0.13s;
   flex-shrink: 0;
 
-  &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); }
-  &.small { padding: 8px 12px; }
+  &:hover {
+    border-color: var(--mcla-primary);
+    color: var(--mcla-primary);
+  }
+  &.small {
+    padding: 8px 12px;
+  }
 }
 
 /* ---- 复选框标签 ---- */
@@ -1063,7 +1424,7 @@ const navItems = [
   margin-right: 16px;
   margin-bottom: 6px;
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     width: 15px;
     height: 15px;
     accent-color: var(--mcla-primary);
@@ -1103,29 +1464,41 @@ const navItems = [
   cursor: pointer;
   transition: all 0.13s;
 
-  &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); }
+  &:hover {
+    border-color: var(--mcla-primary);
+    color: var(--mcla-primary);
+  }
 
   &.primary {
     background: var(--mcla-gradient-primary);
     border-color: transparent;
     color: #fff;
-    &:hover { filter: brightness(1.1); }
+    &:hover {
+      filter: brightness(1.1);
+    }
   }
 
   &.outline {
-    &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); background: rgba(99,102,234,0.06); }
+    &:hover {
+      border-color: var(--mcla-primary);
+      color: var(--mcla-primary);
+      background: rgba(99, 102, 234, 0.06);
+    }
   }
 
   &.danger {
-    border-color: rgba(239,68,68,0.5);
+    border-color: rgba(239, 68, 68, 0.5);
     color: var(--mcla-error);
-    &:hover { background: rgba(239,68,68,0.1); border-color: var(--mcla-error); }
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--mcla-error);
+    }
   }
 
   &.active {
     border-color: #f59e0b;
     color: #f59e0b;
-    background: rgba(245,158,11,0.08);
+    background: rgba(245, 158, 11, 0.08);
   }
 }
 
@@ -1161,10 +1534,20 @@ const navItems = [
   border: 1px solid transparent;
   transition: all 0.12s;
 
-  &:hover { border-color: var(--mcla-border-color); }
+  &:hover {
+    border-color: var(--mcla-border-color);
+  }
 
-  .mod-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--mcla-text-primary); }
-  .mod-ver { font-size: 11px; color: var(--mcla-text-muted); }
+  .mod-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mcla-text-primary);
+  }
+  .mod-ver {
+    font-size: 11px;
+    color: var(--mcla-text-muted);
+  }
 
   .mod-remove {
     padding: 4px 12px;
@@ -1177,10 +1560,15 @@ const navItems = [
     opacity: 0;
     transition: all 0.12s;
 
-    &:hover { border-color: var(--mcla-error); color: var(--mcla-error); }
+    &:hover {
+      border-color: var(--mcla-error);
+      color: var(--mcla-error);
+    }
   }
 
-  &:hover .mod-remove { opacity: 1; }
+  &:hover .mod-remove {
+    opacity: 1;
+  }
 }
 
 .empty-state {
@@ -1188,15 +1576,26 @@ const navItems = [
   padding: 36px 0;
   color: var(--mcla-text-muted);
 
-  p { margin: 10px 0 0; font-size: 13px; }
-  svg { opacity: 0.35; }
+  p {
+    margin: 10px 0 0;
+    font-size: 13px;
+  }
+  svg {
+    opacity: 0.35;
+  }
 }
 
 /* ---- 动画 ---- */
-.modal-fade-enter-active { transition: opacity 0.18s ease; }
-.modal-fade-leave-active { transition: opacity 0.12s ease; }
+.modal-fade-enter-active {
+  transition: opacity 0.18s ease;
+}
+.modal-fade-leave-active {
+  transition: opacity 0.12s ease;
+}
 .modal-fade-enter-from,
-.modal-fade-leave-to { opacity: 0; }
+.modal-fade-leave-to {
+  opacity: 0;
+}
 
 /* ---- 补全文件弹窗 ---- */
 .complete-status {
@@ -1238,7 +1637,9 @@ const navItems = [
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .missing-file-list {
@@ -1259,7 +1660,9 @@ const navItems = [
   gap: 6px;
   padding: 4px 0;
   border-bottom: 1px solid var(--mcla-border-color);
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .missing-file-dot {
@@ -1321,7 +1724,9 @@ const navItems = [
 }
 
 .modal-fade-enter-active .ver-settings-window {
-  transition: transform 0.2s ease, opacity 0.18s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.18s ease;
 }
 .modal-fade-enter-from .ver-settings-window {
   transform: scale(0.96) translateY(10px);
@@ -1336,13 +1741,16 @@ const navItems = [
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: rgba(99,102,234,0.08);
+  background: rgba(99, 102, 234, 0.08);
   border-radius: var(--mcla-radius-md);
   font-size: 12px;
   color: var(--mcla-primary-muted);
   margin-bottom: 14px;
 
-  svg { flex-shrink: 0; opacity: 0.7; }
+  svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
 
   .tip-close {
     margin-left: auto;
@@ -1353,7 +1761,9 @@ const navItems = [
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
-    &:hover { opacity: 0.6; }
+    &:hover {
+      opacity: 0.6;
+    }
   }
 }
 
@@ -1372,7 +1782,9 @@ const navItems = [
   cursor: pointer;
   color: var(--mcla-text-secondary);
 
-  input { accent-color: var(--mcla-primary); }
+  input {
+    accent-color: var(--mcla-primary);
+  }
 
   &.active {
     color: var(--mcla-primary-muted);
@@ -1406,14 +1818,25 @@ const navItems = [
   flex-direction: column;
   gap: 2px;
 
-  .mem-stat-label { font-size: 11px; color: var(--mcla-text-muted); }
-  .mem-stat-value { font-size: 14px; font-weight: 700; color: var(--mcla-text-primary); }
+  .mem-stat-label {
+    font-size: 11px;
+    color: var(--mcla-text-muted);
+  }
+  .mem-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mcla-text-primary);
+  }
 }
 
 /* 可折叠区块 */
 .collapsed {
-  .sec-title.clickable { margin-bottom: 0; }
-  .adv-content { display: none; }
+  .sec-title.clickable {
+    margin-bottom: 0;
+  }
+  .adv-content {
+    display: none;
+  }
 }
 
 .sec-title.clickable {
@@ -1423,8 +1846,12 @@ const navItems = [
   cursor: pointer;
   user-select: none;
 
-  &:hover { color: var(--mcla-primary-muted); }
-  svg { flex-shrink: 0; }
+  &:hover {
+    color: var(--mcla-primary-muted);
+  }
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .adv-content {
@@ -1432,8 +1859,14 @@ const navItems = [
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* checkbox 组 */
@@ -1475,7 +1908,9 @@ const navItems = [
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { filter: brightness(1.08); }
+  &:hover {
+    filter: brightness(1.08);
+  }
 }
 
 /* ====== Mod 管理页专用样式 ====== */
@@ -1491,7 +1926,9 @@ const navItems = [
   border-radius: var(--mcla-radius-md);
   margin-bottom: 10px;
 
-  svg { flex-shrink: 0; }
+  svg {
+    flex-shrink: 0;
+  }
 
   .mod-search-input {
     flex: 1;
@@ -1501,7 +1938,9 @@ const navItems = [
     color: var(--mcla-text-primary);
     background: transparent;
 
-    &::placeholder { color: var(--mcla-text-muted); }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -1516,7 +1955,9 @@ const navItems = [
 .form-action-btn.primary-outline {
   border-color: var(--mcla-primary);
   color: var(--mcla-primary);
-  &:hover { background: rgba(99,102,234,0.06); }
+  &:hover {
+    background: rgba(99, 102, 234, 0.06);
+  }
 }
 
 /* 筛选标签 */
@@ -1542,13 +1983,21 @@ const navItems = [
     font-weight: 600;
   }
 
-  &:hover:not(.active) { background: rgba(99,102,234,0.08); color: var(--mcla-primary-muted); }
+  &:hover:not(.active) {
+    background: rgba(99, 102, 234, 0.08);
+    color: var(--mcla-primary-muted);
+  }
 
-  .mod-tab-count { font-weight: 400; opacity: 0.75; }
+  .mod-tab-count {
+    font-weight: 400;
+    opacity: 0.75;
+  }
 }
 
 /* 新版 Mod 列表 */
-.mod-list-section { padding: 12px 16px !important; }
+.mod-list-section {
+  padding: 12px 16px !important;
+}
 
 .mod-list-new {
   display: flex;
@@ -1565,18 +2014,22 @@ const navItems = [
   transition: background 0.12s;
   position: relative;
 
-  &:hover { background: var(--mcla-bg-hover); }
+  &:hover {
+    background: var(--mcla-bg-hover);
+  }
 }
 
 .mod-icon-img {
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--mcla-radius-sm);
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .mod-icon-default {
-  width: 32px; height: 32px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--mcla-radius-sm);
   background: var(--mcla-gradient-primary);
   color: #fff;
@@ -1589,8 +2042,12 @@ const navItems = [
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .spin-icon {
   animation: spin 1.2s linear infinite;
@@ -1624,7 +2081,9 @@ const navItems = [
   font-size: 11px;
   text-decoration: none;
   opacity: 0.5;
-  &:hover { opacity: 1; }
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .mod-desc-text {
@@ -1642,7 +2101,7 @@ const navItems = [
   padding: 0 5px;
   font-size: 10px;
   color: var(--mcla-primary-muted);
-  background: rgba(99,102,234,0.08);
+  background: rgba(99, 102, 234, 0.08);
   border-radius: 3px;
   margin-right: 4px;
   vertical-align: middle;
@@ -1656,29 +2115,45 @@ const navItems = [
   transition: opacity 0.15s;
   flex-shrink: 0;
 
-  &.visible { opacity: 1; }
+  &.visible {
+    opacity: 1;
+  }
 }
 
 .mod-action-icon {
-  width: 26px; height: 26px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   border-radius: var(--mcla-radius-sm);
   font-size: 13px;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.12s;
 
-  &:hover { background: var(--mcla-bg-hover); }
-  &.danger:hover { background: rgba(239,68,68,0.1); }
+  &:hover {
+    background: var(--mcla-bg-hover);
+  }
+  &.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
 }
 
 /* 输入弹窗尺寸（名称单行为窄窗，描述多行自动撑高） */
 .input-modal-win {
   width: 420px;
   max-width: 90vw;
-  .vs-body { padding: 20px !important; }
-  textarea { min-height: 90px; }
+  height: auto;
+  min-height: 160px;
+  max-height: 70vh;
+  .vs-body {
+    padding: 20px !important;
+  }
+  textarea {
+    min-height: 90px;
+  }
 }
 
 .export-header-row {
@@ -1687,11 +2162,15 @@ const navItems = [
 
   .form-row.compact {
     flex: 1;
-    > label { min-width: 70px; }
+    > label {
+      min-width: 70px;
+    }
   }
 }
 
-.export-list-section { padding: 16px 18px !important; }
+.export-list-section {
+  padding: 16px 18px !important;
+}
 
 /* 导出树 */
 .export-tree {
@@ -1725,8 +2204,9 @@ const navItems = [
   font-size: 12px;
   color: var(--mcla-text-primary);
 
-  input[type="checkbox"] {
-    width: 14px; height: 14px;
+  input[type='checkbox'] {
+    width: 14px;
+    height: 14px;
     accent-color: var(--mcla-primary);
     cursor: pointer;
     flex-shrink: 0;
@@ -1740,7 +2220,9 @@ const navItems = [
     white-space: nowrap;
   }
 
-  .tree-label-bold { font-weight: 600; }
+  .tree-label-bold {
+    font-weight: 600;
+  }
   .tree-sub {
     font-size: 11px;
     color: var(--mcla-text-muted);
@@ -1764,7 +2246,7 @@ const navItems = [
 .export-tip-box {
   margin-top: 10px;
   padding: 10px 12px;
-  background: rgba(99,102,234,0.06);
+  background: rgba(99, 102, 234, 0.06);
   border-radius: var(--mcla-radius-md);
   font-size: 11px;
   color: var(--mcla-primary-muted);
@@ -1795,7 +2277,7 @@ const navItems = [
 
   &:hover {
     filter: brightness(1.1);
-    box-shadow: 0 4px 24px rgba(99,102,234,0.5);
+    box-shadow: 0 4px 24px rgba(99, 102, 234, 0.5);
     transform: translateY(-1px);
   }
 }

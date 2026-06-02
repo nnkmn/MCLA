@@ -11,7 +11,7 @@ export type {
   ModLoader,
   GameVersion,
   CrashReport,
-  IGameAdapter,
+  IGameAdapter
 } from './adapter.types'
 export { IpcChannels } from './adapter.types'
 
@@ -109,7 +109,7 @@ export type {
   PathMinecraftReturn,
   PathExistsReturn,
   // 类型映射表
-  IpcInvokeMap,
+  IpcInvokeMap
 } from './ipc.types'
 
 // 数据库类型
@@ -119,7 +119,7 @@ export type {
   DbDownload,
   DbMod,
   DbSetting,
-  DbJavaVersion,
+  DbJavaVersion
 } from './database.types'
 export { SCHEMA_DDL, TableName } from './database.types'
 
@@ -128,8 +128,13 @@ export type {
   DownloadStatus,
   DownloadTask,
   DownloadConfig,
-  DownloadProgress,
+  DownloadProgress
 } from './download.types'
 
 // ModLoader 配置类型
-export type { ModLoaderInstallConfig, ModLoaderInstallResult, ModLoaderStatus, ModLoaderInstallProgress } from './modloader.types'
+export type {
+  ModLoaderInstallConfig,
+  ModLoaderInstallResult,
+  ModLoaderStatus,
+  ModLoaderInstallProgress
+} from './modloader.types'

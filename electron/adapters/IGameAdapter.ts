@@ -9,7 +9,7 @@ import type {
   GameVersion,
   JavaInfo,
   ModLoader,
-  CrashReport,
+  CrashReport
 } from '../types/adapter.types'
 
 export interface IGameAdapter {

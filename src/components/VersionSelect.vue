@@ -6,12 +6,29 @@
           <!-- 标题栏 -->
           <header class="vs-header">
             <button class="vs-back" @click="close">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <span class="vs-title">版本选择</span>
             <div class="vs-wc">
-              <button class="vs-wc-btn" @click="minimize"><svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg></button>
-              <button class="vs-wc-btn vs-close" @click="close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="vs-wc-btn" @click="minimize">
+                <svg width="10" height="1" viewBox="0 0 10 1">
+                  <rect width="10" height="1" fill="currentColor" />
+                </svg>
+              </button>
+              <button class="vs-wc-btn vs-close" @click="close">
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+                </svg>
+              </button>
             </div>
           </header>
 
@@ -27,7 +44,18 @@
                 <div class="current-folder">
                   <div class="cf-label">当前文件夹</div>
                   <div class="cf-top">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
+                      />
+                    </svg>
                     <span class="cf-name">{{ currentFolderName }}</span>
                   </div>
                   <div class="cf-path">{{ currentFolderPath }}</div>
@@ -35,17 +63,30 @@
 
                 <!-- 已添加的其他文件夹列表 -->
                 <div
-                  v-for="folder in folders.filter(f => !f.isActive)"
+                  v-for="folder in folders.filter((f) => !f.isActive)"
                   :key="folder.path"
                   class="folder-item"
                   @click="switchFolder(folder.path)"
                 >
                   <div class="fi-top">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
+                      />
+                    </svg>
                     <span class="fi-name">{{ folder.name }}</span>
                   </div>
                   <div class="fi-path">{{ folder.path }}</div>
-                  <span class="folder-remove" @click.stop="removeFolder(folder.path)" title="移除">✕</span>
+                  <span class="folder-remove" @click.stop="removeFolder(folder.path)" title="移除"
+                    >✕</span
+                  >
                 </div>
 
                 <!-- 分隔线 -->
@@ -68,9 +109,19 @@
               <!-- 无文件夹时：显示提示 -->
               <template v-else>
                 <div class="no-folder-hint">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                    <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
+                    />
+                    <line x1="12" y1="11" x2="12" y2="17" />
+                    <line x1="9" y1="14" x2="15" y2="14" />
                   </svg>
                   <p>未找到 .minecraft 文件夹</p>
                   <div class="no-folder-actions">
@@ -80,8 +131,17 @@
                     </button>
                     <button class="action-item" @click="createMinecraftFolderHere">
                       <span class="action-icon create">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path
+                            d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
+                          />
                         </svg>
                       </span>
                       <span>新建 .minecraft</span>
@@ -98,25 +158,50 @@
                 <header class="sec-header clickable" @click="showInstalled = !showInstalled">
                   <span class="sec-header-title">已安装版本 ({{ installedVersions.length }})</span>
                   <svg
-                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
                     :style="{ transform: showInstalled ? 'rotate(180deg)' : '' }"
-                    style="transition: transform 0.2s;"
-                  ><path d="M6 9l6 6 6-6"/></svg>
+                    style="transition: transform 0.2s"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
                 </header>
                 <div v-show="showInstalled" class="sec-body">
                   <div v-if="!installedVersions.length" class="empty-hint">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--pcl-text-muted)" stroke-width="1.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--pcl-text-muted)"
+                      stroke-width="1.5"
+                    >
+                      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
                     <p>当前文件夹下暂无已安装的版本</p>
                   </div>
                   <div v-for="ver in installedVersions" :key="ver.id" class="installed-ver-item">
                     <div class="iv-check">
-                      <input type="radio" name="activeVersion" :checked="ver.isActive" @change="selectActive(ver)" />
+                      <input
+                        type="radio"
+                        name="activeVersion"
+                        :checked="ver.isActive"
+                        @change="selectActive(ver)"
+                      />
                     </div>
                     <div class="iv-info">
                       <p class="iv-name">{{ ver.name }}</p>
-                      <p class="iv-detail">正式版 {{ ver.baseVersion }} {{ ver.loaderInfo || '' }}</p>
+                      <p class="iv-detail">
+                        正式版 {{ ver.baseVersion }} {{ ver.loaderInfo || '' }}
+                      </p>
                     </div>
-                    <button class="iv-remove" title="删除版本" @click="removeVersion(ver.id)">🗑</button>
+                    <button class="iv-remove" title="删除版本" @click="removeVersion(ver.id)">
+                      🗑
+                    </button>
                   </div>
                 </div>
               </section>
@@ -156,11 +241,14 @@ interface FolderItem {
 const folders = ref<FolderItem[]>([])
 
 // 弹窗打开时加载 .minecraft 路径
-watch(() => props.visible, async (val) => {
-  if (val) {
-    await loadMinecraftPath()
+watch(
+  () => props.visible,
+  async (val) => {
+    if (val) {
+      await loadMinecraftPath()
+    }
   }
-})
+)
 
 async function loadMinecraftPath() {
   if (!api?.path) {
@@ -170,7 +258,7 @@ async function loadMinecraftPath() {
 
   // 1. 加载已保存的文件夹列表
   const savedPaths: string[] = api.folders ? await api.folders.list() : []
-  
+
   // 2. 检查每个保存的路径是否存在
   const validPaths: string[] = []
   for (const path of savedPaths) {
@@ -181,7 +269,7 @@ async function loadMinecraftPath() {
   // 3. 优先使用上次选中的文件夹（如果仍然有效）
   const lastFolder = await api.folders.getLast()
   let effectivePath: string | null = null
-  
+
   if (lastFolder && validPaths.includes(lastFolder)) {
     effectivePath = lastFolder
   } else if (validPaths.length > 0) {
@@ -190,7 +278,7 @@ async function loadMinecraftPath() {
   }
 
   // 4. 构建文件夹列表（只包含有效的路径）
-  folders.value = validPaths.map(path => ({
+  folders.value = validPaths.map((path) => ({
     path,
     name: path.split(/[\\/]/).pop() || path,
     isActive: path === effectivePath
@@ -226,7 +314,7 @@ async function addFolder() {
     if (!selectedPath) return
 
     // 避免重复添加
-    if (folders.value.find(f => f.path === selectedPath)) {
+    if (folders.value.find((f) => f.path === selectedPath)) {
       // 切换到已存在的文件夹
       switchFolder(selectedPath)
       return
@@ -246,13 +334,12 @@ async function addFolder() {
 
     // 自动切换到新添加的文件夹
     await switchFolder(selectedPath)
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 async function switchFolder(path: string) {
   currentFolderPath.value = path
-  folders.value.forEach(f => f.isActive = f.path === path)
+  folders.value.forEach((f) => (f.isActive = f.path === path))
   await loadVersionsFromFolder(path)
   // 记住选中的文件夹
   if (api?.folders) {
@@ -261,7 +348,7 @@ async function switchFolder(path: string) {
 }
 
 async function removeFolder(path: string) {
-  folders.value = folders.value.filter(f => f.path !== path)
+  folders.value = folders.value.filter((f) => f.path !== path)
   // 从数据库移除
   if (api?.folders) {
     await api.folders.remove(path)
@@ -276,26 +363,25 @@ async function createMinecraftFolder() {
     if (!parentPath) return
 
     const minecraftPath = parentPath.replace(/[\\/]+$/, '') + '/.minecraft'
-    
+
     // 调用主进程创建目录
     if (api.path) {
       await api.path.createDir(minecraftPath)
     }
-    
+
     // 添加到列表并切换
     if (api.folders) {
       await api.folders.add(minecraftPath)
     }
-    
+
     folders.value.push({
       path: minecraftPath,
       name: '.minecraft',
       isActive: false
     })
-    
+
     await switchFolder(minecraftPath)
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 // 在 MCLA 安装目录下新建 .minecraft（无文件夹状态使用）
@@ -304,22 +390,21 @@ async function createMinecraftFolderHere() {
     // 获取 MCLA 安装目录，直接在安装目录下创建 .minecraft
     const appPath = await api.path.getAppPath()
     const minecraftPath = appPath.replace(/[\\/]+$/, '') + '/.minecraft'
-    
+
     // 调用主进程创建目录
     await api.path.createDir(minecraftPath)
-    
+
     // 添加到列表并切换
     await api.folders.add(minecraftPath)
-    
+
     folders.value.push({
       path: minecraftPath,
       name: '.minecraft',
       isActive: false
     })
-    
+
     await switchFolder(minecraftPath)
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 // 已安装版本列表
@@ -358,22 +443,21 @@ async function loadVersionsFromFolder(gameDir: string) {
           loaderInfo: v.loaderInfo,
           isActive: exactMatch || fuzzyMatch,
           jarPath: v.jarPath,
-          jsonPath: v.jsonPath,
+          jsonPath: v.jsonPath
         }
       })
     } else {
     }
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 function selectActive(ver: InstalledVer) {
-  installedVersions.value.forEach(v => v.isActive = (v.id === ver.id))
+  installedVersions.value.forEach((v) => (v.isActive = v.id === ver.id))
   emit('select', { id: ver.id, name: ver.name, loader: ver.loaderInfo })
 }
 
 async function removeVersion(id: string) {
-  installedVersions.value = installedVersions.value.filter(v => v.id !== id)
+  installedVersions.value = installedVersions.value.filter((v) => v.id !== id)
   // 从文件系统删除版本
   if (api?.versions) {
     const mcPath = await api.path?.getMinecraft()
@@ -390,7 +474,7 @@ async function removeVersion(id: string) {
   /* 遮罩层 */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -410,7 +494,9 @@ async function removeVersion(id: string) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--mcla-shadow-xl), 0 0 0 1px rgba(99,102,234,0.1);
+  box-shadow:
+    var(--mcla-shadow-xl),
+    0 0 0 1px rgba(99, 102, 234, 0.1);
 }
 
 /* ---- 标题栏 ---- */
@@ -427,12 +513,22 @@ async function removeVersion(id: string) {
 }
 
 .vs-back {
-  width: 30px; height: 30px; border: none; background: transparent;
-  color: var(--mcla-text-secondary); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--mcla-radius-sm); transition: all 0.12s;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--mcla-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mcla-radius-sm);
+  transition: all 0.12s;
   -webkit-app-region: no-drag;
-  &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
+  &:hover {
+    background: var(--mcla-bg-hover);
+    color: var(--mcla-text-primary);
+  }
 }
 
 .vs-title {
@@ -447,11 +543,24 @@ async function removeVersion(id: string) {
   -webkit-app-region: no-drag;
 
   .vs-wc-btn {
-    width: 42px; height: 42px; border: none; background: transparent;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: var(--mcla-text-tertiary); transition: background 0.12s;
-    &:hover { background: var(--mcla-bg-hover); color: var(--mcla-text-primary); }
-    &.vs-close:hover { background: rgba(239,68,68,0.15); color: var(--mcla-error); }
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mcla-text-tertiary);
+    transition: background 0.12s;
+    &:hover {
+      background: var(--mcla-bg-hover);
+      color: var(--mcla-text-primary);
+    }
+    &.vs-close:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--mcla-error);
+    }
   }
 }
 
@@ -474,8 +583,13 @@ async function removeVersion(id: string) {
   flex-direction: column;
   overflow-y: auto;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: var(--mcla-border-color); border-radius: 2px; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mcla-border-color);
+    border-radius: 2px;
+  }
 }
 
 .sidebar-title {
@@ -497,7 +611,9 @@ async function removeVersion(id: string) {
   text-align: center;
   color: var(--mcla-text-muted);
 
-  svg { opacity: 0.4; }
+  svg {
+    opacity: 0.4;
+  }
 
   p {
     margin: 0;
@@ -512,14 +628,16 @@ async function removeVersion(id: string) {
   }
 
   .action-item {
-    .action-icon.create { color: var(--mcla-primary-muted); }
+    .action-icon.create {
+      color: var(--mcla-primary-muted);
+    }
   }
 }
 
 /* 当前文件夹 */
 .current-folder {
   padding: 10px 12px;
-  background: rgba(99,102,234,0.08);
+  background: rgba(99, 102, 234, 0.08);
   border-radius: var(--mcla-radius-md);
   border-left: 3px solid var(--mcla-primary);
 
@@ -583,7 +701,7 @@ async function removeVersion(id: string) {
   position: relative;
 
   &:hover {
-    background: rgba(99,102,234,0.08);
+    background: rgba(99, 102, 234, 0.08);
   }
 
   .fi-top {
@@ -623,11 +741,13 @@ async function removeVersion(id: string) {
 
     &:hover {
       color: var(--mcla-error);
-      background: rgba(239,68,68,0.08);
+      background: rgba(239, 68, 68, 0.08);
     }
   }
 
-  &:hover .folder-remove { opacity: 1; }
+  &:hover .folder-remove {
+    opacity: 1;
+  }
 }
 
 /* 子标题 */
@@ -660,17 +780,25 @@ async function removeVersion(id: string) {
   text-align: left;
 
   &:hover {
-    background: rgba(99,102,234,0.08);
+    background: rgba(99, 102, 234, 0.08);
     color: var(--mcla-primary-muted);
-    .action-icon.add { color: var(--mcla-success); }
-    .action-icon.import { color: var(--mcla-primary-muted); }
+    .action-icon.add {
+      color: var(--mcla-success);
+    }
+    .action-icon.import {
+      color: var(--mcla-primary-muted);
+    }
   }
 
   .action-icon {
     font-size: 14px;
     flex-shrink: 0;
-    &.add { color: var(--mcla-success); }
-    &.import { color: var(--mcla-text-muted); }
+    &.add {
+      color: var(--mcla-success);
+    }
+    &.import {
+      color: var(--mcla-text-muted);
+    }
   }
 }
 
@@ -684,9 +812,16 @@ async function removeVersion(id: string) {
   flex-direction: column;
   gap: 10px;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: var(--mcla-border-color); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mcla-border-color);
+    border-radius: 3px;
+  }
 }
 
 /* 内容区块 */
@@ -706,7 +841,9 @@ async function removeVersion(id: string) {
 
     &.clickable {
       cursor: pointer;
-      &:hover { background: var(--mcla-bg-hover); }
+      &:hover {
+        background: var(--mcla-bg-hover);
+      }
     }
 
     .sec-header-title {
@@ -726,12 +863,20 @@ async function removeVersion(id: string) {
     animation: slideDown 0.2s ease;
   }
 
-  &.collapsed .sec-body { display: none; }
+  &.collapsed .sec-body {
+    display: none;
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ----- 已安装版本项 ----- */
@@ -743,12 +888,14 @@ async function removeVersion(id: string) {
   border-radius: var(--mcla-radius-md);
   transition: background 0.12s;
 
-  &:hover { background: var(--mcla-bg-hover); }
+  &:hover {
+    background: var(--mcla-bg-hover);
+  }
 
   .iv-check {
     flex-shrink: 0;
 
-    input[type="radio"] {
+    input[type='radio'] {
       width: 15px;
       height: 15px;
       accent-color: var(--mcla-primary);
@@ -789,10 +936,14 @@ async function removeVersion(id: string) {
     justify-content: center;
     flex-shrink: 0;
 
-    &:hover { background: rgba(239,68,68,0.1); }
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
   }
 
-  &:hover .iv-remove { opacity: 1; }
+  &:hover .iv-remove {
+    opacity: 1;
+  }
 }
 
 /* 空状态提示 */
@@ -806,16 +957,27 @@ async function removeVersion(id: string) {
     font-size: 12px;
   }
 
-  svg { opacity: 0.35; }
+  svg {
+    opacity: 0.35;
+  }
 }
 
 /* 动画 */
-.modal-fade-enter-active { transition: opacity 0.18s ease; }
-.modal-fade-leave-active { transition: opacity 0.12s ease; }
-.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+.modal-fade-enter-active {
+  transition: opacity 0.18s ease;
+}
+.modal-fade-leave-active {
+  transition: opacity 0.12s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
 
 .modal-fade-enter-active .vs-window {
-  transition: transform 0.2s ease, opacity 0.18s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.18s ease;
 }
 .modal-fade-enter-from .vs-window {
   transform: scale(0.96) translateY(10px);

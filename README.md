@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MCLA](https://img.shields.io/badge/MCLA-v0.4.0-6366f1?style=for-the-badge&labelColor=1e1e2e)
+![MCLA](https://img.shields.io/badge/MCLA-v0.4.2-6366f1?style=for-the-badge&labelColor=1e1e2e)
 ![Electron](https://img.shields.io/badge/Electron-33-478cbf?style=flat-square&logo=electron&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3.5-4db08b?style=flat-square&logo=vuedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?style=flat-square&logo=typescript&logoColor=white)
@@ -98,6 +98,16 @@ cd MCLA
 npm install
 ```
 
+### 环境配置
+
+如需使用 CurseForge API，请在项目根目录创建 `.env` 文件：
+
+```env
+CURSEFORGE_API_KEY=your_api_key_here
+```
+
+申请地址：https://console.curseforge.com/#/api-keys
+
 ### 开发模式
 
 ```bash
@@ -172,7 +182,7 @@ MCLA/
 │   ├── App.vue                  # 根组件（侧边栏 + 内容区 + 全局组件）
 │   ├── router/                  # 路由配置
 │   ├── stores/                  # Pinia 状态管理
-│   ├── pages/                   # 页面（9 个）
+│   ├── pages/                   # 页面（10+ 个）
 │   │   ├── HomePage.vue         # 首页
 │   │   ├── AccountPage.vue      # 账户登录与管理
 │   │   ├── LaunchPage.vue       # 游戏启动（版本选择 + 启动按钮）
@@ -180,6 +190,7 @@ MCLA/
 │   │   ├── InstanceDetail.vue   # 实例详情（Mod 管理 + 配置）
 │   │   ├── VersionsPage.vue     # 版本浏览与安装
 │   │   ├── DownloadsPage.vue     # Mod/整合包下载
+│   │   ├── ModDetailPage.vue    # Mod 详情页
 │   │   ├── SettingsPage.vue     # 全局设置
 │   │   └── MorePage.vue         # 关于 / 鸣谢 / FAQ
 │   ├── components/              # 组件
@@ -240,10 +251,9 @@ MCLA 使用 SQLite（better-sqlite3）持久化数据，6 张表：
 
 ## 版本历史
 
-各版本详细更新日志请查看 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
-
 | 版本 | 日期 | 核心内容 |
 |------|------|-----------|
+| v0.4.2 | 2026-06-02 | 代码规范检查、日志级别修正、API Key 安全配置、ESLint + Prettier 集成 |
 | v0.4.0 | 2026-05-14 | isVersionInstalled 修复、ModLoader IPC 重写、动态版本号 |
 | v0.3.0 | 2026-04-28 | 版本设置补全、Mod 管理增强、游戏启动真实 IPC |
 | v0.2.0 | 2026-04-26 | 微软账户系统、崩溃监控、Mod 下载、皮肤管理 |

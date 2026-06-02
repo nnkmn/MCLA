@@ -10,7 +10,7 @@ import {
   requestDeviceCode,
   pollForToken,
   authenticateWithMicrosoftToken,
-  refreshMicrosoftToken,
+  refreshMicrosoftToken
 } from '../services/microsoft.auth'
 import type { DeviceCodeResponse } from '../services/microsoft.auth'
 import { logger } from '../utils/logger'
@@ -58,11 +58,14 @@ export function registerAccountHandlers(): void {
 
       // 把 user_code 和链接推送给前端显示（此时不自动打开，等用户点击复制后再打开）
       pendingDeviceCode = deviceCodeResp
-      sendProgress('waiting_user', JSON.stringify({
-        userCode: deviceCodeResp.user_code,
-        verificationUri: deviceCodeResp.verification_uri,
-        message: deviceCodeResp.message,
-      }))
+      sendProgress(
+        'waiting_user',
+        JSON.stringify({
+          userCode: deviceCodeResp.user_code,
+          verificationUri: deviceCodeResp.verification_uri,
+          message: deviceCodeResp.message
+        })
+      )
 
       // 2. 轮询等待用户授权
       const msTokens = await pollForToken(
@@ -84,8 +87,8 @@ export function registerAccountHandlers(): void {
         profile.accessToken,
         profile.refreshToken,
         profile.expiresIn,
-        profile.skinUrl || undefined,  // 存原始皮肤 URL
-        profile.xuid  // Xbox 用户 ID（Minecraft 启动参数需要）
+        profile.skinUrl || undefined, // 存原始皮肤 URL
+        profile.xuid // Xbox 用户 ID（Minecraft 启动参数需要）
       )
 
       sendProgress('done', '登录成功')
@@ -125,7 +128,7 @@ export function registerAccountHandlers(): void {
     // 2. 无缓存，尝试从数据库取 skin_url
     if (!skinPath) {
       const accounts = accountService.listAccounts()
-      const account = accounts.find(a => a.uuid === uuid && a.skin_url)
+      const account = accounts.find((a) => a.uuid === uuid && a.skin_url)
       log.info(`[getSkinDataUrl] uuid=${uuid}, skin_url=${account?.skin_url}`)
 
       let skinUrl = account?.skin_url
@@ -138,7 +141,9 @@ export function registerAccountHandlers(): void {
       // 3. DB 里没有 URL，尝试从 MC API 用 UUID 查询（无需认证）
       if (!skinUrl) {
         try {
-          const res = await fetch(`https://api.minecraftservices.com/minecraft/profile/lookup/by uuid/${uuid}`)
+          const res = await fetch(
+            `https://api.minecraftservices.com/minecraft/profile/lookup/by uuid/${uuid}`
+          )
           if (res.ok) {
             const data = await res.json()
             skinUrl = data.skins?.[0]?.url
@@ -209,7 +214,11 @@ export function registerAccountHandlers(): void {
   // ===== 启动时回填旧账户缺失的 xuid =====
   ipcMain.handle('account:backfill-xuid', async () => {
     const db = getDatabase()
-    const accounts = db.prepare("SELECT id, refresh_token FROM accounts WHERE type = 'microsoft' AND (xuid IS NULL OR xuid = '')").all() as { id: string; refresh_token: string | null }[]
+    const accounts = db
+      .prepare(
+        "SELECT id, refresh_token FROM accounts WHERE type = 'microsoft' AND (xuid IS NULL OR xuid = '')"
+      )
+      .all() as { id: string; refresh_token: string | null }[]
     if (accounts.length === 0) {
       return { ok: true, count: 0 }
     }
@@ -252,7 +261,12 @@ export function registerAccountHandlers(): void {
         accountService.backfillXuid(id, profile.xuid)
         log.info(`[account:refresh-token] xuid 回填成功: ${profile.xuid}`)
       }
-      accountService.updateMicrosoftTokens(id, profile.accessToken, profile.refreshToken, profile.expiresIn)
+      accountService.updateMicrosoftTokens(
+        id,
+        profile.accessToken,
+        profile.refreshToken,
+        profile.expiresIn
+      )
       return { ok: true }
     } catch (e: any) {
       return { ok: false, error: e.message || '刷新令牌失败' }

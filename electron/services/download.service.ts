@@ -113,7 +113,7 @@ export class DownloadService extends EventEmitter {
    */
   private processQueue(): void {
     if (this.activeDownloads.size >= this.maxConcurrent) return
-    const pending = [...this.tasks.values()].find(t => t.status === 'pending')
+    const pending = [...this.tasks.values()].find((t) => t.status === 'pending')
     if (pending) this.startDownload(pending)
   }
 
@@ -140,7 +140,7 @@ export class DownloadService extends EventEmitter {
    * 获取活动中的下载
    */
   getActiveDownloads(): DownloadTask[] {
-    return [...this.tasks.values()].filter(t => t.status === 'downloading')
+    return [...this.tasks.values()].filter((t) => t.status === 'downloading')
   }
 
   /**

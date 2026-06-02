@@ -4,32 +4,74 @@
       <div class="modal-panel" ref="panelRef">
         <!-- 安装确认弹窗 -->
         <Teleport to="body">
-          <div v-if="showInstallConfirm && pendingFile && currentInstance" class="confirm-overlay" @click.self="showInstallConfirm = false">
+          <div
+            v-if="showInstallConfirm && pendingFile && currentInstance"
+            class="confirm-overlay"
+            @click.self="showInstallConfirm = false"
+          >
             <div class="confirm-panel">
               <div class="confirm-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mcla-blue)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--mcla-blue)"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                </svg>
                 <span>确认安装</span>
               </div>
               <div class="confirm-body">
-                <p class="confirm-mod-name">{{ pendingFile.displayName || pendingFile.filename }}</p>
+                <p class="confirm-mod-name">
+                  {{ pendingFile.displayName || pendingFile.filename }}
+                </p>
                 <p class="confirm-target">
                   安装到实例 <strong>{{ currentInstance.name }}</strong>
                 </p>
                 <p class="confirm-path">{{ selectedTarget }}</p>
               </div>
               <div class="confirm-actions">
-                <button class="btn-cancel" @click="showInstallConfirm = false; pendingFile = null">取消</button>
+                <button
+                  class="btn-cancel"
+                  @click="showInstallConfirm = false; pendingFile = null"
+                >
+                  取消
+                </button>
                 <button class="btn-confirm" @click="confirmDownload">确认安装</button>
               </div>
             </div>
           </div>
         </Teleport>
 
-        <!-- 头部 -->
+        <!-- 顶部标题栏 -->
         <div class="modal-header">
-          <div class="modal-title">Mod 详情</div>
+          <button class="btn-back" @click="close">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <span class="modal-title">资源下载 - {{ detail?.name || 'Mod' }}</span>
           <button class="btn-close" @click="close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -41,131 +83,165 @@
 
         <!-- 内容 -->
         <div v-else-if="detail" class="modal-content">
-          <!-- 基本信息 -->
-          <div class="info-section">
-            <div class="info-left">
+          <!-- 基本信息卡片 -->
+          <div class="info-card">
+            <div class="info-header">
               <div class="mod-icon-wrap">
                 <img v-if="detail.iconUrl" :src="detail.iconUrl" :alt="detail.name" />
-                <div v-else class="icon-placeholder">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                <div v-else class="icon-placeholder">{{ detail.name?.[0] || 'M' }}</div>
+              </div>
+              <div class="mod-info">
+                <h2 class="mod-name">{{ detail.name }}</h2>
+                <p class="mod-desc">{{ detail.description || '暂无描述' }}</p>
+                <div class="mod-meta">
+                  <span class="meta-item">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                    </svg>
+                    {{ formatNum(detail.downloads) }}
+                  </span>
+                  <span class="meta-item">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v6l4 2" />
+                    </svg>
+                    {{ detail.loaders?.join(' / ') || '' }}
+                  </span>
+                  <span class="meta-item time">{{ lastUpdateTime }}</span>
+                  <span
+                    class="meta-item source"
+                    :class="detail.source === 'curseforge' ? 'cf' : 'mr'"
+                  >
+                    {{ detail.source === 'curseforge' ? 'CurseForge' : 'Modrinth' }}
+                  </span>
                 </div>
               </div>
             </div>
-            <div class="info-right">
-              <h2 class="mod-name">{{ detail.name }}</h2>
-              <p class="mod-author">
-                <span class="by">by</span> {{ detail.author }}
-              </p>
-              <p class="mod-desc">{{ detail.description || '暂无描述' }}</p>
-              <div class="mod-stats">
-                <span class="stat">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                  {{ formatNum(detail.downloads) }} 次下载
-                </span>
-                <span v-if="detail.categories?.length" class="stat tags">
-                  <span v-for="cat in detail.categories.slice(0, 5)" :key="cat" class="cat-chip">{{ cat }}</span>
-                </span>
-              </div>
+
+            <!-- 操作按钮 -->
+            <div class="info-actions">
+              <button class="btn-action primary" @click="openInBrowser">
+                转到 {{ detail.source === 'curseforge' ? 'CurseForge' : 'Modrinth' }}
+              </button>
+              <button class="btn-action" @click="openMcWiki">转到 MC 百科</button>
+              <button class="btn-action" @click="copyName">复制名称</button>
             </div>
           </div>
 
-          <!-- 安装目标（无实例上下文时显示） -->
-          <div v-if="!autoInstance" class="target-section">
-            <div class="target-label">安装到</div>
-            <div class="target-selector">
-              <select class="target-select" v-model="selectedInstanceId">
-                <option value="">-- 选择实例 --</option>
-                <option v-for="inst in instancesStore.instances" :key="inst.id" :value="inst.id">
-                  {{ inst.name }} ({{ inst.mcVersion }}{{ inst.loaderType !== 'vanilla' ? `-${inst.loaderType}` : '' }})
-                </option>
-              </select>
-              <span v-if="selectedInstanceId" class="target-path">
-                {{ getInstanceModsPath(selectedInstanceId) }}
-              </span>
-            </div>
-            <p v-if="!instancesStore.instances.length" class="target-hint">当前没有实例，请先创建一个</p>
+          <!-- MC版本标签栏 -->
+          <div v-if="mcVersions.length" class="version-tabs">
+            <button
+              class="version-tab"
+              :class="{ active: !selectedMcVersion }"
+              @click="selectMcVersion('')"
+            >
+              全部
+            </button>
+            <button
+              v-for="v in mcVersions"
+              :key="v"
+              class="version-tab"
+              :class="{ active: selectedMcVersion === v }"
+              @click="selectMcVersion(v)"
+            >
+              {{ v }}
+            </button>
           </div>
 
-          <!-- 文件版本列表 -->
+          <!-- 版本文件列表（按MC版本分组） -->
           <div class="files-section">
-            <div class="files-header">
-              <span class="files-title">版本文件</span>
-              <span class="files-count">{{ filteredFiles.length }} 个</span>
-            </div>
-
             <div v-if="filesLoading" class="files-loading">
               <div class="spin-sm"></div>
               <span>加载文件列表...</span>
             </div>
 
-            <div v-else-if="!files.length" class="files-empty">
-              暂无可用文件
-            </div>
+            <div v-else-if="!files.length" class="files-empty">暂无可用文件</div>
 
-            <div v-else class="files-list">
+            <div v-else class="versions-list">
               <div
-                v-for="file in filteredFiles"
-                :key="file.id"
-                class="file-item"
-                :class="{
-                  'incompatible': !isCompatible(file),
-                  'recommended': isRecommended(file),
-                }"
+                v-for="(group, mcVersion) in groupedFiles"
+                :key="mcVersion"
+                class="version-group"
               >
-                <div class="file-main">
-                  <div class="file-info">
-                    <div class="file-top">
-                      <span class="file-name">{{ file.displayName || file.fileName }}</span>
-                      <span class="release-tag" :class="file.releaseType">{{ file.releaseType === 'release' ? '正式' : file.releaseType === 'beta' ? 'Beta' : 'Alpha' }}</span>
-                      <span v-if="isRecommended(file)" class="rec-badge">推荐</span>
-                    </div>
-                    <div class="file-meta">
-                      <span class="file-size">{{ formatSize(file.size) }}</span>
-                      <span class="file-date">{{ formatDate(file.datePublished) }}</span>
-                      <span class="file-dls">{{ formatNum(file.downloads) }} 下载</span>
-                    </div>
-                  </div>
-
-                  <!-- 兼容性状态 -->
-                  <div class="compat-info">
-                    <div class="compat-row">
-                      <span class="compat-label">MC</span>
-                      <span
-                        v-for="gv in file.gameVersions.slice(0, 4)"
-                        :key="gv"
-                        class="compat-tag"
-                        :class="{ 'current': currentInstance && gv === currentInstance.mcVersion }"
-                      >{{ gv }}</span>
-                      <span v-if="file.gameVersions.length > 4" class="compat-more">+{{ file.gameVersions.length - 4 }}</span>
-                    </div>
-                    <div v-if="file.loaders?.length" class="compat-row">
-                      <span class="compat-label">加载器</span>
-                      <span
-                        v-for="loader in file.loaders.slice(0, 4)"
-                        :key="loader"
-                        class="compat-tag"
-                        :class="{ 'current': currentInstance && loader.toLowerCase() === currentInstance.loaderType?.toLowerCase() }"
-                      >{{ loader }}</span>
-                    </div>
-                  </div>
-
-                  <!-- 不兼容提示 -->
-                  <div v-if="!isCompatible(file)" class="incompat-tip">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    与当前实例不兼容
-                  </div>
-                </div>
-
-                <div class="file-action">
-                  <button
-                    class="btn-download"
-                    :disabled="!selectedTarget || downloadingId === file.id"
-                    @click="downloadFile(file)"
+                <button
+                  class="group-header"
+                  :class="{ expanded: expandedVersions.includes(mcVersion) }"
+                  @click="toggleVersion(mcVersion)"
+                >
+                  <span class="group-version">{{ mcVersion }}</span>
+                  <span class="group-count">{{ group.length }} 个文件</span>
+                  <svg
+                    class="group-arrow"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
                   >
-                    <svg v-if="downloadingId === file.id" class="spin-sm" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
-                    <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    {{ downloadingId === file.id ? '下载中' : '下载' }}
-                  </button>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div v-if="expandedVersions.includes(mcVersion)" class="group-files">
+                  <div v-for="file in group" :key="file.id" class="file-row">
+                    <div class="file-info">
+                      <span class="file-name">{{ file.displayName || file.filename }}</span>
+                      <span class="file-meta">
+                        <span>{{ formatSize(file.size) }}</span>
+                        <span>{{ formatDate(file.datePublished) }}</span>
+                        <span>{{ formatNum(file.downloads) }} 下载</span>
+                      </span>
+                    </div>
+                    <div class="file-loaders">
+                      <span v-for="loader in file.loaders" :key="loader" class="loader-tag">{{
+                        loader
+                      }}</span>
+                    </div>
+                    <button
+                      class="btn-download"
+                      :disabled="!selectedTarget || downloadingId === file.id"
+                      @click="downloadFile(file)"
+                    >
+                      <svg
+                        v-if="downloadingId === file.id"
+                        class="spin-sm"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                      </svg>
+                      <svg
+                        v-else
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                      {{ downloadingId === file.id ? '下载中' : '下载' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,6 +296,8 @@ const downloadingId = ref<string | null>(null)
 const selectedInstanceId = ref('')
 const showInstallConfirm = ref(false)
 const pendingFile = ref<ProjectFile | null>(null)
+const selectedMcVersion = ref('')
+const expandedVersions = ref<string[]>([])
 
 // ====== 计算属性 ======
 
@@ -227,7 +305,7 @@ const pendingFile = ref<ProjectFile | null>(null)
 const currentInstance = computed(() => {
   if (props.instance) return props.instance
   if (selectedInstanceId.value) {
-    return instancesStore.instances.find(i => i.id === selectedInstanceId.value) ?? null
+    return instancesStore.instances.find((i) => i.id === selectedInstanceId.value) ?? null
   }
   return instancesStore.currentInstance
 })
@@ -243,18 +321,148 @@ const selectedTarget = computed(() => {
 
 /** 过滤后的文件列表（按发布日期倒序） */
 const filteredFiles = computed(() => {
-  return [...files.value].sort((a, b) =>
-    new Date(b.datePublished).getTime() - new Date(a.datePublished).getTime()
+  return [...files.value].sort(
+    (a, b) => new Date(b.datePublished).getTime() - new Date(a.datePublished).getTime()
   )
+})
+
+function isSnapshotVersion(v: string): boolean {
+  return (
+    v.includes('w') || v.toLowerCase().includes('snapshot') || v.includes('pre') || v.includes('rc')
+  )
+}
+
+/** 所有 MC 版本列表（快照版合并到单独分组） */
+const mcVersions = computed(() => {
+  const versions = new Set<string>()
+  let hasSnapshot = false
+
+  files.value.forEach((file) => {
+    file.gameVersions.forEach((v) => {
+      const baseVersion = v.split('-')[0]
+      if (isSnapshotVersion(baseVersion)) {
+        hasSnapshot = true
+      } else {
+        const parts = baseVersion.split('.').slice(0, 2)
+        const mainVersion = parts.join('.')
+        versions.add(mainVersion)
+      }
+    })
+  })
+
+  const sortedVersions = Array.from(versions).sort((a, b) => {
+    const aParts = a.split('.').map(Number)
+    const bParts = b.split('.').map(Number)
+    for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+      if ((aParts[i] || 0) !== (bParts[i] || 0)) {
+        return (bParts[i] || 0) - (aParts[i] || 0)
+      }
+    }
+    return 0
+  })
+
+  if (hasSnapshot) {
+    sortedVersions.push('快照版')
+  }
+
+  return sortedVersions
+})
+
+const hasSnapshotVersions = computed(() => {
+  return files.value.some((file) =>
+    file.gameVersions.some((v) => isSnapshotVersion(v.split('-')[0]))
+  )
+})
+
+/** 按版本筛选后的文件列表 */
+const versionFilteredFiles = computed(() => {
+  if (!selectedMcVersion.value) {
+    return filteredFiles.value
+  }
+
+  if (selectedMcVersion.value === '快照版') {
+    return filteredFiles.value.filter((f) =>
+      f.gameVersions.some((v) => isSnapshotVersion(v.split('-')[0]))
+    )
+  }
+
+  return filteredFiles.value.filter((f) =>
+    f.gameVersions.some((v) => v.startsWith(selectedMcVersion.value))
+  )
+})
+
+/** 按MC版本分组的文件列表 */
+const groupedFiles = computed(() => {
+  const filtered = versionFilteredFiles.value
+  const groups: Record<string, ProjectFile[]> = {}
+
+  filtered.forEach((file) => {
+    file.gameVersions.forEach((mcVersion) => {
+      if (!groups[mcVersion]) {
+        groups[mcVersion] = []
+      }
+      if (!groups[mcVersion].find((f) => f.id === file.id)) {
+        groups[mcVersion].push(file)
+      }
+    })
+  })
+
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    const aParts = a.split('.').map(Number)
+    const bParts = b.split('.').map(Number)
+    for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+      if ((aParts[i] || 0) !== (bParts[i] || 0)) {
+        return (bParts[i] || 0) - (aParts[i] || 0)
+      }
+    }
+    return 0
+  })
+
+  const result: Record<string, ProjectFile[]> = {}
+  sortedKeys.forEach((key) => {
+    result[key] = groups[key]
+  })
+
+  return result
+})
+
+/** 最后更新时间 */
+const lastUpdateTime = computed(() => {
+  if (!files.value.length) return ''
+  const latest = files.value.reduce((prev, curr) => {
+    return new Date(curr.datePublished).getTime() > new Date(prev.datePublished).getTime()
+      ? curr
+      : prev
+  })
+  const diff = Date.now() - new Date(latest.datePublished).getTime()
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  if (days === 0) return '今天更新'
+  if (days === 1) return '1 天前'
+  if (days < 7) return `${days} 天前`
+  if (days < 30) return `${Math.floor(days / 7)} 周前`
+  if (days < 365) return `${Math.floor(days / 30)} 个月前`
+  return `${Math.floor(days / 365)} 年前`
 })
 
 // ====== 生命周期 ======
 
-watch(() => props.modelValue, async (val) => {
-  if (val && props.mod) {
-    await loadAll()
+watch(
+  () => props.modelValue,
+  async (val) => {
+    if (val && props.mod) {
+      await loadAll()
+    }
   }
-})
+)
+
+watch(
+  () => props.mod,
+  async (mod, oldMod) => {
+    if (mod && oldMod && mod.id !== oldMod.id) {
+      await loadAll()
+    }
+  }
+)
 
 // 当切换选择实例时刷新目标路径提示
 watch(selectedInstanceId, async () => {
@@ -268,37 +476,34 @@ async function loadAll() {
   detail.value = null
   files.value = []
   selectedInstanceId.value = ''
+  selectedMcVersion.value = ''
+  expandedVersions.value = []
+
+  if (!props.mod) {
+    loading.value = false
+    return
+  }
+
+  const currentMod = { ...props.mod }
+
+  detail.value = {
+    id: currentMod.id,
+    name: currentMod.name,
+    author: currentMod.author || '',
+    description: currentMod.description || '',
+    iconUrl: currentMod.iconUrl,
+    downloads: currentMod.downloads || 0,
+    follows: currentMod.follows || 0,
+    source: currentMod.source,
+    categories: currentMod.categories || [],
+    gameVersions: currentMod.gameVersions || [],
+    loaders: currentMod.loaders || []
+  }
 
   try {
-    // 获取项目详情
-    const detailRes = await window.electronAPI?.download.getProject(
-      props.mod!.id,
-      props.mod!.source
-    )
-    const d = (detailRes as any)?.data
-    if (d) {
-      detail.value = {
-        id: d.id || props.mod!.id,
-        name: d.name || d.title || props.mod!.name,
-        author: d.author || props.mod!.author,
-        description: d.description || props.mod!.description,
-        iconUrl: d.iconUrl || props.mod!.iconUrl,
-        downloads: d.downloads ?? props.mod!.downloads,
-        follows: d.follows ?? props.mod!.follows,
-        source: d.source || props.mod!.source,
-        categories: d.categories || props.mod!.categories,
-        gameVersions: d.gameVersions || props.mod!.gameVersions,
-        loaders: d.loaders || props.mod!.loaders,
-      }
-    } else {
-      detail.value = props.mod
-    }
-
-    // 获取文件列表
     await loadFiles()
   } catch (e) {
-    // 降级到 props 数据
-    detail.value = props.mod
+    console.error('Failed to load files:', e)
   } finally {
     loading.value = false
   }
@@ -307,12 +512,14 @@ async function loadAll() {
 async function loadFiles() {
   if (!props.mod) return
   filesLoading.value = true
+
+  const projectId = props.mod.id
+  if (!projectId || projectId.length < 3) {
+    filesLoading.value = false
+    return
+  }
   try {
-    const res = await window.electronAPI?.download.getFiles(
-      props.mod.id,
-      props.mod.source,
-      {}
-    )
+    const res = await window.electronAPI?.download.getFiles(props.mod.id, props.mod.source, {})
     const data = (res as any)?.data || []
     files.value = data.map((f: any) => ({
       id: String(f.id),
@@ -324,7 +531,7 @@ async function loadFiles() {
       loaders: f.loaders || [],
       releaseType: (f.releaseType || f.release_type || 'release') as 'release' | 'beta' | 'alpha',
       datePublished: f.datePublished || f.date_published || f.date || '',
-      downloads: f.downloads ?? 0,
+      downloads: f.downloads ?? 0
     })) as ProjectFile[]
   } catch (e) {
     files.value = []
@@ -335,6 +542,15 @@ async function loadFiles() {
 
 async function loadDetail() {
   await loadAll()
+}
+
+function selectMcVersion(version: string) {
+  selectedMcVersion.value = version
+  if (version) {
+    expandedVersions.value = [version]
+  } else {
+    expandedVersions.value = ['']
+  }
 }
 
 // ====== 兼容性判断 ======
@@ -348,13 +564,15 @@ function isCompatible(file: ProjectFile): boolean {
   const inst = currentInstance.value
 
   // MC 版本兼容
-  const mcCompat = file.gameVersions.some(gv =>
-    gv === inst.mcVersion || gv.startsWith(inst.mcVersion + '.')
+  const mcCompat = file.gameVersions.some(
+    (gv) => gv === inst.mcVersion || gv.startsWith(inst.mcVersion + '.')
   )
 
   // 加载器兼容（vanilla 不检查）
-  const loaderCompat = !inst.loaderType || inst.loaderType === 'vanilla'
-    || file.loaders.some(l => l.toLowerCase() === inst.loaderType!.toLowerCase())
+  const loaderCompat =
+    !inst.loaderType ||
+    inst.loaderType === 'vanilla' ||
+    file.loaders.some((l) => l.toLowerCase() === inst.loaderType!.toLowerCase())
 
   return mcCompat && loaderCompat
 }
@@ -391,20 +609,18 @@ async function confirmDownload() {
   const target = `${selectedTarget.value}${file.filename || file.displayName}`
   downloadingId.value = file.id
   try {
-    const res = await window.electronAPI?.download.file(
-      {
-        id: file.id,
-        fileName: file.filename || file.displayName,
-        url: file.downloadUrl,
-        gameVersions: file.gameVersions,
-        loaders: file.loaders,
-        releaseType: file.releaseType,
-        datePublished: file.datePublished,
-        size: file.size,
-        downloads: file.downloads,
-        destination: target,
-      }
-    )
+    const res = await (window.electronAPI as any)?.download.file({
+      id: file.id,
+      fileName: file.filename || file.displayName,
+      url: file.downloadUrl,
+      gameVersions: file.gameVersions,
+      loaders: file.loaders,
+      releaseType: file.releaseType,
+      datePublished: file.datePublished,
+      size: file.size,
+      downloads: file.downloads,
+      destination: target
+    })
 
     const result = res as any
     if (result?.success) {
@@ -422,13 +638,47 @@ async function confirmDownload() {
 // ====== 工具 ======
 
 function getInstanceModsPath(instanceId: string): string {
-  const inst = instancesStore.instances.find(i => i.id === instanceId)
+  const inst = instancesStore.instances.find((i) => i.id === instanceId)
   if (!inst) return ''
   return `${inst.path}/mods/`
 }
 
 function close() {
   emit('update:modelValue', false)
+}
+
+function toggleVersion(mcVersion: string) {
+  const idx = expandedVersions.value.indexOf(mcVersion)
+  if (idx > -1) {
+    expandedVersions.value.splice(idx, 1)
+  } else {
+    expandedVersions.value.push(mcVersion)
+  }
+}
+
+function openInBrowser() {
+  if (!detail.value) return
+  const url =
+    detail.value.source === 'curseforge'
+      ? `https://www.curseforge.com/minecraft/mc-mods/${detail.value.id}`
+      : `https://modrinth.com/mod/${detail.value.id}`
+  ;(window.electronAPI as any)?.openExternal(url)
+}
+
+function openMcWiki() {
+  if (!detail.value) return
+  const name = encodeURIComponent(detail.value.name)
+  ;(window.electronAPI as any)?.openExternal(`https://minecraft.fandom.com/zh/wiki/${name}`)
+}
+
+async function copyName() {
+  if (!detail.value) return
+  try {
+    await navigator.clipboard.writeText(detail.value.name)
+    alert('名称已复制')
+  } catch {
+    alert('复制失败')
+  }
 }
 
 function formatNum(n: number | undefined): string {
@@ -485,15 +735,37 @@ function formatDate(dateStr: string): string {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--mcla-border-color, #313244);
   flex-shrink: 0;
+  gap: 12px;
+}
+
+.btn-back {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--mcla-text-muted, #6c7086);
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+
+  &:hover {
+    background: var(--mcla-bg-hover, rgba(255, 255, 255, 0.06));
+    color: var(--mcla-text-primary, #cdd6f4);
+  }
 }
 
 .modal-title {
-  font-size: 15px;
-  font-weight: 700;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--mcla-text-primary, #cdd6f4);
+  text-align: center;
 }
 
 .btn-close {
@@ -510,7 +782,7 @@ function formatDate(dateStr: string): string {
   transition: all 0.12s;
 
   &:hover {
-    background: var(--mcla-bg-hover, rgba(255,255,255,0.06));
+    background: var(--mcla-bg-hover, rgba(255, 255, 255, 0.06));
     color: var(--mcla-text-primary, #cdd6f4);
   }
 }
@@ -541,7 +813,10 @@ function formatDate(dateStr: string): string {
     font-size: 13px;
     margin-top: 8px;
     transition: all 0.12s;
-    &:hover { border-color: var(--mcla-primary-400, #748ffc); color: var(--mcla-primary-400, #748ffc); }
+    &:hover {
+      border-color: var(--mcla-primary-400, #748ffc);
+      color: var(--mcla-primary-400, #748ffc);
+    }
   }
 }
 
@@ -551,30 +826,40 @@ function formatDate(dateStr: string): string {
   overflow-y: auto;
   padding: 20px;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+  }
 }
 
-/* ====== 基本信息区 ====== */
-.info-section {
+/* ====== 基本信息卡片 ====== */
+.info-card {
+  background: var(--mcla-surface, #1e1e2e);
+  border: 1px solid var(--mcla-border-color, #313244);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.info-header {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--mcla-border-color, #313244);
-}
-
-.info-left {
-  flex-shrink: 0;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .mod-icon-wrap {
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--mcla-bg-secondary, #181825);
+  flex-shrink: 0;
 
   img {
     width: 100%;
@@ -588,69 +873,100 @@ function formatDate(dateStr: string): string {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--mcla-text-muted, #6c7086);
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
   }
 }
 
-.info-right {
+.mod-info {
   flex: 1;
   min-width: 0;
 }
 
 .mod-name {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--mcla-text-primary, #cdd6f4);
   margin: 0 0 4px;
   word-break: break-word;
 }
 
-.mod-author {
-  font-size: 13px;
-  color: var(--mcla-text-muted, #6c7086);
-  margin: 0 0 8px;
-
-  .by { opacity: 0.6; margin-right: 2px; }
-}
-
 .mod-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--mcla-text-secondary, #a6adc8);
-  margin: 0 0 10px;
-  line-height: 1.5;
-  display: -webkit-box;
-  display: box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  margin: 0 0 8px;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.mod-stats {
+.mod-meta {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--mcla-text-muted, #6c7086);
 
-  .stat {
-    display: inline-flex;
+  .meta-item {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--mcla-text-muted, #6c7086);
+    gap: 2px;
 
-    svg { stroke: var(--mcla-success, #a6e3a1); }
+    svg {
+      color: var(--mcla-success, #a6e3a1);
+    }
+
+    &.time {
+      color: var(--mcla-text-muted, #6c7086);
+    }
+
+    &.source {
+      &.mr {
+        color: #1bd96a;
+      }
+      &.cf {
+        color: #f16436;
+      }
+    }
+  }
+}
+
+.info-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mcla-border-color, #313244);
+}
+
+.btn-action {
+  flex: 1;
+  height: 30px;
+  padding: 0 12px;
+  background: var(--mcla-bg-secondary, #181825);
+  border: 1px solid var(--mcla-border-color, #313244);
+  border-radius: 6px;
+  color: var(--mcla-text-secondary, #a6adc8);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover {
+    border-color: var(--mcla-primary-400, #748ffc);
+    color: var(--mcla-primary-400, #748ffc);
   }
 
-  .tags { gap: 4px; }
+  &.primary {
+    background: var(--mcla-blue, #6366f1);
+    border-color: var(--mcla-blue, #6366f1);
+    color: #fff;
 
-  .cat-chip {
-    padding: 1px 7px;
-    font-size: 10.5px;
-    background: var(--mcla-primary-light, rgba(99,102,241,0.12));
-    color: var(--mcla-primary-400, #89b4fa);
-    border-radius: 3px;
-    font-weight: 600;
+    &:hover {
+      background: var(--mcla-blue-hover, #4f46e5);
+      border-color: var(--mcla-blue-hover, #4f46e5);
+    }
   }
 }
 
@@ -692,7 +1008,9 @@ function formatDate(dateStr: string): string {
   cursor: pointer;
   transition: border-color 0.12s;
 
-  &:focus { border-color: var(--mcla-primary-400, #748ffc); }
+  &:focus {
+    border-color: var(--mcla-primary-400, #748ffc);
+  }
 }
 
 .target-path {
@@ -731,10 +1049,160 @@ function formatDate(dateStr: string): string {
   color: var(--mcla-text-muted, #6c7086);
 }
 
-.files-list {
+/* MC版本标签栏 */
+.version-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--mcla-border-color, #313244);
+}
+
+.version-tab {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mcla-text-secondary, #a6adc8);
+  background: var(--mcla-bg-secondary, #181825);
+  border: 1px solid var(--mcla-border-color, #313244);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover {
+    border-color: var(--mcla-primary-400, #748ffc);
+    color: var(--mcla-primary-400, #748ffc);
+  }
+
+  &.active {
+    background: var(--mcla-primary-light, rgba(99, 102, 241, 0.12));
+    border-color: var(--mcla-primary-400, #748ffc);
+    color: var(--mcla-primary-300, #89b4fa);
+  }
+}
+
+/* 版本分组列表 */
+.versions-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+.version-group {
+  background: var(--mcla-surface, #1e1e2e);
+  border: 1px solid var(--mcla-border-color, #313244);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.group-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--mcla-bg-hover, rgba(255, 255, 255, 0.03));
+  }
+
+  &.expanded {
+    background: rgba(99, 102, 241, 0.05);
+  }
+}
+
+.group-version {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mcla-text-primary, #cdd6f4);
+}
+
+.group-count {
+  font-size: 11px;
+  color: var(--mcla-text-muted, #6c7086);
+  margin-right: 8px;
+}
+
+.group-arrow {
+  color: var(--mcla-text-muted, #6c7086);
+  transition: transform 0.2s;
+}
+
+.expanded .group-arrow {
+  transform: rotate(180deg);
+}
+
+.group-files {
+  border-top: 1px solid var(--mcla-border-color, #313244);
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mcla-border-color, #313244);
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--mcla-bg-hover, rgba(255, 255, 255, 0.03));
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-info .file-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mcla-text-primary, #cdd6f4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-info .file-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--mcla-text-muted, #6c7086);
+
+  span {
+    &:not(:last-child)::after {
+      content: '|';
+      margin-left: 8px;
+      color: var(--mcla-text-muted, #6c7086);
+    }
+  }
+}
+
+.file-loaders {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.loader-tag {
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--mcla-bg-secondary, #181825);
+  color: var(--mcla-text-secondary, #a6adc8);
+  border-radius: 3px;
+  border: 1px solid var(--mcla-border-color, #313244);
 }
 
 .files-loading {
@@ -765,13 +1233,17 @@ function formatDate(dateStr: string): string {
 
   &.incompatible {
     border-color: rgba(243, 139, 168, 0.4);
-    &:hover { border-color: rgba(243, 139, 168, 0.6); }
+    &:hover {
+      border-color: rgba(243, 139, 168, 0.6);
+    }
   }
 
   &.recommended {
     border-color: rgba(166, 227, 161, 0.3);
     background: rgba(166, 227, 161, 0.03);
-    &:hover { border-color: rgba(166, 227, 161, 0.5); }
+    &:hover {
+      border-color: rgba(166, 227, 161, 0.5);
+    }
   }
 }
 
@@ -892,7 +1364,9 @@ function formatDate(dateStr: string): string {
   color: var(--mcla-text-error, #f38ba8);
   margin-top: 2px;
 
-  svg { flex-shrink: 0; }
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 /* ====== 下载按钮 ====== */
@@ -945,7 +1419,9 @@ function formatDate(dateStr: string): string {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ====== 安装确认弹窗 ====== */

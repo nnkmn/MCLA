@@ -16,7 +16,7 @@ import type {
   GameVersion,
   JavaInfo,
   ModLoader,
-  CrashReport,
+  CrashReport
 } from '../types/adapter.types'
 import { logger } from '../utils/logger'
 const log = logger.child('MC-Adapter')
@@ -43,20 +43,16 @@ function getJavaSearchPaths(): string[] {
       'C:\\Program Files (x86)\\Java',
       'C:\\Program Files\\Eclipse Adoptium',
       'C:\\Program Files\\Microsoft',
-      path.join(process.env.LOCALAPPDATA || '', 'Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\local-runtime'),
+      path.join(
+        process.env.LOCALAPPDATA || '',
+        'Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\local-runtime'
+      )
     ]
   }
   if (process.platform === 'darwin') {
-    return [
-      '/Library/Java/JavaVirtualMachines',
-      '/usr/local/opt',
-    ]
+    return ['/Library/Java/JavaVirtualMachines', '/usr/local/opt']
   }
-  return [
-    '/usr/lib/jvm',
-    '/usr/local/lib/jvm',
-    '/opt/java',
-  ]
+  return ['/usr/lib/jvm', '/usr/local/lib/jvm', '/opt/java']
 }
 
 /** 在目录树中找到 java 可执行文件 */
@@ -78,7 +74,9 @@ async function findJavaExecutables(searchDir: string): Promise<string[]> {
           walk(fullPath, depth + 1)
         }
       }
-    } catch { /* ignore permission errors */ }
+    } catch {
+      /* ignore permission errors */
+    }
   }
   walk(searchDir)
   return results
@@ -117,12 +115,14 @@ async function fetchMojangVersions(): Promise<GameVersion[]> {
   try {
     const res = await fetch(MOJANG_MANIFEST_URL)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json() as { versions: Array<{ id: string; type: string; releaseTime: string }> }
-    return data.versions.map(v => ({
+    const data = (await res.json()) as {
+      versions: Array<{ id: string; type: string; releaseTime: string }>
+    }
+    return data.versions.map((v) => ({
       id: v.id,
       name: v.id,
       releaseTime: v.releaseTime,
-      type: v.type as GameVersion['type'],
+      type: v.type as GameVersion['type']
     }))
   } catch (e) {
     log.error('[MC Adapter] Failed to fetch versions:', e)
@@ -133,15 +133,15 @@ async function fetchMojangVersions(): Promise<GameVersion[]> {
 // ── 崩溃日志解析 ──────────────────────────────────────────────
 function parseCrashLogContent(content: string): CrashReport {
   const versionMatch = content.match(/Minecraft Version:\s+(.+)/)
-  const causeMatch = content.match(/-- Head --[\s\S]*?Caused by:\s+(.+)/) ||
-                     content.match(/Description:\s+(.+)/)
+  const causeMatch =
+    content.match(/-- Head --[\s\S]*?Caused by:\s+(.+)/) || content.match(/Description:\s+(.+)/)
   const timestamp = Date.now()
 
   const stackLines = content
     .split('\n')
-    .filter(l => l.trim().startsWith('at ') || l.trim().startsWith('Caused by:'))
+    .filter((l) => l.trim().startsWith('at ') || l.trim().startsWith('Caused by:'))
     .slice(0, 20)
-    .map(l => l.trim())
+    .map((l) => l.trim())
 
   const recommendations: string[] = []
   if (content.includes('OutOfMemoryError')) recommendations.push('增加 JVM 最大内存（-Xmx）')
@@ -154,7 +154,7 @@ function parseCrashLogContent(content: string): CrashReport {
     timestamp,
     cause: causeMatch?.[1] ?? '未知原因',
     stackTrace: stackLines,
-    recommendedActions: recommendations,
+    recommendedActions: recommendations
   }
 }
 
@@ -164,7 +164,7 @@ export class MinecraftJavaAdapter implements IGameAdapter {
     id: 'minecraft-java',
     name: 'Minecraft: Java Edition',
     icon: 'mc-java',
-    supportedPlatforms: ['windows', 'macos', 'linux'],
+    supportedPlatforms: ['windows', 'macos', 'linux']
   }
 
   async getVersions(): Promise<GameVersion[]> {
@@ -184,8 +184,8 @@ export class MinecraftJavaAdapter implements IGameAdapter {
     // 1. 从 BMCLAPI 获取版本清单，找到版本 JSON 下载地址
     const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
     if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
-    const manifest = await manifestRes.json() as { versions: Array<{ id: string; url: string }> }
-    const verEntry = manifest.versions.find(v => v.id === versionId)
+    const manifest = (await manifestRes.json()) as { versions: Array<{ id: string; url: string }> }
+    const verEntry = manifest.versions.find((v) => v.id === versionId)
     if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
 
     // 2. 下载版本 JSON
@@ -199,7 +199,8 @@ export class MinecraftJavaAdapter implements IGameAdapter {
     // 3. 解析 client.jar 下载地址
     const versionJson = JSON.parse(jsonText)
     const clientUrl: string | undefined = versionJson.downloads?.client?.url
-    if (!clientUrl) throw new Error(`${versionId}.json 中缺少 downloads.client.url，可能是不支持的远古版`)
+    if (!clientUrl)
+      throw new Error(`${versionId}.json 中缺少 downloads.client.url，可能是不支持的远古版`)
 
     // 4. 下载 client.jar
     const jarPath = join(versionDir, `${versionId}.jar`)
@@ -221,7 +222,11 @@ export class MinecraftJavaAdapter implements IGameAdapter {
   async launchGame(instance: GameInstance, account: unknown): Promise<unknown> {
     // 委托给已有的 launcher.ts service
     // 实际使用时由 game.ipc.ts 调用 launcherService，这里作为接口占位
-    log.info('[MC Adapter] launchGame ->', instance.id, (account as { username?: string })?.username)
+    log.info(
+      '[MC Adapter] launchGame ->',
+      instance.id,
+      (account as { username?: string })?.username
+    )
     return { success: true, pid: -1 }
   }
 
@@ -245,7 +250,9 @@ export class MinecraftJavaAdapter implements IGameAdapter {
       const pathJava = process.platform === 'win32' ? 'java.exe' : 'java'
       const info = await getJavaInfo(pathJava)
       if (info && !seen.has(info.path)) found.push(info)
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     return found
   }
@@ -256,17 +263,17 @@ export class MinecraftJavaAdapter implements IGameAdapter {
       { type: 'fabric', name: 'Fabric', supportedVersions: [] },
       { type: 'forge', name: 'Forge', supportedVersions: [] },
       { type: 'quilt', name: 'Quilt', supportedVersions: [] },
-      { type: 'neoforge', name: 'NeoForge', supportedVersions: [] },
+      { type: 'neoforge', name: 'NeoForge', supportedVersions: [] }
     ]
 
     // 过滤：1.13 以前的版本不支持 Fabric/Quilt/NeoForge
     const [major, minor] = minecraftVersion.split('.').map(Number)
     if (major === 1 && minor < 13) {
-      return loaders.filter(l => l.type === 'forge')
+      return loaders.filter((l) => l.type === 'forge')
     }
     // NeoForge 仅支持 1.20.2+
     if (major === 1 && minor < 20) {
-      return loaders.filter(l => l.type !== 'neoforge')
+      return loaders.filter((l) => l.type !== 'neoforge')
     }
 
     return loaders

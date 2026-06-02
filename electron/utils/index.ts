@@ -14,6 +14,6 @@ export {
   detectJavaInstallations,
   normalizePath,
   buildShellCommand,
-  revealInExplorer,
+  revealInExplorer
 } from './platform'
 export type { PlatformInfo, OSType, JavaEntry } from './platform'

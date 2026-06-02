@@ -22,10 +22,14 @@
       <!-- 窗口控制 -->
       <div class="wc" v-if="isElectron">
         <button class="wc-btn" @click="minimizeWindow">
-          <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+          <svg width="10" height="1" viewBox="0 0 10 1">
+            <rect width="10" height="1" fill="currentColor" />
+          </svg>
         </button>
         <button class="wc-btn wc-close" @click="closeWindow">
-          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+          </svg>
         </button>
       </div>
     </header>
@@ -34,7 +38,6 @@
     <div class="app-body">
       <!-- 左侧边栏（根据当前页面动态渲染不同内容） -->
       <aside class="sidebar">
-
         <!-- ========== 首页侧栏：账户 + 启动（PCL2 风格）========== -->
         <template v-if="currentRoute === '/'">
           <div class="sb-home">
@@ -44,12 +47,39 @@
                 class="auth-btn"
                 :class="{ active: accountMode === 'online' }"
                 @click="accountMode = 'online'"
-              ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>正版</button>
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg
+                >正版
+              </button>
               <button
                 class="auth-btn"
                 :class="{ active: accountMode === 'offline' }"
                 @click="accountMode = 'offline'"
-              ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 010-10h2"/><path d="M15 7h2a5 5 0 010 10h-2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="3" y1="3" x2="21" y2="21"/></svg>离线</button>
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 17H7a5 5 0 010-10h2" />
+                  <path d="M15 7h2a5 5 0 010 10h-2" />
+                  <line x1="9" y1="12" x2="15" y2="12" />
+                  <line x1="3" y1="3" x2="21" y2="21" /></svg
+                >离线
+              </button>
             </div>
 
             <!-- ===== 正版模式 ===== -->
@@ -57,9 +87,22 @@
               <!-- 头像 -->
               <div class="avatar-default-icon">
                 <img v-if="avatarUrl" :src="avatarUrl" class="avatar-img" :alt="userName" />
-                <span v-else-if="userName" class="avatar-letter">{{ userName[0]?.toUpperCase() }}</span>
-                <svg v-else width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                <span v-else-if="userName" class="avatar-letter">{{
+                  userName[0]?.toUpperCase()
+                }}</span>
+                <svg
+                  v-else
+                  width="44"
+                  height="44"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                 </svg>
               </div>
 
@@ -72,19 +115,55 @@
                     :key="acc.id"
                     :value="acc.id"
                     :selected="acc.isActive === 1"
-                  >{{ acc.name }} ({{ acc.type === 'microsoft' ? '微软' : '离线' }})</option>
+                  >
+                    {{ acc.name }} ({{ acc.type === 'microsoft' ? '微软' : '离线' }})
+                  </option>
                   <option value="add">+ 添加新账号</option>
                 </select>
               </div>
 
               <!-- 外链入口 -->
               <div class="auth-external-links">
-                <a class="auth-ext-btn" href="https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj" target="_blank" rel="noopener">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                <a
+                  class="auth-ext-btn"
+                  href="https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 01-8 0" />
+                  </svg>
                   购买正版
                 </a>
-                <a class="auth-ext-btn" href="https://www.minecraft.net/zh-hans" target="_blank" rel="noopener">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                <a
+                  class="auth-ext-btn"
+                  href="https://www.minecraft.net/zh-hans"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path
+                      d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
+                    />
+                  </svg>
                   前往官网
                 </a>
               </div>
@@ -97,22 +176,22 @@
                 <!-- CSS 绘制的像素 Steve 脸 -->
                 <svg width="48" height="48" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                   <!-- Steve face - pixel art style -->
-                  <rect x="0" y="0" width="16" height="16" rx="2" fill="#C69C6D"/>
+                  <rect x="0" y="0" width="16" height="16" rx="2" fill="#C69C6D" />
                   <!-- Hair (orange) -->
-                  <rect x="2" y="1" width="12" height="5" fill="#E07A28"/>
-                  <rect x="3" y="0" width="10" height="2" fill="#E07A28"/>
+                  <rect x="2" y="1" width="12" height="5" fill="#E07A28" />
+                  <rect x="3" y="0" width="10" height="2" fill="#E07A28" />
                   <!-- Skin tone -->
-                  <rect x="2" y="5" width="12" height="9" fill="#D4A574"/>
+                  <rect x="2" y="5" width="12" height="9" fill="#D4A574" />
                   <!-- Eyes (green) -->
-                  <rect x="4" y="7" width="2" height="2" fill="#3A8B47"/>
-                  <rect x="10" y="7" width="2" height="2" fill="#3A8B47"/>
+                  <rect x="4" y="7" width="2" height="2" fill="#3A8B47" />
+                  <rect x="10" y="7" width="2" height="2" fill="#3A8B47" />
                   <!-- Nose -->
-                  <rect x="7" y="9" width="2" height="2" fill="#C69C6D"/>
+                  <rect x="7" y="9" width="2" height="2" fill="#C69C6D" />
                   <!-- Mouth -->
-                  <rect x="5" y="12" width="6" height="1" fill="#8B5A3C"/>
+                  <rect x="5" y="12" width="6" height="1" fill="#8B5A3C" />
                   <!-- Eyebrows -->
-                  <rect x="3" y="6" width="4" height="1" fill="#B86B18"/>
-                  <rect x="9" y="6" width="4" height="1" fill="#B86B18"/>
+                  <rect x="3" y="6" width="4" height="1" fill="#B86B18" />
+                  <rect x="9" y="6" width="4" height="1" fill="#B86B18" />
                 </svg>
               </div>
 
@@ -125,7 +204,9 @@
                     :key="acc.id"
                     :value="acc.id"
                     :selected="acc.isActive === 1"
-                  >{{ acc.name }}</option>
+                  >
+                    {{ acc.name }}
+                  </option>
                   <option value="add">+ 添加离线账号</option>
                 </select>
               </div>
@@ -137,17 +218,13 @@
             <!-- 启动区域 -->
             <div class="sb-launch-area">
               <!-- 启动按钮（PCL2 描边风格） -->
-              <button
-                class="btn-launch-pcl2"
-                @click="handleLaunch"
-                :disabled="isLaunching"
-              >
+              <button class="btn-launch-pcl2" @click="handleLaunch" :disabled="isLaunching">
                 <span class="launch-label">{{ isLaunching ? '启动中...' : '启动游戏' }}</span>
                 <span class="launch-version">{{ selectedVersion }}</span>
               </button>
 
               <!-- 版本操作按钮 -->
-              <div class="version-actions" style="margin-bottom: 8px;">
+              <div class="version-actions" style="margin-bottom: 8px">
                 <button class="ver-btn" @click="showVersionSelectModal = true">版本选择</button>
                 <button class="ver-btn" @click="showVersionSettings = true">版本设置</button>
               </div>
@@ -231,7 +308,17 @@
         <template v-else-if="currentRoute === '/instances'">
           <nav class="sb-nav">
             <button class="nav-item active">
-              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span>
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg
+              ></span>
               全部实例
             </button>
           </nav>
@@ -241,7 +328,17 @@
         <template v-else-if="currentRoute === '/account'">
           <nav class="sb-nav">
             <button class="nav-item" @click="$router.push('/')">
-              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M15 18l-6-6 6-6" /></svg
+              ></span>
               返回首页
             </button>
           </nav>
@@ -251,12 +348,21 @@
         <template v-else-if="currentRoute.startsWith('/download')">
           <nav class="sb-nav">
             <button class="nav-item" @click="$router.push('/downloads')">
-              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M15 18l-6-6 6-6" /></svg
+              ></span>
               返回下载页
             </button>
           </nav>
         </template>
-
       </aside>
 
       <!-- 主内容区 -->
@@ -279,10 +385,7 @@
     />
 
     <!-- 版本选择弹窗 -->
-    <VersionSelect
-      v-model:visible="showVersionSelectModal"
-      @select="onVersionSelect"
-    />
+    <VersionSelect v-model:visible="showVersionSelectModal" @select="onVersionSelect" />
 
     <!-- 账户管理抽屉 -->
     <AccountManager v-model:visible="showAccountManager" />
@@ -318,8 +421,8 @@ const versionGameDir = computed(() =>
 )
 
 // 当前选中版本的 instanceId（通过 path 匹配）
-const currentInstanceId = computed(() =>
-  instancesStore.instances.find(i => i.path === versionGameDir.value)?.id ?? ''
+const currentInstanceId = computed(
+  () => instancesStore.instances.find((i) => i.path === versionGameDir.value)?.id ?? ''
 )
 
 // 版本被删除后刷新
@@ -387,22 +490,26 @@ function syncAccountMode() {
 }
 
 // 监听活跃账号变化，自动切换模式 + 加载皮肤
-watch(() => accountsStore.activeAccount, async () => {
-  syncAccountMode()
-  await loadSkin()
-}, { immediate: true })
+watch(
+  () => accountsStore.activeAccount,
+  async () => {
+    syncAccountMode()
+    await loadSkin()
+  },
+  { immediate: true }
+)
 
 // 根据当前模式过滤账号列表
 const filteredAccounts = computed(() => {
   if (accountMode.value === 'online') {
-    return accountsStore.accounts.filter(a => a.type === 'microsoft')
+    return accountsStore.accounts.filter((a) => a.type === 'microsoft')
   } else {
-    return accountsStore.accounts.filter(a => a.type === 'offline')
+    return accountsStore.accounts.filter((a) => a.type === 'offline')
   }
 })
 
 // 离线账号列表（始终显示）
-const offlineAccounts = computed(() => accountsStore.accounts.filter(a => a.type === 'offline'))
+const offlineAccounts = computed(() => accountsStore.accounts.filter((a) => a.type === 'offline'))
 
 // 离线名称（localStorage 持久化）
 const OFFLINE_NAME_KEY = 'mcla_offline_name'
@@ -427,7 +534,11 @@ const showVersionSelect = ref(false)
 const selectedVersionId = ref('')
 const selectedVersion = ref('选择版本')
 
-interface VersionItem { id: string; name: string; loader?: string }
+interface VersionItem {
+  id: string
+  name: string
+  loader?: string
+}
 
 // 本地版本列表（从 Store 获取真实数据）
 const versions = ref<VersionItem[]>([])
@@ -441,63 +552,66 @@ async function loadLocalInstalledVersions() {
   if (window.electronAPI?.path) {
     try {
       const customPath = await window.electronAPI.path.getCustom()
-      const mcPath = customPath || await window.electronAPI.path.getMinecraft()
+      const mcPath = customPath || (await window.electronAPI.path.getMinecraft())
       const result = await window.electronAPI.versions.scanFolder(mcPath)
       if (result?.ok && result.data?.length) {
         versions.value = result.data.map((v: any) => ({
-          id: v.id,                    // 真实文件夹名，用于启动
-          name: v.baseVersion || v.id,  // 显示用基础版本号
-          loader: v.loaderInfo || '',
+          id: v.id, // 真实文件夹名，用于启动
+          name: v.baseVersion || v.id, // 显示用基础版本号
+          loader: v.loaderInfo || ''
         }))
         return
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // 兜底：用实例数据库
   if (instancesStore.instances.length) {
-    versions.value = instancesStore.instances.map(inst => ({
+    versions.value = instancesStore.instances.map((inst) => ({
       id: inst.path || inst.id,
       name: inst.path || inst.mcVersion || inst.id,
-      loader: inst.loaderType !== 'vanilla' ? `${inst.loaderType} ${inst.loaderVersion}` : '',
+      loader: inst.loaderType !== 'vanilla' ? `${inst.loaderType} ${inst.loaderVersion}` : ''
     }))
   }
 }
 
 // Store 版本变化时同步到 versions（仅执行一次，避免热重载重复触发）
-watch(() => versionsStore.versions, (storeVersions) => {
-  if (storeVersions.length) {
-    // 优先用本地已安装版本（已有数据则跳过）
-    if (versions.value.length) return
+watch(
+  () => versionsStore.versions,
+  (storeVersions) => {
+    if (storeVersions.length) {
+      // 优先用本地已安装版本（已有数据则跳过）
+      if (versions.value.length) return
 
-    versions.value = storeVersions.slice(0, 20).map(v => ({
-      id: v.id,
-      name: v.name,
-      loader: '',
-    }))
+      versions.value = storeVersions.slice(0, 20).map((v) => ({
+        id: v.id,
+        name: v.name,
+        loader: ''
+      }))
 
-    // 优先用精确保存的版本名恢复（处理带 loader 的版本）
-    const savedDisplayName = localStorage.getItem('mcla_last_version_name')
-    const lastId = localStorage.getItem('mcla_last_version')
-    if (savedDisplayName && lastId) {
-      // 尝试在版本列表中匹配
-      const match = versions.value.find(v => v.id === lastId)
-      if (match) {
-        selectedVersionId.value = lastId
-        selectedVersion.value = `${match.name}${match.loader ? '-' + match.loader : ''}`
-        userHasSelectedVersion.value = true
-        versionsStore.setCurrentVersion(lastId)
-      } else {
-        // 保存的版本不在列表中，保持当前选择（不要 fallback）
-        userHasSelectedVersion.value = true
+      // 优先用精确保存的版本名恢复（处理带 loader 的版本）
+      const savedDisplayName = localStorage.getItem('mcla_last_version_name')
+      const lastId = localStorage.getItem('mcla_last_version')
+      if (savedDisplayName && lastId) {
+        // 尝试在版本列表中匹配
+        const match = versions.value.find((v) => v.id === lastId)
+        if (match) {
+          selectedVersionId.value = lastId
+          selectedVersion.value = `${match.name}${match.loader ? '-' + match.loader : ''}`
+          userHasSelectedVersion.value = true
+          versionsStore.setCurrentVersion(lastId)
+        } else {
+          // 保存的版本不在列表中，保持当前选择（不要 fallback）
+          userHasSelectedVersion.value = true
+        }
+      } else if (!userHasSelectedVersion.value && versions.value.length) {
+        // 从未选择过版本 + 有版本列表 → 选第一个
+        selectVersion(versions.value[0])
       }
-    } else if (!userHasSelectedVersion.value && versions.value.length) {
-      // 从未选择过版本 + 有版本列表 → 选第一个
-      selectVersion(versions.value[0])
     }
-  }
-}, { immediate: true, once: true })
+  },
+  { immediate: true, once: true }
+)
 
 // 下载页分类
 const dlActiveCat = ref('vanilla')
@@ -510,9 +624,21 @@ const moreActive = ref('about')
 
 // 更多页分类列表
 const moreCategories = [
-  { id: 'about', label: '关于与鸣谢', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' },
-  { id: 'help', label: '帮助', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>' },
-  { id: 'feedback', label: '反馈', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' },
+  {
+    id: 'about',
+    label: '关于与鸣谢',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+  },
+  {
+    id: 'help',
+    label: '帮助',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>'
+  },
+  {
+    id: 'feedback',
+    label: '反馈',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'
+  }
 ]
 
 onMounted(async () => {
@@ -527,8 +653,7 @@ onMounted(async () => {
       } else {
         minecraftPath.value = await window.electronAPI.path.getMinecraft()
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // 加载本地已安装版本（优先于远程版本）
@@ -540,7 +665,7 @@ onMounted(async () => {
     const lastId = localStorage.getItem('mcla_last_version')
     if (savedDisplayName && lastId) {
       // 优先用精确保存的版本名恢复
-      const match = versions.value.find(v => v.id === lastId)
+      const match = versions.value.find((v) => v.id === lastId)
       if (match) {
         selectedVersionId.value = lastId
         selectedVersion.value = `${match.name}${match.loader ? '-' + match.loader : ''}`
@@ -577,7 +702,7 @@ onMounted(async () => {
       { id: '1.20.4', name: '1.20.4', loader: '' },
       { id: '1.20.1', name: '1.20.1', loader: 'Fabric 0.16.9' },
       { id: '1.20.2', name: '1.20.2', loader: 'NeoForge 47.1' },
-      { id: '1.19.2', name: '1.19.2', loader: 'Forge 45.2' },
+      { id: '1.19.2', name: '1.19.2', loader: 'Forge 45.2' }
     ]
     const savedDisplayName = localStorage.getItem('mcla_last_version_name')
     const lastId = localStorage.getItem('mcla_last_version')
@@ -587,7 +712,7 @@ onMounted(async () => {
       selectedVersion.value = savedDisplayName
     } else if (lastId) {
       // 有 lastId 但不在当前列表中 → 尝试模糊匹配
-      const fuzzy = versions.value.find(v => v.name && lastId.includes(v.name))
+      const fuzzy = versions.value.find((v) => v.name && lastId.includes(v.name))
       if (fuzzy) {
         selectedVersionId.value = fuzzy.id
         selectedVersion.value = `${fuzzy.name}${fuzzy.loader ? '-' + fuzzy.loader : ''}`
@@ -619,7 +744,7 @@ onMounted(async () => {
           name: data.versionId,
           mcVersion: data.versionId,
           loaderType: 'vanilla',
-          loaderVersion: '',
+          loaderVersion: ''
         })
       }
     })
@@ -666,7 +791,7 @@ async function onAccountSelect(event: Event) {
     return
   }
 
-  if (value && accountsStore.accounts.find(a => a.id === value)) {
+  if (value && accountsStore.accounts.find((a) => a.id === value)) {
     await accountsStore.setActive(value)
   }
   select.value = accountsStore.activeAccount?.id || ''
@@ -698,8 +823,7 @@ async function handleLaunch() {
 
   // 监听启动进度
   if (window.electronAPI?.game.onProgress) {
-    window.electronAPI.game.onProgress((progress) => {
-    })
+    window.electronAPI.game.onProgress((progress) => {})
   }
 
   try {
@@ -732,34 +856,94 @@ function handleMicrosoftLogin() {
 
 // ====== 标签定义 ======
 const tabs = [
-  { path: '/', label: '启动', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' },
-  { path: '/instances', label: '实例', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>' },
-  { path: '/downloads', label: '下载', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>' },
-  { path: '/settings', label: '设置', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
-  { path: '/more', label: '更多', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' },
+  {
+    path: '/',
+    label: '启动',
+    svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+  },
+  {
+    path: '/instances',
+    label: '实例',
+    svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
+  },
+  {
+    path: '/downloads',
+    label: '下载',
+    svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>'
+  },
+  {
+    path: '/settings',
+    label: '设置',
+    svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'
+  },
+  {
+    path: '/more',
+    label: '更多',
+    svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>'
+  }
 ]
 
 // 下载分类
 const dlCategories = [
-  { id: 'vanilla', label: '原版游戏', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>' },
+  {
+    id: 'vanilla',
+    label: '原版游戏',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
+  }
 ]
 const communityCategories = [
-  { id: 'mod', label: 'Mod', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>' },
-  { id: 'modpack', label: '整合包', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>' },
-  { id: 'datapack', label: '数据包', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
-  { id: 'resourcepack', label: '资源包', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' },
-  { id: 'shader', label: '光影包', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>' },
+  {
+    id: 'mod',
+    label: 'Mod',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>'
+  },
+  {
+    id: 'modpack',
+    label: '整合包',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
+  },
+  {
+    id: 'datapack',
+    label: '数据包',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+  },
+  {
+    id: 'resourcepack',
+    label: '资源包',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+  },
+  {
+    id: 'shader',
+    label: '光影包',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+  }
 ]
 
 // 设置分类
 const settingsCategories = [
-  { id: 'launch', label: '启动', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' },
-  { id: 'personalize', label: '个性化', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.28L19.5 3a9 9 0 00-8.42 0l-.88.28a1 1 0 00-.67.93V6a9 9 0 007.49 8.87A9 9 0 0021 6V4.21a1 1 0 00-.62-.93zM12 13a3 3 0 100-6 3 3 0 000 6z"/></svg>' },
-  { id: 'other', label: '其他', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+  {
+    id: 'launch',
+    label: '启动',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+  },
+  {
+    id: 'personalize',
+    label: '个性化',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.28L19.5 3a9 9 0 00-8.42 0l-.88.28a1 1 0 00-.67.93V6a9 9 0 007.49 8.87A9 9 0 0021 6V4.21a1 1 0 00-.62-.93zM12 13a3 3 0 100-6 3 3 0 000 6z"/></svg>'
+  },
+  {
+    id: 'other',
+    label: '其他',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+  }
 ]
 
-function minimizeWindow() { window.electronAPI?.window?.minimize?.() }
-function closeWindow() { window.electronAPI?.window?.close?.() }
+function minimizeWindow() {
+  window.electronAPI?.window?.minimize?.()
+}
+function closeWindow() {
+  window.electronAPI?.window?.close?.()
+}
 </script>
 
 <style scoped lang="scss">
@@ -796,8 +980,11 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   &::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
     pointer-events: none;
   }
 }
@@ -815,7 +1002,7 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   -webkit-app-region: no-drag;
   pointer-events: auto;
   padding-left: 4px;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 1;
 }
@@ -831,7 +1018,9 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   -webkit-app-region: no-drag;
   z-index: 1;
 
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .tab-pill {
@@ -840,9 +1029,9 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   gap: 4px;
   padding: 4px 12px;
   border-radius: 20px;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -856,13 +1045,15 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     color: var(--mcla-primary);
     border-color: #fff;
     font-weight: 650;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15), 0 0 18px rgba(99,102,234,0.25);
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.15),
+      0 0 18px rgba(99, 102, 234, 0.25);
     text-shadow: none;
   }
 
   &:hover:not(.active) {
-    background: rgba(255,255,255,0.18);
-    border-color: rgba(255,255,255,0.45);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.45);
     color: #fff;
   }
 }
@@ -878,11 +1069,23 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   z-index: 1;
 
   .wc-btn {
-    width: 44px; height: 44px; border: none; background: transparent;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.82); transition: all 0.12s;
-    &:hover { background: rgba(255,255,255,0.12); }
-    &.wc-close:hover { background: var(--mcla-error); color: #fff; }
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.82);
+    transition: all 0.12s;
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    &.wc-close:hover {
+      background: var(--mcla-error);
+      color: #fff;
+    }
   }
 }
 
@@ -904,8 +1107,13 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   display: flex;
   flex-direction: column;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.09); border-radius: 2px; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.09);
+    border-radius: 2px;
+  }
 }
 
 /* ---------- 首页侧栏（渐变风格）---------- */
@@ -956,20 +1164,37 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   width: 100%;
   flex-shrink: 0;
 
-    .auth-btn {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-    padding: 7px 0; border: 1.5px solid var(--mcla-border-color); background: var(--mcla-bg-elevated);
-    border-radius: var(--mcla-radius-md); font-size: 12.5px; font-weight: 600;
-    color: var(--mcla-text-secondary); cursor: pointer; transition: all var(--mcla-transition-fast);
+  .auth-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 0;
+    border: 1.5px solid var(--mcla-border-color);
+    background: var(--mcla-bg-elevated);
+    border-radius: var(--mcla-radius-md);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mcla-text-secondary);
+    cursor: pointer;
+    transition: all var(--mcla-transition-fast);
     white-space: nowrap;
-    svg { flex-shrink: 0; }
+    svg {
+      flex-shrink: 0;
+    }
 
-    &:hover { border-color: var(--mcla-primary); color: var(--mcla-primary); }
+    &:hover {
+      border-color: var(--mcla-primary);
+      color: var(--mcla-primary);
+    }
     &.active {
       background: var(--mcla-primary-light);
       border-color: var(--mcla-primary-300);
       color: var(--mcla-primary-700);
-      svg { color: var(--mcla-primary-600); }
+      svg {
+        color: var(--mcla-primary-600);
+      }
     }
   }
 }
@@ -987,25 +1212,33 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
 }
 
 .avatar-default-icon {
-  width: 72px; height: 72px;
+  width: 72px;
+  height: 72px;
   border-radius: 4px;
   background: transparent;
   border: none;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 auto;
   overflow: hidden;
 
-  svg { color: var(--mcla-primary); opacity: 0.85; }
+  svg {
+    color: var(--mcla-primary);
+    opacity: 0.85;
+  }
 
   .avatar-img {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 4px;
     image-rendering: pixelated;
   }
 
   .avatar-letter {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     border-radius: 4px;
     background: linear-gradient(135deg, #00a4ef, #0078d4);
     color: #fff;
@@ -1030,13 +1263,18 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     border-radius: var(--mcla-radius-md);
     font-size: 12.5px;
     color: var(--mcla-text-secondary);
-    background: var(--mcla-bg-elevated) url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555880' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 8px center;
+    background: var(--mcla-bg-elevated)
+      url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555880' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")
+      no-repeat right 8px center;
     outline: none;
     cursor: pointer;
     appearance: none;
     transition: all var(--mcla-transition-fast);
 
-    &:focus { border-color: var(--mcla-primary-400); box-shadow: var(--mcla-input-focus-shadow); }
+    &:focus {
+      border-color: var(--mcla-primary-400);
+      box-shadow: var(--mcla-input-focus-shadow);
+    }
   }
 
   .btn-login {
@@ -1050,10 +1288,16 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     cursor: pointer;
     white-space: nowrap;
     transition: all var(--mcla-transition-fast);
-    box-shadow: 0 2px 8px rgba(99,102,234,0.25);
+    box-shadow: 0 2px 8px rgba(99, 102, 234, 0.25);
 
-    &:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(99,102,234,0.35); transform: translateY(-1px); }
-    &:active { transform: translateY(0); }
+    &:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 4px 14px rgba(99, 102, 234, 0.35);
+      transform: translateY(-1px);
+    }
+    &:active {
+      transform: translateY(0);
+    }
   }
 }
 
@@ -1080,13 +1324,18 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   background: var(--mcla-bg-elevated);
   transition: all 0.15s;
 
-  svg { flex-shrink: 0; opacity: 0.6; }
+  svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
 
   &:hover {
     border-color: var(--mcla-primary-400);
     color: var(--mcla-primary);
     background: var(--mcla-primary-bg);
-    svg { opacity: 1; }
+    svg {
+      opacity: 1;
+    }
   }
 }
 
@@ -1100,7 +1349,9 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     text-decoration: none;
     transition: color 0.12s;
 
-    &:hover { color: var(--mcla-primary-500); }
+    &:hover {
+      color: var(--mcla-primary-500);
+    }
   }
 }
 
@@ -1117,12 +1368,17 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
 }
 
 .avatar-steve {
-  width: 64px; height: 64px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--mcla-radius-lg);
   overflow: hidden;
   box-shadow: var(--mcla-shadow-md);
   margin: 0 auto;
-  svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  svg {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
 }
 
 .offline-input-wrap {
@@ -1149,7 +1405,10 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     outline: none;
     transition: all var(--mcla-transition-fast);
 
-    &::placeholder { color: var(--mcla-text-muted); font-weight: 400; }
+    &::placeholder {
+      color: var(--mcla-text-muted);
+      font-weight: 400;
+    }
     &:focus {
       border-color: var(--mcla-primary-400);
       box-shadow: var(--mcla-input-focus-shadow);
@@ -1178,34 +1437,45 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   &::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
     pointer-events: none;
   }
 
   &:hover:not(:disabled) {
     filter: brightness(1.06);
-    box-shadow: 0 6px 26px rgba(99,102,234,0.45);
+    box-shadow: 0 6px 26px rgba(99, 102, 234, 0.45);
     transform: translateY(-1px);
 
-    .launch-label { filter: brightness(1.1); }
+    .launch-label {
+      filter: brightness(1.1);
+    }
   }
 
-  &:active:not(:disabled) { transform: scale(0.98); box-shadow: 0 2px 10px rgba(99,102,234,0.3); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(99, 102, 234, 0.3);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
   .launch-label {
     font-size: 16px;
     font-weight: 700;
     color: #fff;
     letter-spacing: 0.5px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
 
   .launch-version {
     font-size: 11.5px;
-    color: rgba(255,255,255,0.78);
+    color: rgba(255, 255, 255, 0.78);
   }
 }
 
@@ -1225,7 +1495,11 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
     cursor: pointer;
     transition: all var(--mcla-transition-fast);
 
-    &:hover { border-color: var(--mcla-primary-400); color: var(--mcla-primary-600); background: var(--mcla-primary-light); }
+    &:hover {
+      border-color: var(--mcla-primary-400);
+      color: var(--mcla-primary-600);
+      background: var(--mcla-primary-light);
+    }
   }
 }
 
@@ -1239,7 +1513,16 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   animation: dropIn 0.14s ease-out;
 }
 
-@keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .ver-opt {
   padding: 9px 14px;
@@ -1248,13 +1531,19 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   cursor: pointer;
   transition: all 0.1s;
 
-  &:hover { background: var(--mcla-primary-light); }
+  &:hover {
+    background: var(--mcla-primary-light);
+  }
   &.selected {
     background: var(--mcla-primary-light);
     color: var(--mcla-primary-700);
     font-weight: 600;
   }
-  .ver-loader { float: right; font-size: 11px; color: var(--mcla-text-muted); }
+  .ver-loader {
+    float: right;
+    font-size: 11px;
+    color: var(--mcla-text-muted);
+  }
 }
 
 /* ---------- 通用侧栏导航（下载/设置用）---------- */
@@ -1292,12 +1581,19 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
       font-size: 13px;
     }
 
-    > span { flex-shrink: 0; display: flex; align-items: center; color: var(--mcla-text-muted); }
+    > span {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      color: var(--mcla-text-muted);
+    }
 
     &:hover {
       color: var(--mcla-primary-600);
       background: var(--mcla-primary-light);
-      > span { color: var(--mcla-primary-500); }
+      > span {
+        color: var(--mcla-primary-500);
+      }
     }
 
     &.active {
@@ -1314,10 +1610,12 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
         width: 3px;
         background: var(--mcla-gradient-primary);
         border-radius: 0 2px 2px 0;
-        box-shadow: 0 0 6px rgba(99,102,234,0.35);
+        box-shadow: 0 0 6px rgba(99, 102, 234, 0.35);
       }
 
-      > span { color: var(--mcla-primary-600); }
+      > span {
+        color: var(--mcla-primary-600);
+      }
     }
   }
 }
@@ -1330,12 +1628,27 @@ function closeWindow() { window.electronAPI?.window?.close?.() }
   background: var(--mcla-bg-secondary);
   height: 100%;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
-  &::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.22);
+  }
 }
 
-.fade-enter-active, .fade-leave-active { transition: opacity var(--mcla-transition-fast); }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--mcla-transition-fast);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

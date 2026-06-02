@@ -1,4 +1,9 @@
 /**
+ * ⚠️ 此文件未被引用 (2026-05-19)
+ * 这是一个旧版配置文件，目前项目没有使用它
+ * 新的 modloader.service.ts 直接从官方 API 获取版本信息
+ * 保留在此仅供参考，可能在未来版本中使用
+ *
  * ModLoader 服务配置
  */
 import { join } from 'path'
@@ -7,46 +12,46 @@ export interface ModLoaderConfig {
   /**
    * 下载缓存目录
    */
-  downloadCacheDir: string;
+  downloadCacheDir: string
 
   /**
    * 安装超时时间（毫秒）
    */
-  installTimeout: number;
+  installTimeout: number
 
   /**
    * 最大重试次数
    */
-  maxRetries: number;
+  maxRetries: number
 
   /**
    * 并发下载数
    */
-  maxConcurrentDownloads: number;
+  maxConcurrentDownloads: number
 
   /**
    * 下载速度限制（KB/s），0 表示无限制
    */
-  downloadSpeedLimit: number;
+  downloadSpeedLimit: number
 
   /**
    * 验证安装的文件列表
    */
   verificationFiles: {
-    forge: string[];
-    fabric: string[];
-    quilt: string[];
-    neoforge: string[];
-  };
+    forge: string[]
+    fabric: string[]
+    quilt: string[]
+    neoforge: string[]
+  }
 
   /**
    * 加载器版本映射
    */
   versionMappings: {
     [key: string]: {
-      [key: string]: string; // minecraftVersion -> loaderVersion
-    };
-  };
+      [key: string]: string // minecraftVersion -> loaderVersion
+    }
+  }
 }
 
 /**
@@ -59,10 +64,7 @@ export const DEFAULT_MODLOADER_CONFIG: ModLoaderConfig = {
   maxConcurrentDownloads: 4,
   downloadSpeedLimit: 0,
   verificationFiles: {
-    forge: [
-      'libraries/net/minecraftforge/forge/forge/{version}/forge-{version}.jar',
-      'mods'
-    ],
+    forge: ['libraries/net/minecraftforge/forge/forge/{version}/forge-{version}.jar', 'mods'],
     fabric: [
       'libraries/net/fabricmc/fabric-loader/fabric-loader/{version}/fabric-loader-{version}.jar',
       'mods'
@@ -145,4 +147,4 @@ export const DEFAULT_MODLOADER_CONFIG: ModLoaderConfig = {
       '1.20.4': '1.20.4'
     }
   }
-};
+}

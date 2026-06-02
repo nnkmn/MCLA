@@ -40,7 +40,11 @@ function broadcastProgress(data: {
  * 查询 ModLoader 安装状态
  * 检查游戏目录中是否存在对应加载器的核心文件
  */
-async function getModLoaderStatus(instance: { gameDir: string; loaderType: string; loaderVersion: string }): Promise<{ installed: boolean; version: string }> {
+async function getModLoaderStatus(instance: {
+  gameDir: string
+  loaderType: string
+  loaderVersion: string
+}): Promise<{ installed: boolean; version: string }> {
   const { gameDir, loaderType, loaderVersion } = instance
   if (!gameDir || !loaderType) return { installed: false, version: '' }
 
@@ -74,7 +78,10 @@ async function getModLoaderStatus(instance: { gameDir: string; loaderType: strin
   return { installed: false, version: loaderVersion }
 }
 
-export function registerModLoaderHandlers(win: BrowserWindow, modLoaderService: ModLoaderService): void {
+export function registerModLoaderHandlers(
+  win: BrowserWindow,
+  modLoaderService: ModLoaderService
+): void {
   mainWindow = win
   service = modLoaderService
 
@@ -91,11 +98,8 @@ export function registerModLoaderHandlers(win: BrowserWindow, modLoaderService: 
   // ── 安装 ModLoader（带进度推送）────────────────────────────
   ipcMain.handle(
     'modloader:install',
-    async (
-      _event,
-      payload: { instanceId: string; loaderType: string; loaderVersion: string; gameDir: string },
-    ) => {
-      const { instanceId, loaderType, loaderVersion, gameDir } = payload
+    async (_event, payload: { instanceId: string; loaderType: string; gameDir: string }) => {
+      const { instanceId, loaderType, gameDir } = payload
 
       try {
         const inst = getInstanceById(instanceId)
@@ -111,7 +115,7 @@ export function registerModLoaderHandlers(win: BrowserWindow, modLoaderService: 
           gameDir: effectiveGameDir,
           createdAt: inst.created_at ? new Date(inst.created_at).getTime() : Date.now(),
           loaderType: inst.loader_type || 'vanilla',
-          loaderVersion: inst.loader_version || '',
+          loaderVersion: inst.loader_version || ''
         } as GameInstance
 
         // 挂载进度回调 → 推送到渲染进程
@@ -120,11 +124,11 @@ export function registerModLoaderHandlers(win: BrowserWindow, modLoaderService: 
             instanceId,
             stage: p.stage,
             progress: p.progress,
-            message: p.message,
+            message: p.message
           })
         })
 
-        await service!.installModLoader(instanceForInstall, loaderType, loaderVersion)
+        await service!.installModLoader(instanceForInstall, loaderType)
 
         return { ok: true }
       } catch (err: any) {
@@ -132,70 +136,64 @@ export function registerModLoaderHandlers(win: BrowserWindow, modLoaderService: 
           instanceId,
           stage: 'error',
           progress: 0,
-          message: err.message,
+          message: err.message
         })
         return { ok: false, error: err.message }
       } finally {
         service!.setProgressCallback(undefined!)
       }
-    },
+    }
   )
 
   // ── 获取 ModLoader 安装状态 ─────────────────────────────
-  ipcMain.handle(
-    'modloader:get-status',
-    async (_event, opts: { instanceId: string }) => {
-      try {
-        const inst = getInstanceById(opts.instanceId)
-        if (!inst) return { ok: true, data: { installed: false, version: '', type: '' } }
+  ipcMain.handle('modloader:get-status', async (_event, opts: { instanceId: string }) => {
+    try {
+      const inst = getInstanceById(opts.instanceId)
+      if (!inst) return { ok: true, data: { installed: false, version: '', type: '' } }
 
-        const status = await getModLoaderStatus({
-          gameDir: inst.path || '',
-          loaderType: inst.loader_type || '',
-          loaderVersion: inst.loader_version || '',
-        })
+      const status = await getModLoaderStatus({
+        gameDir: inst.path || '',
+        loaderType: inst.loader_type || '',
+        loaderVersion: inst.loader_version || ''
+      })
 
-        return {
-          ok: true,
-          data: {
-            type: inst.loader_type || '',
-            version: status.version,
-            installed: status.installed,
-            lastChecked: Date.now(),
-          },
-        }
-      } catch (err: any) {
-        return { ok: false, error: err.message }
-      }
-    },
-  )
-
-  // ── 获取最近一次安装进度 ─────────────────────────────
-  ipcMain.handle(
-    'modloader:get-progress',
-    async (_event, opts: { instanceId: string }) => {
-      if (lastProgress && lastProgress.instanceId === opts.instanceId) {
-        return {
-          ok: true,
-          data: {
-            instanceId: lastProgress.instanceId,
-            stage: lastProgress.stage,
-            progress: lastProgress.progress,
-            message: lastProgress.message,
-          },
-        }
-      }
       return {
         ok: true,
         data: {
-          instanceId: opts.instanceId,
-          stage: 'idle',
-          progress: 0,
-          message: '',
-        },
+          type: inst.loader_type || '',
+          version: status.version,
+          installed: status.installed,
+          lastChecked: Date.now()
+        }
       }
-    },
-  )
+    } catch (err: any) {
+      return { ok: false, error: err.message }
+    }
+  })
+
+  // ── 获取最近一次安装进度 ─────────────────────────────
+  ipcMain.handle('modloader:get-progress', async (_event, opts: { instanceId: string }) => {
+    if (lastProgress && lastProgress.instanceId === opts.instanceId) {
+      return {
+        ok: true,
+        data: {
+          instanceId: lastProgress.instanceId,
+          stage: lastProgress.stage,
+          progress: lastProgress.progress,
+          message: lastProgress.message
+        }
+      }
+    }
+    return {
+      ok: true,
+      data: {
+        instanceId: opts.instanceId,
+        stage: 'idle',
+        progress: 0,
+        message: ''
+      }
+    }
+  })
 }
 
 /**

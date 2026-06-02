@@ -1,0 +1,11 @@
+dist/
+out/
+build/
+node_modules/
+*.md
+*.png
+*.ico
+*.woff2
+*.svg
+ppt-assets/
+scripts/

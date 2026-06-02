@@ -11,12 +11,12 @@ const api = {
       const listener = (_event: any, isMaximized: boolean) => callback(isMaximized)
       ipcRenderer.on('window:maximized-changed', listener)
       return () => ipcRenderer.removeListener('window:maximized-changed', listener)
-    },
+    }
   },
 
   // 应用信息
   app: {
-    getVersion: () => ipcRenderer.invoke('app:get-version'),
+    getVersion: () => ipcRenderer.invoke('app:get-version')
   },
 
   // 应用配置
@@ -25,7 +25,7 @@ const api = {
     set: (key: string, value: unknown) => ipcRenderer.invoke('config:set', key, value),
     // 敏感配置（自动加解密，用于 API Key 等）
     getSecure: (key: string) => ipcRenderer.invoke('config:get-secure', key),
-    setSecure: (key: string, value: string) => ipcRenderer.invoke('config:set-secure', key, value),
+    setSecure: (key: string, value: string) => ipcRenderer.invoke('config:set-secure', key, value)
   },
 
   // 实例管理
@@ -42,10 +42,13 @@ const api = {
     toggleFavorite: (id: string) => ipcRenderer.invoke('instance:toggle-favorite', id),
     // 导入导出
     scanMinecraft: (dirPath: string) => ipcRenderer.invoke('instance:scan-minecraft', dirPath),
-    exportInstance: (id: string, destPath: string, options?: { includeMods?: boolean; includeConfigs?: boolean; includeSaves?: boolean }) =>
-      ipcRenderer.invoke('instance:export', id, destPath, options),
+    exportInstance: (
+      id: string,
+      destPath: string,
+      options?: { includeMods?: boolean; includeConfigs?: boolean; includeSaves?: boolean }
+    ) => ipcRenderer.invoke('instance:export', id, destPath, options),
     importInstance: (mclaFilePath: string, targetDir: string) =>
-      ipcRenderer.invoke('instance:import', mclaFilePath, targetDir),
+      ipcRenderer.invoke('instance:import', mclaFilePath, targetDir)
   },
 
   // 账户管理
@@ -64,40 +67,42 @@ const api = {
       const listener = (_event: any, payload: any) => callback(payload)
       ipcRenderer.on('account:login-progress', listener)
       return () => ipcRenderer.removeListener('account:login-progress', listener)
-    },
+    }
   },
 
   // 下载管理
   download: {
     searchMods: (params: {
       query?: string
-      source?: string
+      source?: string // 前端兼容字段（保留，不传后端）
+      platform?: string // 后端读取的字段：'modrinth' | 'curseforge' | undefined
       offset?: number
       limit?: number
       gameVersion?: string
       loader?: string
       category?: string
       projectType?: string
-    }) =>
-      ipcRenderer.invoke('download:search-mods', params),
+    }) => ipcRenderer.invoke('download:search-mods', params),
     getProject: (projectId: string, platform: string) =>
       ipcRenderer.invoke('download:get-project', projectId, platform),
     getFiles: (projectId: string, platform: string, options?: Record<string, unknown>) =>
       ipcRenderer.invoke('download:get-files', projectId, platform, options ?? {}),
     /** 下载 Mod 文件到指定目录 */
-    downloadFile: (file: {
-      id: string
-      fileName: string
-      url: string
-      gameVersions: string[]
-      loaders: string[]
-      releaseType: string
-      datePublished: string
-      size: number
-      downloads: number
-      platform: string
-    }, dest: string) =>
-      ipcRenderer.invoke('download:file', file, dest),
+    downloadFile: (
+      file: {
+        id: string
+        fileName: string
+        url: string
+        gameVersions: string[]
+        loaders: string[]
+        releaseType: string
+        datePublished: string
+        size: number
+        downloads: number
+        platform: string
+      },
+      dest: string
+    ) => ipcRenderer.invoke('download:file', file, dest),
     getActive: () => ipcRenderer.invoke('download:get-active'),
     getQueue: () => ipcRenderer.invoke('download:get-queue'),
     onProgress: (callback: (progress: unknown) => void) => {
@@ -122,8 +127,7 @@ const api = {
 
   // 已安装版本扫描
   versions: {
-    scanFolder: (gameDir: string) =>
-      ipcRenderer.invoke('versions:scan-folder', { gameDir }),
+    scanFolder: (gameDir: string) => ipcRenderer.invoke('versions:scan-folder', { gameDir }),
     /** 检查单个版本是否已安装（支持 ModLoader 继承版本） */
     isInstalled: (versionId: string, gameDir: string) =>
       ipcRenderer.invoke('versions:is-installed', { versionId, gameDir }),
@@ -146,31 +150,45 @@ const api = {
     downloadMissing: (versionId: string, gameDir: string) =>
       ipcRenderer.invoke('versions:download-missing', { versionId, gameDir }),
     /** 监听版本下载进度（带 phase/speed 的详细进度） */
-    onDownloadProgress: (callback: (data: {
-      taskId: string; versionId: string; phase: string; phaseLabel: string
-      progress: number; downloaded: number; total: number; speed: number; gameDir: string
-    }) => void) => {
+    onDownloadProgress: (
+      callback: (data: {
+        taskId: string
+        versionId: string
+        phase: string
+        phaseLabel: string
+        progress: number
+        downloaded: number
+        total: number
+        speed: number
+        gameDir: string
+      }) => void
+    ) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('version:download-progress', listener)
       return () => ipcRenderer.removeListener('version:download-progress', listener)
     },
     /** 监听版本下载完成 */
-    onDownloadComplete: (callback: (data: { taskId: string; versionId: string; gameDir: string }) => void) => {
+    onDownloadComplete: (
+      callback: (data: { taskId: string; versionId: string; gameDir: string }) => void
+    ) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('version:download-complete', listener)
       return () => ipcRenderer.removeListener('version:download-complete', listener)
     },
     /** 监听版本下载失败 */
-    onDownloadError: (callback: (data: { taskId: string; versionId: string; error: string }) => void) => {
+    onDownloadError: (
+      callback: (data: { taskId: string; versionId: string; error: string }) => void
+    ) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('version:download-error', listener)
       return () => ipcRenderer.removeListener('version:download-error', listener)
-    },
+    }
   },
 
   // ModLoader
   modloader: {
-    getLoaders: (mcVersion: string) => ipcRenderer.invoke('modloader:get-loaders', { minecraftVersion: mcVersion }),
+    getLoaders: (mcVersion: string) =>
+      ipcRenderer.invoke('modloader:get-loaders', { minecraftVersion: mcVersion }),
     install: (instanceId: string, loaderType: string, loaderVersion: string, gameDir: string) =>
       ipcRenderer.invoke('modloader:install', {
         instanceId,
@@ -178,11 +196,18 @@ const api = {
         loaderVersion,
         gameDir
       }),
-    onProgress: (callback: (data: { instanceId: string; stage: string; progress: number; message: string }) => void) => {
+    onProgress: (
+      callback: (data: {
+        instanceId: string
+        stage: string
+        progress: number
+        message: string
+      }) => void
+    ) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('modloader:progress', listener)
       return () => ipcRenderer.removeListener('modloader:progress', listener)
-    },
+    }
   },
 
   // 游戏启动
@@ -190,8 +215,13 @@ const api = {
     launch: (instanceId: string, accountId: string, versionId?: string) =>
       ipcRenderer.invoke('game:launch', { instanceId, accountId, versionId }),
     getLog: (instanceId: string) => ipcRenderer.invoke('game:get-log', { instanceId }),
-    onProgress: (callback: (progress: { phase: string; message: string; detail?: string }) => void) => {
-      const listener = (_event: any, progress: { phase: string; message: string; detail?: string }) => callback(progress)
+    onProgress: (
+      callback: (progress: { phase: string; message: string; detail?: string }) => void
+    ) => {
+      const listener = (
+        _event: any,
+        progress: { phase: string; message: string; detail?: string }
+      ) => callback(progress)
       ipcRenderer.on('game:progress', listener)
       return () => ipcRenderer.removeListener('game:progress', listener)
     },
@@ -204,19 +234,22 @@ const api = {
       const listener = (_event: any, code: number) => callback(code)
       ipcRenderer.on('game:exit', listener)
       return () => ipcRenderer.removeListener('game:exit', listener)
-    },
+    }
   },
 
   // 文件对话框
   dialog: {
     selectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
-    selectFile: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) =>
-      ipcRenderer.invoke('dialog:select-file', options ?? {})
+    selectFile: (options?: {
+      title?: string
+      filters?: Array<{ name: string; extensions: string[] }>
+    }) => ipcRenderer.invoke('dialog:select-file', options ?? {})
   },
 
   // Shell 操作
   shell: {
-    openPath: (absPath: string) => ipcRenderer.invoke('shell:open-path', absPath)
+    openPath: (absPath: string) => ipcRenderer.invoke('shell:open-path', absPath),
+    openExternal: (url: string) => ipcRenderer.invoke('shell:open-external', url)
   },
 
   // 路径工具
@@ -232,7 +265,7 @@ const api = {
     /** 清除自定义路径，恢复默认 */
     clearCustom: () => ipcRenderer.invoke('path:custom:clear'),
     /** 创建目录 */
-    createDir: (path: string) => ipcRenderer.invoke('path:create-dir', path),
+    createDir: (path: string) => ipcRenderer.invoke('path:create-dir', path)
   },
 
   // 版本选择器文件夹列表
@@ -248,7 +281,7 @@ const api = {
     /** 获取上次选中的文件夹 */
     getLast: () => ipcRenderer.invoke('folders:last:get') as Promise<string | null>,
     /** 保存上次选中的文件夹 */
-    setLast: (path: string) => ipcRenderer.invoke('folders:last:set', path),
+    setLast: (path: string) => ipcRenderer.invoke('folders:last:set', path)
   },
 
   // 崩溃分析
@@ -257,10 +290,8 @@ const api = {
       ipcRenderer.invoke('crash:parse', { logPath, instanceId }),
     diagnose: (logPath: string, instanceId: string) =>
       ipcRenderer.invoke('crash:diagnose', { logPath, instanceId }),
-    list: (gameDir: string) =>
-      ipcRenderer.invoke('crash:list', { gameDir }),
-    latest: (gameDir: string) =>
-      ipcRenderer.invoke('crash:latest', { gameDir }),
+    list: (gameDir: string) => ipcRenderer.invoke('crash:list', { gameDir }),
+    latest: (gameDir: string) => ipcRenderer.invoke('crash:latest', { gameDir }),
     onCrash: (callback: (data: { reason: string; crashReportPath?: string }) => void) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('crash:detected', listener)
@@ -275,7 +306,16 @@ const api = {
     markAllRead: () => ipcRenderer.invoke('notification:mark-all-read'),
     clear: () => ipcRenderer.invoke('notification:clear'),
     getUnreadCount: () => ipcRenderer.invoke('notification:get-unread-count') as Promise<number>,
-    onNotify: (callback: (item: { id: string; title: string; body: string; type: string; timestamp: number; route?: string }) => void) => {
+    onNotify: (
+      callback: (item: {
+        id: string
+        title: string
+        body: string
+        type: string
+        timestamp: number
+        route?: string
+      }) => void
+    ) => {
       const listener = (_event: any, item: any) => callback(item)
       ipcRenderer.on('notification:new', listener)
       return () => ipcRenderer.removeListener('notification:new', listener)
@@ -284,7 +324,7 @@ const api = {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('notification:clicked', listener)
       return () => ipcRenderer.removeListener('notification:clicked', listener)
-    },
+    }
   },
 
   // Mod 管理
@@ -292,34 +332,30 @@ const api = {
     list: (gameDir: string) => ipcRenderer.invoke('mod:list', { gameDir }),
     install: (sourcePath: string, gameDir: string) =>
       ipcRenderer.invoke('mod:install', { sourcePath, gameDir }),
-    uninstall: (modPath: string) =>
-      ipcRenderer.invoke('mod:uninstall', { modPath }),
-    enable: (modPath: string) =>
-      ipcRenderer.invoke('mod:enable', { modPath }),
-    disable: (modPath: string) =>
-      ipcRenderer.invoke('mod:disable', { modPath }),
+    uninstall: (modPath: string) => ipcRenderer.invoke('mod:uninstall', { modPath }),
+    enable: (modPath: string) => ipcRenderer.invoke('mod:enable', { modPath }),
+    disable: (modPath: string) => ipcRenderer.invoke('mod:disable', { modPath }),
     installBatch: (sourcePaths: string[], gameDir: string) =>
       ipcRenderer.invoke('mod:install-batch', { sourcePaths, gameDir }),
     checkCompat: (mods: any[], targetVersion: string, loader?: string) =>
       ipcRenderer.invoke('mod:check-compat', { mods, targetVersion, loader }),
-    ensureDir: (gameDir: string) =>
-      ipcRenderer.invoke('mod:ensure-dir', { gameDir }),
+    ensureDir: (gameDir: string) => ipcRenderer.invoke('mod:ensure-dir', { gameDir }),
     // Config 文件读写
     listConfigs: (gameDir: string) => ipcRenderer.invoke('mod:read-config', { gameDir }),
-    getConfigContent: (filePath: string) => ipcRenderer.invoke('mod:get-config-content', { filePath }),
+    getConfigContent: (filePath: string) =>
+      ipcRenderer.invoke('mod:get-config-content', { filePath }),
     saveConfigContent: (filePath: string, content: string) =>
       ipcRenderer.invoke('mod:save-config-content', { filePath, content }),
     openConfigDir: (gameDir: string) => ipcRenderer.invoke('mod:open-config-dir', { gameDir }),
     // 更新检测
     checkUpdate: (mods: any[], mcVersion?: string, loader?: string) =>
       ipcRenderer.invoke('mod:check-update', { mods, mcVersion, loader }),
-    update: (mod: any, updateInfo: any) =>
-      ipcRenderer.invoke('mod:update', { mod, updateInfo }),
+    update: (mod: any, updateInfo: any) => ipcRenderer.invoke('mod:update', { mod, updateInfo }),
     onUpdateProgress: (callback: (data: { filePath: string; progress: number }) => void) => {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('mod:update-progress', listener)
       return () => ipcRenderer.removeListener('mod:update-progress', listener)
-    },
+    }
   }
 }
 

@@ -48,7 +48,7 @@ export function notify(options: NotificationOptions): NotificationItem {
     type,
     timestamp: Date.now(),
     read: false,
-    route,
+    route
   }
 
   // 追加到历史
@@ -66,7 +66,7 @@ export function notify(options: NotificationOptions): NotificationItem {
       const notification = new Notification({
         title,
         body,
-        silent,
+        silent
       })
 
       notification.on('click', () => {
@@ -91,7 +91,9 @@ export function notify(options: NotificationOptions): NotificationItem {
  */
 export function onNotify(callback: (item: NotificationItem) => void): () => void {
   onNotifyCallback = callback
-  return () => { onNotifyCallback = null }
+  return () => {
+    onNotifyCallback = null
+  }
 }
 
 /**
@@ -105,7 +107,7 @@ export function getHistory(limit = 20): NotificationItem[] {
  * 标记通知为已读
  */
 export function markAsRead(id: string): void {
-  const item = history.find(n => n.id === id)
+  const item = history.find((n) => n.id === id)
   if (item) item.read = true
 }
 
@@ -113,7 +115,9 @@ export function markAsRead(id: string): void {
  * 标记全部已读
  */
 export function markAllAsRead(): void {
-  history.forEach(n => { n.read = true })
+  history.forEach((n) => {
+    n.read = true
+  })
 }
 
 /**
@@ -127,7 +131,7 @@ export function clearHistory(): void {
  * 获取未读数
  */
 export function getUnreadCount(): number {
-  return history.filter(n => !n.read).length
+  return history.filter((n) => !n.read).length
 }
 
 // ====== 快捷通知方法 ======
@@ -152,50 +156,33 @@ export function notifyError(title: string, body: string, route?: string) {
  * 版本下载完成通知
  */
 export function notifyVersionDownloaded(versionName: string) {
-  return notifySuccess(
-    '下载完成',
-    `${versionName} 已下载完成，可以开始游戏了`,
-    '/'
-  )
+  return notifySuccess('下载完成', `${versionName} 已下载完成，可以开始游戏了`, '/')
 }
 
 /**
  * Mod 下载完成通知
  */
 export function notifyModDownloaded(modName: string) {
-  return notifySuccess(
-    'Mod 下载完成',
-    `${modName} 已下载完成`
-  )
+  return notifySuccess('Mod 下载完成', `${modName} 已下载完成`)
 }
 
 /**
  * 新版本可用通知
  */
 export function notifyNewVersion(available: string, current: string) {
-  return notifyInfo(
-    'MCLA 更新可用',
-    `新版本 ${available} 可用（当前 ${current}）`,
-    '/downloads'
-  )
+  return notifyInfo('MCLA 更新可用', `新版本 ${available} 可用（当前 ${current}）`, '/downloads')
 }
 
 /**
  * 游戏启动失败通知
  */
 export function notifyLaunchFailed(instanceName: string, reason?: string) {
-  return notifyError(
-    '启动失败',
-    reason ? `${instanceName}: ${reason}` : `${instanceName} 启动失败`
-  )
+  return notifyError('启动失败', reason ? `${instanceName}: ${reason}` : `${instanceName} 启动失败`)
 }
 
 /**
  * Mod 加载器安装完成通知
  */
 export function notifyModLoaderInstalled(loaderType: string, version: string) {
-  return notifySuccess(
-    '安装完成',
-    `${loaderType} ${version} 安装成功`
-  )
+  return notifySuccess('安装完成', `${loaderType} ${version} 安装成功`)
 }

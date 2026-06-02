@@ -13,10 +13,10 @@ export interface PxBadgeProps {
   variant?: 'primary' | 'success' | 'warning' | 'error' | 'info' | 'gradient'
   size?: 'sm' | 'md'
   text?: string
-  dot?: boolean       // 仅显示圆点
-  pulse?: boolean     // 圆点呼吸动画
-  outline?: boolean   // 边框风格
-  gradient?: boolean  // 渐变背景
+  dot?: boolean // 仅显示圆点
+  pulse?: boolean // 圆点呼吸动画
+  outline?: boolean // 边框风格
+  gradient?: boolean // 渐变背景
 }
 
 const props = withDefaults(defineProps<PxBadgeProps>(), {
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<PxBadgeProps>(), {
   dot: false,
   pulse: false,
   outline: false,
-  gradient: false,
+  gradient: false
 })
 
 const badgeClasses = computed(() => [
@@ -36,8 +36,8 @@ const badgeClasses = computed(() => [
   {
     'px-badge--dot-only': props.dot,
     'px-badge--outline': props.outline,
-    'px-badge--gradient': props.gradient,
-  },
+    'px-badge--gradient': props.gradient
+  }
 ])
 </script>
 
@@ -76,8 +76,15 @@ const badgeClasses = computed(() => [
   animation: px-badge-pulse 1.5s ease-in-out infinite;
 }
 @keyframes px-badge-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
 }
 
 /* Dot-only (no text, compact) */

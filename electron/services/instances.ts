@@ -40,22 +40,43 @@ export function getInstanceById(id: string): Instance | null {
 }
 
 // 创建实例
-export function createInstance(data: Omit<Instance, 'created_at' | 'updated_at' | 'play_time'>): Instance {
+export function createInstance(
+  data: Omit<Instance, 'created_at' | 'updated_at' | 'play_time'>
+): Instance {
   const db = getDatabase()
   const id = data.id || `inst_${Date.now()}`
   const now = new Date().toISOString()
 
-  const result = db.prepare(`
+  const result = db
+    .prepare(
+      `
     INSERT INTO instances (id, name, path, mc_version, loader_type, loader_version, icon,
       java_path, jvm_args, min_memory, max_memory, width, height, fullscreen,
       is_favorited, last_played, play_time, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    id, data.name, data.path, data.mc_version, data.loader_type, data.loader_version,
-    data.icon, data.java_path, data.jvm_args, data.min_memory, data.max_memory,
-    data.width, data.height, data.fullscreen, data.is_favorited, data.last_played,
-    0, now, now
-  )
+  `
+    )
+    .run(
+      id,
+      data.name,
+      data.path,
+      data.mc_version,
+      data.loader_type,
+      data.loader_version,
+      data.icon,
+      data.java_path,
+      data.jvm_args,
+      data.min_memory,
+      data.max_memory,
+      data.width,
+      data.height,
+      data.fullscreen,
+      data.is_favorited,
+      data.last_played,
+      0,
+      now,
+      now
+    )
 
   return getInstanceById(id)!
 }
@@ -66,11 +87,11 @@ export function updateInstance(id: string, data: Partial<Instance>): Instance | 
   const now = new Date().toISOString()
 
   // 动态构建更新字段
-  const fields = Object.keys(data).filter(k => k !== 'id' && k !== 'created_at')
+  const fields = Object.keys(data).filter((k) => k !== 'id' && k !== 'created_at')
   if (fields.length === 0) return getInstanceById(id)
 
-  const setClause = fields.map(f => `${f} = ?`).join(', ')
-  const values = fields.map(f => (data as Record<string, unknown>)[f])
+  const setClause = fields.map((f) => `${f} = ?`).join(', ')
+  const values = fields.map((f) => (data as Record<string, unknown>)[f])
   values.push(now, id)
 
   db.prepare(`UPDATE instances SET ${setClause}, updated_at = ? WHERE id = ?`).run(...values)

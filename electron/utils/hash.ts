@@ -25,7 +25,7 @@ type HashAlgorithm = 'sha1' | 'md5' | 'sha256' | 'sha512'
 export async function hashFile(
   filePath: string,
   algorithm: HashAlgorithm = 'sha1',
-  onProgress?: (progress: number) => void,
+  onProgress?: (progress: number) => void
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = createHash(algorithm)
@@ -81,7 +81,7 @@ export function hashString(text: string, algorithm: HashAlgorithm = 'sha1'): str
 export async function verifyFileHash(
   filePath: string,
   expectedHash: string,
-  algorithm: HashAlgorithm = 'sha1',
+  algorithm: HashAlgorithm = 'sha1'
 ): Promise<boolean> {
   try {
     const actual = await hashFile(filePath, algorithm)

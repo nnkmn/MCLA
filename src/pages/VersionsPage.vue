@@ -7,34 +7,54 @@
     <!-- 版本列表 -->
     <section class="versions-section">
       <div class="section-header">
-        <h3> Minecraft 版本</h3>
+        <h3>Minecraft 版本</h3>
         <div class="section-actions">
-          <button class="btn-primary" @click="refreshVersions">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/>
-              <polyline points="1 20 1 14 7 14"/>
-              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          <button class="btn-primary" @click="refreshVersions" :disabled="isLoading">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              :class="{ spinning: isLoading }"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
             </svg>
-            刷新
+            {{ isLoading ? '加载中...' : '刷新' }}
           </button>
         </div>
       </div>
 
-      <div class="versions-list" v-if="versions.length">
+      <!-- 加载中状态 -->
+      <div class="loading-state" v-if="isLoading">
+        <div class="loading-spinner"></div>
+        <p>正在加载版本列表...</p>
+      </div>
+
+      <!-- 错误状态 -->
+      <div class="error-state" v-else-if="hasError">
+        <p class="error-text">{{ errorMessage }}</p>
+        <button class="btn-primary" @click="refreshVersions">重试</button>
+      </div>
+
+      <!-- 版本列表 -->
+      <div class="versions-list" v-else-if="versions.length">
         <div class="version-item" v-for="version in versions" :key="version.id">
           <div class="version-info">
             <div class="version-id">{{ version.id }}</div>
-            <div class="version-type">{{ version.type }}</div>
+            <div class="version-type" :class="version.type">{{ version.type }}</div>
             <div class="version-date">{{ formatDate(version.releaseTime) }}</div>
           </div>
           <div class="version-actions">
-            <button class="btn-sm btn-ghost" @click="selectVersion(version.id)">
-              选择
-            </button>
+            <button class="btn-sm btn-ghost" @click="selectVersion(version.id)">选择</button>
           </div>
         </div>
       </div>
 
+      <!-- 空状态 -->
       <div class="empty-state" v-else>
         <p>暂无版本数据，请点击"刷新"按钮获取最新版本</p>
       </div>
@@ -61,14 +81,18 @@
           <label>选择 ModLoader</label>
           <div class="loader-options">
             <label v-for="loader in loaders" :key="loader.id" class="loader-option">
-              <input type="radio" :value="loader.id" v-model="selectedLoader">
+              <input type="radio" :value="loader.id" v-model="selectedLoader" />
               <span>{{ loader.name }}</span>
             </label>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" @click="installModLoader" :disabled="!selectedVersion || !selectedLoader">
+          <button
+            class="btn-primary"
+            @click="installModLoader"
+            :disabled="!selectedVersion || !selectedLoader"
+          >
             安装 ModLoader
           </button>
         </div>
@@ -86,14 +110,25 @@ const versions = ref<VersionInfo[]>([])
 const loaders = ref<ModLoader[]>([])
 const selectedVersion = ref('')
 const selectedLoader = ref('')
+const isLoading = ref(false)
+const hasError = ref(false)
+const errorMessage = ref('')
 const instancesStore = useInstancesStore()
 
 // 获取版本列表
 async function fetchVersions() {
+  isLoading.value = true
+  hasError.value = false
+  errorMessage.value = ''
+
   try {
     const result = await window.electronAPI.versions.list()
     versions.value = result
   } catch (error) {
+    hasError.value = true
+    errorMessage.value = error instanceof Error ? error.message : '加载版本列表失败'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -103,11 +138,12 @@ async function fetchLoaders() {
     const result = await window.electronAPI.modloader.list()
     loaders.value = result
   } catch (error) {
+    console.error('Failed to load modloaders:', error)
   }
 }
 
 // 刷新版本
-function refreshVersions() {
+async function refreshVersions() {
   fetchVersions()
 }
 
@@ -118,7 +154,7 @@ function selectVersion(versionId: string) {
 
 // 安装 ModLoader
 async function installModLoader() {
-  if (!selectedVersion || !selectedLoader) return
+  if (!selectedVersion.value || !selectedLoader.value) return
 
   const currentInstance = instancesStore.currentInstance
   if (!currentInstance) {
@@ -157,9 +193,17 @@ onMounted(() => {
   max-width: 720px;
 }
 
-.page-header { margin-bottom: 20px; h2 { margin: 0; font-size: 17px; font-weight: 700; } }
+.page-header {
+  margin-bottom: 20px;
+  h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
 
-.versions-section, .modloader-section {
+.versions-section,
+.modloader-section {
   background: var(--mcla-bg-elevated);
   border: 1px solid var(--mcla-border-color);
   border-radius: 10px;
@@ -184,6 +228,47 @@ onMounted(() => {
 .section-actions {
   display: flex;
   gap: 8px;
+}
+
+/* Loading state */
+.loading-state,
+.error-state {
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 3px solid var(--mcla-border-color);
+  border-top-color: var(--mcla-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p {
+  color: var(--mcla-text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Error state */
+.error-text {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+/* Spinning animation for refresh button */
+.spinning {
+  animation: spin 0.8s linear infinite;
 }
 
 .versions-list {
@@ -222,9 +307,19 @@ onMounted(() => {
   font-size: 11px;
   font-weight: 600;
 
-  &.release { background: #e6f4ea; color: #137333; }
-  &.snapshot { background: #e7f1ff; color: #1e40af; }
-  &.old_alpha, &.old_beta { background: #fef3c7; color: #92400e; }
+  &.release {
+    background: #e6f4ea;
+    color: #137333;
+  }
+  &.snapshot {
+    background: #e7f1ff;
+    color: #1e40af;
+  }
+  &.old_alpha,
+  &.old_beta {
+    background: #fef3c7;
+    color: #92400e;
+  }
 }
 
 .version-date {
@@ -280,8 +375,13 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover { background: var(--mcla-primary-hover); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover {
+    background: var(--mcla-primary-hover);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .btn-sm {
@@ -297,7 +397,10 @@ onMounted(() => {
   font-size: 12px;
   cursor: pointer;
 
-  &:hover { border-color: var(--mcla-primary-400); color: var(--mcla-primary-600); }
+  &:hover {
+    border-color: var(--mcla-primary-400);
+    color: var(--mcla-primary-600);
+  }
 }
 
 .empty-state {

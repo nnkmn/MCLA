@@ -42,7 +42,7 @@ export const platform: PlatformInfo = (() => {
     isMac: p === 'darwin',
     isLinux: p === 'linux',
     homeDir: process.env.HOME || process.env.USERPROFILE || '',
-    defaultMcDir: getDefaultMcDir(),
+    defaultMcDir: getDefaultMcDir()
   }
 })()
 
@@ -84,7 +84,7 @@ export async function detectJavaInstallations(): Promise<JavaEntry[]> {
     try {
       const { stdout } = await execAsync(`"${javaPath}" -version`, {
         timeout: 5000,
-        env: { ...process.env, JAVA_TOOL_OPTIONS: '' }, // 清除可能干扰输出的环境变量
+        env: { ...process.env, JAVA_TOOL_OPTIONS: '' } // 清除可能干扰输出的环境变量
       })
 
       // java -version 输出到 stderr（Oracle/OpenJDK 行为），部分实现输出到 stdout
@@ -96,7 +96,7 @@ export async function detectJavaInstallations(): Promise<JavaEntry[]> {
           path: javaPath,
           version: versionMatch[0],
           major,
-          isValid: major >= 8, // Minecraft 需要至少 Java 8+
+          isValid: major >= 8 // Minecraft 需要至少 Java 8+
         })
       }
     } catch {
@@ -119,7 +119,7 @@ function getCandidateJavaPaths(): string[] {
     const programFiles = [
       process.env['PROGRAMFILES'] || 'C:\\Program Files',
       process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)',
-      process.env['ProgramW6432'] || 'C:\\Program Files',
+      process.env['ProgramW6432'] || 'C:\\Program Files'
     ]
     const programDirs = [...new Set(programFiles)]
 
@@ -137,14 +137,14 @@ function getCandidateJavaPaths(): string[] {
         // BellSoft Liberica
         join(pf, 'BellSoft', 'Liberica JDK-*', 'bin', 'java.exe'),
         // Azul Zulu
-        join(pf, 'Zulu', 'zulu-*', 'bin', 'java.exe'),
+        join(pf, 'Zulu', 'zulu-*', 'bin', 'java.exe')
       )
     }
 
     // 用户级安装
     paths.push(
       join(homeDir, '.jdks', '*', 'bin', 'java.exe'),
-      join(homeDir, '.graalvm', '*', 'bin', 'java.exe'),
+      join(homeDir, '.graalvm', '*', 'bin', 'java.exe')
     )
 
     // PATH 中的 java
@@ -164,7 +164,7 @@ function getCandidateJavaPaths(): string[] {
       '/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java',
       join(homeDir, 'Library/Java/JavaVirtualMachines', '*', 'Contents', 'Home', 'bin', 'java'),
       '/opt/homebrew/opt/openjdk/bin/java',
-      '/opt/homebrew/libexec/open.jdk/Contents/Home/bin/java',
+      '/opt/homebrew/libexec/open.jdk/Contents/Home/bin/java'
     )
     // macOS 也从 PATH 搜索
     for (const dir of pathEnv.split(':')) {
@@ -182,7 +182,7 @@ function getCandidateJavaPaths(): string[] {
       '/opt/java/*/bin/java',
       join(homeDir, '.sdkman/candidates/java/current/bin/java'),
       join(homeDir, '.jdks', '*', 'bin', 'java'),
-      join(homeDir, '.graalvm', '*', 'bin', 'java'),
+      join(homeDir, '.graalvm', '*', 'bin', 'java')
     )
     for (const dir of pathEnv.split(':')) {
       paths.push(join(dir, 'java'))

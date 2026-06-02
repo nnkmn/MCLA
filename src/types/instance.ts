@@ -11,20 +11,20 @@ export interface GameInstance {
   id: string
   name: string
   path: string
-  mcVersion: string          // MC 原版版本号
-  loaderType: LoaderType     // 加载器类型
-  loaderVersion: string      // 加载器版本号
-  icon: string               // 实例图标路径 / base64
-  javaPath: string           // Java 可执行文件路径
-  jvmArgs: string            // JVM 额外参数
-  minMemory: number          // 最小内存 (MB)
-  maxMemory: number          // 最大内存 (MB)
-  width: number              // 窗口宽度
-  height: number             // 窗口高度
-  fullscreen: 0 | 1          // 是否全屏
-  isFavorited: 0 | 1         // 是否收藏
-  lastPlayed: string | null  // 最后游玩时间 (ISO)
-  playTime: number           // 总游玩时长（秒）
+  mcVersion: string // MC 原版版本号
+  loaderType: LoaderType // 加载器类型
+  loaderVersion: string // 加载器版本号
+  icon: string // 实例图标路径 / base64
+  javaPath: string // Java 可执行文件路径
+  jvmArgs: string // JVM 额外参数
+  minMemory: number // 最小内存 (MB)
+  maxMemory: number // 最大内存 (MB)
+  width: number // 窗口宽度
+  height: number // 窗口高度
+  fullscreen: 0 | 1 // 是否全屏
+  isFavorited: 0 | 1 // 是否收藏
+  lastPlayed: string | null // 最后游玩时间 (ISO)
+  playTime: number // 总游玩时长（秒）
   createdAt: string
   updatedAt: string
 }
@@ -63,5 +63,5 @@ export const DEFAULT_INSTANCE: Omit<GameInstance, 'id' | 'createdAt' | 'updatedA
   fullscreen: 0,
   isFavorited: 0,
   lastPlayed: null,
-  playTime: 0,
+  playTime: 0
 }

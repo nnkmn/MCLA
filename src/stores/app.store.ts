@@ -64,6 +64,6 @@ export const useAppStore = defineStore('app', () => {
     toggleTheme,
     setTheme,
     init,
-    toggleSidebar,
+    toggleSidebar
   }
 })

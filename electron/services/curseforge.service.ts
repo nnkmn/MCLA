@@ -6,7 +6,7 @@ export interface CurseForgeSearchParams {
   pageSize?: number
   index?: number
   categoryId?: number
-  modLoaderType?: 0 | 1 | 2  // 0=Any, 1=Forge, 2=Fabric
+  modLoaderType?: 0 | 1 | 2 // 0=Any, 1=Forge, 2=Fabric
 }
 
 export interface CurseForgeMod {
@@ -14,7 +14,16 @@ export interface CurseForgeMod {
   name: string
   summary: string
   downloadCount: number
-  featuredImage: string
+  /** @deprecated 早期猜测字段，实际 API 返回 logo 对象 */
+  featuredImage?: string
+  logo?: {
+    id: number
+    modId: number
+    title: string
+    description: string
+    thumbnailUrl: string
+    url: string
+  }
   authors: { id: number; name: string }[]
   categories: { id: number; name: string; slug: string }[]
   latestFiles: CurseForgeFile[]
@@ -29,7 +38,7 @@ export interface CurseForgeFile {
   downloadUrl: string
   gameVersions: string[]
   sortableGameVersions: { name: string; gameVersion: string }[]
-  releaseType: 1 | 2 | 3  // 1=Release, 2=Beta, 3=Alpha
+  releaseType: 1 | 2 | 3 // 1=Release, 2=Beta, 3=Alpha
   fileDate: string
 }
 
@@ -57,7 +66,7 @@ export class CurseForgeService {
   private async fetchJson<T>(url: string): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json'
     }
     if (this.apiKey) {
       headers['x-api-key'] = this.apiKey
@@ -96,7 +105,9 @@ export class CurseForgeService {
   }
 
   async getModFiles(modId: number): Promise<CurseForgeFile[]> {
-    const result = await this.fetchJson<{ data: CurseForgeFile[] }>(`${CF_BASE}/mods/${modId}/files`)
+    const result = await this.fetchJson<{ data: CurseForgeFile[] }>(
+      `${CF_BASE}/mods/${modId}/files`
+    )
     return result.data
   }
 

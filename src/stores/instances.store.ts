@@ -15,22 +15,20 @@ export const useInstancesStore = defineStore('instances', () => {
   // ====== 计算属性 ======
 
   /** 当前选中的实例 */
-  const currentInstance = computed(() =>
-    instances.value.find(i => i.id === currentInstanceId.value) ?? null
+  const currentInstance = computed(
+    () => instances.value.find((i) => i.id === currentInstanceId.value) ?? null
   )
 
   /** 最近游玩的实例（按 lastPlayed 排序） */
   const recentInstances = computed(() =>
     [...instances.value]
-      .filter(i => i.lastPlayed)
+      .filter((i) => i.lastPlayed)
       .sort((a, b) => new Date(b.lastPlayed!).getTime() - new Date(a.lastPlayed!).getTime())
       .slice(0, 5)
   )
 
   /** 收藏的实例 */
-  const favoritedInstances = computed(() =>
-    instances.value.filter(i => i.isFavorited === 1)
-  )
+  const favoritedInstances = computed(() => instances.value.filter((i) => i.isFavorited === 1))
 
   // ====== 操作 ======
 
@@ -68,7 +66,7 @@ export const useInstancesStore = defineStore('instances', () => {
   /** 删除实例 */
   async function deleteInstance(id: string) {
     await window.electronAPI?.instance.delete(id)
-    instances.value = instances.value.filter(i => i.id !== id)
+    instances.value = instances.value.filter((i) => i.id !== id)
     if (currentInstanceId.value === id) {
       currentInstanceId.value = null
     }
@@ -81,7 +79,7 @@ export const useInstancesStore = defineStore('instances', () => {
 
   /** 切换收藏状态 */
   async function toggleFavorite(id: string) {
-    const inst = instances.value.find(i => i.id === id)
+    const inst = instances.value.find((i) => i.id === id)
     if (inst) {
       await updateInstance(id, { isFavorited: inst.isFavorited ? 0 : 1 })
     }
@@ -100,7 +98,7 @@ export const useInstancesStore = defineStore('instances', () => {
     updateInstance,
     deleteInstance,
     selectInstance,
-    toggleFavorite,
+    toggleFavorite
   }
 })
 
@@ -127,6 +125,6 @@ function mapRawToInstance(raw: any): GameInstance {
     lastPlayed: raw.last_played || null,
     playTime: raw.play_time || 0,
     createdAt: raw.created_at,
-    updatedAt: raw.updated_at,
+    updatedAt: raw.updated_at
   }
 }

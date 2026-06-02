@@ -14,9 +14,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   // ====== 计算属性 ======
 
   /** 当前活跃账户 */
-  const activeAccount = computed(() =>
-    accounts.value.find(a => a.isActive === 1) ?? null
-  )
+  const activeAccount = computed(() => accounts.value.find((a) => a.isActive === 1) ?? null)
 
   /** 是否已登录 */
   const isLoggedIn = computed(() => activeAccount.value !== null)
@@ -85,7 +83,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   /** 删除账户 */
   async function deleteAccount(id: string) {
     await window.electronAPI?.account.delete(id)
-    accounts.value = accounts.value.filter(a => a.id !== id)
+    accounts.value = accounts.value.filter((a) => a.id !== id)
   }
 
   return {
@@ -99,7 +97,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     loginMicrosoft,
     loginOffline,
     setActive,
-    deleteAccount,
+    deleteAccount
   }
 })
 
@@ -117,6 +115,6 @@ function mapRawToAccount(raw: any): Account {
     skin_url: raw.skin_url ?? null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
-    xuid: raw.xuid ?? null,
+    xuid: raw.xuid ?? null
   }
 }

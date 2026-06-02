@@ -9,9 +9,9 @@
 
 /** 所有表的公共时间戳字段 */
 export interface BaseEntity {
-  id: string           // UUID 主键
-  created_at: number   // 创建时间 (Unix ms)
-  updated_at: number   // 更新时间 (Unix ms)
+  id: string // UUID 主键
+  created_at: number // 创建时间 (Unix ms)
+  updated_at: number // 更新时间 (Unix ms)
 }
 
 // ==================== instances 表 ====================
@@ -25,7 +25,7 @@ export interface DbInstance extends BaseEntity {
   /** Minecraft 版本号，如 "1.20.1" */
   mc_version: string
   /** Mod 加载器信息 JSON 字符串：{type, version} */
-  mod_loader: string       // '{"type":"fabric","version":"0.15.11"}' 或空字符串 ''
+  mod_loader: string // '{"type":"fabric","version":"0.15.11"}' 或空字符串 ''
   /** 游戏运行目录绝对路径 */
   game_dir: string
   /** 自定义 Java 路径（null=使用全局默认） */
@@ -33,9 +33,9 @@ export interface DbInstance extends BaseEntity {
   /** JVM 额外参数 */
   jvm_args: string | null
   /** 最小内存分配 (MB) */
-  min_memory: number | null     // 默认 512
+  min_memory: number | null // 默认 512
   /** 最大内存分配 (MB) */
-  max_memory: number | null     // 默认 2048
+  max_memory: number | null // 默认 2048
   /** 最后游玩时间 */
   last_played_at: number | null
   /** 封面图相对路径（在实例目录内） */
@@ -43,7 +43,7 @@ export interface DbInstance extends BaseEntity {
   /** 实例备注/描述 */
   description: string | null
   /** 是否已归档（不显示在主页） */
-  is_archived: number            // 0 or 1
+  is_archived: number // 0 or 1
 }
 
 // ==================== accounts 表 ====================
@@ -66,13 +66,13 @@ export interface DbAccount extends BaseEntity {
   /** 令牌过期时间 (Unix ms) */
   token_expires_at: number | null
   /** 皮肤方案：random(default)/steve/alex/custom/official */
-  skin_type: string              // 默认 'default'
+  skin_type: string // 默认 'default'
   /** 自定义皮肤文件路径 */
   custom_skin_path: string | null
   /** 正版皮肤玩家名 */
   official_skin_name: string | null
   /** 是否当前活跃账户 */
-  is_active: number               // 0 or 1
+  is_active: number // 0 or 1
   /** 最后使用时间 */
   last_used_at: number | null
 }
@@ -94,13 +94,7 @@ export interface DbDownload extends BaseEntity {
   /** 已下载大小 (bytes) */
   downloaded_size: number
   /** 当前状态 */
-  status:
-    | 'pending'
-    | 'downloading'
-    | 'paused'
-    | 'completed'
-    | 'failed'
-    | 'cancelled'
+  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'failed' | 'cancelled'
   /** 当前速度 (bytes/s) */
   speed: number
   /** 进度百分比 0-100 */
@@ -110,14 +104,7 @@ export interface DbDownload extends BaseEntity {
   /** 关联实例 ID */
   instance_id: string | null
   /** 下载类型分类 */
-  download_type:
-    | 'mod'
-    | 'resourcepack'
-    | 'shader'
-    | 'version'
-    | 'modloader'
-    | 'asset'
-    | 'other'
+  download_type: 'mod' | 'resourcepack' | 'shader' | 'version' | 'modloader' | 'asset' | 'other'
   /** 来源平台 */
   source: 'curseforge' | 'modrinth' | 'official' | 'other'
   /** 项目 ID（Modrinth project ID / CurseForge mod ID） */
@@ -157,11 +144,11 @@ export interface DbMod extends BaseEntity {
   /** MC 版本范围 */
   mc_version: string
   /** 兼容的加载器 */
-  loaders: string                 // JSON 数组字符串 '["fabric","forge"]'
+  loaders: string // JSON 数组字符串 '["fabric","forge"]'
   /** 是否启用（false=禁用但未删除，改名为 .disabled） */
-  is_enabled: number             // 0 or 1
+  is_enabled: number // 0 or 1
   /** 作者列表 */
-  authors: string | null         // JSON 数组字符串
+  authors: string | null // JSON 数组字符串
   /** 描述 */
   description: string | null
 }
@@ -172,9 +159,9 @@ export interface DbMod extends BaseEntity {
  * 全局设置（key-value 存储）
  */
 export interface DbSetting {
-  key: string                    // 主键
-  value: string                  // JSON 字符串或纯文本
-  updated_at: number             // 更新时间
+  key: string // 主键
+  value: string // JSON 字符串或纯文本
+  updated_at: number // 更新时间
 }
 
 // ==================== java_versions 表 ====================
@@ -194,7 +181,7 @@ export interface DbJavaVersion extends BaseEntity {
   /** 架构：x64 / x86 / arm64 */
   architecture: string
   /** 是否有效（Java >= 8） */
-  is_valid: number              // 0 or 1
+  is_valid: number // 0 or 1
   /** 最后检测到的时间 */
   detected_at: number
 }
@@ -307,7 +294,7 @@ export const SCHEMA_DDL = {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     )
-  `,
+  `
 } as const
 
 export type TableName = keyof typeof SCHEMA_DDL

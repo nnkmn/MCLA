@@ -32,11 +32,11 @@ const log = logger.child('IPC')
  */
 export function registerAllIpcHandlers(
   mainWindow: BrowserWindow,
-  deps?: { 
-    versionsService?: any; 
-    modLoaderService?: any;
-    crashService?: any;
-    modService?: any;
+  deps?: {
+    versionsService?: any
+    modLoaderService?: any
+    crashService?: any
+    modService?: any
   }
 ): void {
   // console.error('[IPC] >>>>> registerAllIpcHandlers called')
@@ -46,34 +46,94 @@ export function registerAllIpcHandlers(
   }
 
   // 按模块注册（每个单独 try-catch，一个失败不影响后面的）
-  try { registerWindowHandlers(mainWindow); log.error('[IPC] window handlers done') } catch(e: any) { log.error('[IPC] window handlers FAILED:', e.message) }
-  try { registerConfigHandlers(); log.error('[IPC] config handlers done') } catch(e: any) { log.error('[IPC] config handlers FAILED:', e.message) }
-  try { registerInstanceHandlers(); log.error('[IPC] instance handlers done') } catch(e: any) { log.error('[IPC] instance handlers FAILED:', e.message) }
-  try { registerAccountHandlers(); log.error('[IPC] account handlers done') } catch(e: any) { log.error('[IPC] account handlers FAILED:', e.message) }
-  try { registerDownloadHandlers(); log.error('[IPC] download handlers done') } catch(e: any) { log.error('[IPC] download handlers FAILED:', e.message) }
-  try { registerGameHandlers(mainWindow); log.error('[IPC] game handlers done') } catch(e: any) { log.error('[IPC] game handlers FAILED:', e.message) }
-  try { registerJavaHandlers(); log.error('[IPC] java handlers done') } catch(e: any) { log.error('[IPC] java handlers FAILED:', e.message) }
-  try { registerContentHandlers(); log.error('[IPC] content handlers done') } catch(e: any) { log.error('[IPC] content handlers FAILED:', e.message) }
-  try { registerDialogHandlers(mainWindow); log.error('[IPC] dialog handlers done') } catch(e: any) { log.error('[IPC] dialog handlers FAILED:', e.message) }
+  try {
+    registerWindowHandlers(mainWindow)
+    log.info('[IPC] window handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] window handlers FAILED:', e.message)
+  }
+  try {
+    registerConfigHandlers()
+    log.info('[IPC] config handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] config handlers FAILED:', e.message)
+  }
+  try {
+    registerInstanceHandlers()
+    log.info('[IPC] instance handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] instance handlers FAILED:', e.message)
+  }
+  try {
+    registerAccountHandlers()
+    log.info('[IPC] account handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] account handlers FAILED:', e.message)
+  }
+  try {
+    registerDownloadHandlers()
+    log.info('[IPC] download handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] download handlers FAILED:', e.message)
+  }
+  try {
+    registerGameHandlers(mainWindow)
+    log.info('[IPC] game handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] game handlers FAILED:', e.message)
+  }
+  try {
+    registerJavaHandlers()
+    log.info('[IPC] java handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] java handlers FAILED:', e.message)
+  }
+  try {
+    registerContentHandlers()
+    log.info('[IPC] content handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] content handlers FAILED:', e.message)
+  }
+  try {
+    registerDialogHandlers(mainWindow)
+    log.info('[IPC] dialog handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] dialog handlers FAILED:', e.message)
+  }
 
   // 崩溃分析
   if (deps?.crashService) {
-    try { registerCrashIpcHandlers(deps.crashService); log.error('[IPC] crash handlers done') } catch(e: any) { log.error('[IPC] crash handlers FAILED:', e.message) }
+    try {
+      registerCrashIpcHandlers(deps.crashService)
+      log.info('[IPC] crash handlers registered')
+    } catch (e: any) {
+      log.error('[IPC] crash handlers FAILED:', e.message)
+    }
   }
 
   // Mod 管理
   if (deps?.modService) {
-    try { registerModIpcHandlers(deps.modService); log.error('[IPC] mod handlers done') } catch(e: any) { log.error('[IPC] mod handlers FAILED:', e.message) }
+    try {
+      registerModIpcHandlers(deps.modService)
+      log.info('[IPC] mod handlers registered')
+    } catch (e: any) {
+      log.error('[IPC] mod handlers FAILED:', e.message)
+    }
   }
 
   // ModLoader 安装（进度推送）
-  try { registerModLoaderHandlers(mainWindow, deps?.modLoaderService); log.error('[IPC] modloader handlers done') } catch(e: any) { log.error('[IPC] modloader handlers FAILED:', e.message) }
+  try {
+    registerModLoaderHandlers(mainWindow, deps?.modLoaderService)
+    log.info('[IPC] modloader handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] modloader handlers FAILED:', e.message)
+  }
 
   // 通知系统（关键：必须注册上）
   try {
     registerNotificationHandlers()
-    log.error('[IPC] notification handlers done')
-  } catch(e: any) {
+    log.info('[IPC] notification handlers registered')
+  } catch (e: any) {
     log.error('[IPC] notification handlers FAILED:', e.message)
   }
 
@@ -86,6 +146,10 @@ export function registerAllIpcHandlers(
  */
 export function updateMainWindowRefs(win: BrowserWindow): void {
   // 仅更新已知存在的 mainWindow 引用
-  try { updateModLoaderMainWindow(win) } catch (e: any) { log.error('[IPC] update modloader win failed:', e.message) }
+  try {
+    updateModLoaderMainWindow(win)
+  } catch (e: any) {
+    log.error('[IPC] update modloader win failed:', e.message)
+  }
   // 其他模块的 update 函数按需在此补充
 }

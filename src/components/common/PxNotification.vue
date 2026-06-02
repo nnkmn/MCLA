@@ -7,9 +7,18 @@
       @click="showPanel = !showPanel"
       :title="`通知 (${unreadCount})`"
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 01-3.46 0" />
       </svg>
       <span v-if="unreadCount > 0" class="pxn-badge">
         {{ unreadCount > 99 ? '99+' : unreadCount }}
@@ -28,7 +37,16 @@
               @click="markAllRead"
               title="全部标为已读"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             </button>
             <button
               v-if="history.length > 0"
@@ -36,7 +54,18 @@
               @click="clearAll"
               title="清除全部"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -52,20 +81,61 @@
           >
             <div class="pxn-item-icon">
               <!-- success -->
-              <svg v-if="item.type === 'success'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              <svg
+                v-if="item.type === 'success'"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
               <!-- error -->
-              <svg v-else-if="item.type === 'error'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              <svg
+                v-else-if="item.type === 'error'"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
               </svg>
               <!-- warning -->
-              <svg v-else-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              <svg
+                v-else-if="item.type === 'warning'"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               <!-- info -->
-              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+              <svg
+                v-else
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
               </svg>
             </div>
             <div class="pxn-item-content">
@@ -95,9 +165,7 @@ const showPanel = ref(false)
 const history = ref<any[]>([])
 const unreadCount = ref(0)
 
-const sortedHistory = computed(() =>
-  [...history.value].sort((a, b) => b.timestamp - a.timestamp)
-)
+const sortedHistory = computed(() => [...history.value].sort((a, b) => b.timestamp - a.timestamp))
 
 let removeOnNotify: (() => void) | null = null
 let removeOnClicked: (() => void) | null = null
@@ -124,13 +192,18 @@ function formatTime(ts: number): string {
   if (isToday) {
     return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   }
-  return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 async function markRead(id: string) {
   if (!window.electronAPI) return
   await window.electronAPI.notification.markRead(id)
-  const item = history.value.find(h => h.id === id)
+  const item = history.value.find((h) => h.id === id)
   if (item) item.read = true
   unreadCount.value = Math.max(0, unreadCount.value - 1)
 }
@@ -138,7 +211,7 @@ async function markRead(id: string) {
 async function markAllRead() {
   if (!window.electronAPI) return
   await window.electronAPI.notification.markAllRead()
-  history.value.forEach(h => (h.read = true))
+  history.value.forEach((h) => (h.read = true))
   unreadCount.value = 0
 }
 
@@ -193,13 +266,13 @@ onUnmounted(() => {
   justify-content: center;
   border: none;
   background: transparent;
-  color: rgba(255,255,255,0.82);
+  color: rgba(255, 255, 255, 0.82);
   cursor: pointer;
   transition: all 0.12s;
   -webkit-app-region: no-drag;
 
   &:hover {
-    background: rgba(255,255,255,0.12);
+    background: rgba(255, 255, 255, 0.12);
     color: #fff;
   }
   &.has-unread {
@@ -235,7 +308,7 @@ onUnmounted(() => {
   background: var(--mcla-bg-elevated, #fff);
   border: 1px solid var(--mcla-border-color, #e2e8f0);
   border-radius: var(--mcla-radius-lg, 12px);
-  box-shadow: var(--mcla-shadow-lg, 0 8px 30px rgba(0,0,0,0.18));
+  box-shadow: var(--mcla-shadow-lg, 0 8px 30px rgba(0, 0, 0, 0.18));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -274,7 +347,7 @@ onUnmounted(() => {
   &:hover {
     border-color: var(--mcla-primary-400, #818cf8);
     color: var(--mcla-primary-600, #4f46e5);
-    background: var(--mcla-primary-light, rgba(99,102,234,0.08));
+    background: var(--mcla-primary-light, rgba(99, 102, 234, 0.08));
   }
 }
 
@@ -283,8 +356,13 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 4px 0;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+  }
 }
 
 .pxn-empty {
@@ -304,19 +382,29 @@ onUnmounted(() => {
   position: relative;
 
   &:hover {
-    background: var(--mcla-primary-light, rgba(99,102,234,0.06));
+    background: var(--mcla-primary-light, rgba(99, 102, 234, 0.06));
   }
 
   &.unread {
-    background: rgba(99,102,234,0.04);
-    .pxn-item-title { font-weight: 700; }
+    background: rgba(99, 102, 234, 0.04);
+    .pxn-item-title {
+      font-weight: 700;
+    }
   }
 
   /* type colors */
-  &.type-success .pxn-item-icon { color: var(--mcla-success, #22c55e); }
-  &.type-error   .pxn-item-icon { color: var(--mcla-error, #ef4444); }
-  &.type-warning .pxn-item-icon { color: var(--mcla-warning, #f59e0b); }
-  &.type-info    .pxn-item-icon { color: var(--mcla-primary, #6366f1); }
+  &.type-success .pxn-item-icon {
+    color: var(--mcla-success, #22c55e);
+  }
+  &.type-error .pxn-item-icon {
+    color: var(--mcla-error, #ef4444);
+  }
+  &.type-warning .pxn-item-icon {
+    color: var(--mcla-warning, #f59e0b);
+  }
+  &.type-info .pxn-item-icon {
+    color: var(--mcla-primary, #6366f1);
+  }
 }
 
 .pxn-item-icon {
@@ -377,8 +465,18 @@ onUnmounted(() => {
 }
 
 /* 面板动画 */
-.pxn-panel-enter-active { transition: all 0.15s ease-out; }
-.pxn-panel-leave-active { transition: all 0.12s ease-in; }
-.pxn-panel-enter-from   { opacity: 0; transform: translateY(-6px); }
-.pxn-panel-leave-to    { opacity: 0; transform: translateY(-6px); }
+.pxn-panel-enter-active {
+  transition: all 0.15s ease-out;
+}
+.pxn-panel-leave-active {
+  transition: all 0.12s ease-in;
+}
+.pxn-panel-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.pxn-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 </style>

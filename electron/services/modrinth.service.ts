@@ -66,7 +66,7 @@ export class ModrinthService {
     const resp = await fetch(url, {
       headers: {
         'User-Agent': this.userAgent,
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     })
     if (!resp.ok) {
@@ -97,7 +97,8 @@ export class ModrinthService {
     options: { game_versions?: string[]; loaders?: string[] } = {}
   ): Promise<ModrinthVersion[]> {
     const qs = new URLSearchParams()
-    if (options.game_versions?.length) qs.set('game_versions', JSON.stringify(options.game_versions))
+    if (options.game_versions?.length)
+      qs.set('game_versions', JSON.stringify(options.game_versions))
     if (options.loaders?.length) qs.set('loaders', JSON.stringify(options.loaders))
     const query = qs.toString() ? `?${qs}` : ''
     return this.fetchJson<ModrinthVersion[]>(`${MR_BASE}/project/${projectId}/version${query}`)
