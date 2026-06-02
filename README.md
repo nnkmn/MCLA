@@ -17,6 +17,14 @@ _Powered by Electron + Vue 3 + TypeScript + Pixel UI_
 
 ---
 
+## 📥 下载
+
+最新版本已发布，点击下方链接前往下载：
+
+**[👉 前往 GitHub Releases 下载 v0.4.2](https://github.com/nnkmn/MCLA/releases)**
+
+---
+
 ## 功能概览
 
 ### 核心功能
