@@ -337,6 +337,21 @@ async function addFolder() {
   } catch (err) {}
 }
 
+async function importModpack() {
+  if (!api?.dialog) return
+  try {
+    const filePath = await api.dialog.selectFile({
+      title: '选择整合包文件',
+      filters: [{ name: '整合包文件', extensions: ['mrpack', 'zip'] }]
+    })
+    if (!filePath) return
+    close()
+    setTimeout(() => {
+      api.instance?.scanMinecraft?.(filePath)
+    }, 200)
+  } catch (err) {}
+}
+
 async function switchFolder(path: string) {
   currentFolderPath.value = path
   folders.value.forEach((f) => (f.isActive = f.path === path))
@@ -430,7 +445,7 @@ async function loadVersionsFromFolder(gameDir: string) {
   try {
     const res = await api.versions.scanFolder(gameDir)
     if (res?.ok) {
-      const data = (res.data as { id: string; name: string; isActive?: boolean }[]) || []
+      const data = (res.data as { id: string; name: string; baseVersion?: string; loaderInfo?: string; jarPath?: string; jsonPath?: string; isActive?: boolean }[]) || []
       installedVersions.value = data.map((v) => {
         // 精确匹配：id 完全相等
         const exactMatch = v.id === lastId
@@ -439,9 +454,9 @@ async function loadVersionsFromFolder(gameDir: string) {
         return {
           id: v.id,
           name: v.name,
-          baseVersion: v.baseVersion,
-          loaderInfo: v.loaderInfo,
-          isActive: exactMatch || fuzzyMatch,
+          baseVersion: v.baseVersion || '',
+          loaderInfo: v.loaderInfo || '',
+          isActive: !!exactMatch || !!fuzzyMatch,
           jarPath: v.jarPath,
           jsonPath: v.jsonPath
         }

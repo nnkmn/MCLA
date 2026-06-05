@@ -20,6 +20,22 @@
       <span v-else class="loading-placeholder">加载中...</span>
 
       <div v-if="instance" class="header-actions">
+        <button class="action-btn" @click="openShareModal" title="分享实例">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+        </button>
         <button
           class="action-btn"
           :class="{ active: instance.isFavorited === 1 }"
@@ -379,12 +395,21 @@
       </section>
     </div>
 
+    <!-- 分享弹窗 -->
+    <ShareModal
+      v-model="showShareModal"
+      :instance-id="instance?.id || ''"
+      :instance-name="instance?.name || ''"
+      @complete="showShareModal = false"
+    />
+
     <!-- Config 编辑弹窗 -->
     <PxModal
       v-if="editingConfig"
+      :model-value="!!editingConfig"
       @close="closeConfigEditor"
       :title="'编辑: ' + editingConfig.name"
-      width="720px"
+      size="lg"
     >
       <div class="config-editor">
         <div class="editor-toolbar">
@@ -417,6 +442,7 @@ import { useModsStore } from '../stores/mods.store'
 import { formatRelativeTime, formatDuration } from '../utils/format'
 import type { GameInstance } from '../types/instance'
 import PxModal from '../components/common/PxModal.vue'
+import ShareModal from '../components/share/ShareModal.vue'
 import type { LocalModStatus } from '../types/mod'
 
 const route = useRoute()
@@ -469,6 +495,9 @@ const configDirty = ref(false)
 const savingConfig = ref(false)
 const configError = ref('')
 const configTextarea = ref<HTMLTextAreaElement | null>(null)
+
+// 分享弹窗状态
+const showShareModal = ref(false)
 
 // ====== 计算属性 ======
 const instanceId = computed(() => route.params.id as string)
@@ -662,6 +691,10 @@ function openFolder() {
   if (instance.value?.path) {
     window.electronAPI?.shell.openPath(instance.value.path)
   }
+}
+
+function openShareModal() {
+  showShareModal.value = true
 }
 
 async function saveSettings() {

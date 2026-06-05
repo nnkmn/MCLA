@@ -35,7 +35,10 @@
               <div class="confirm-actions">
                 <button
                   class="btn-cancel"
-                  @click="showInstallConfirm = false; pendingFile = null"
+                  @click="
+                    showInstallConfirm = false
+                    pendingFile = null
+                  "
                 >
                   取消
                 </button>

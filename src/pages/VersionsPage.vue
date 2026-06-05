@@ -135,7 +135,7 @@ async function fetchVersions() {
 // 获取 ModLoader 列表
 async function fetchLoaders() {
   try {
-    const result = await window.electronAPI.modloader.list()
+    const result = await window.electronAPI.modloader.getLoaders(selectedVersion.value)
     loaders.value = result
   } catch (error) {
     console.error('Failed to load modloaders:', error)

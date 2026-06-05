@@ -257,10 +257,15 @@ interface ModItem {
 
 interface ModUpdateInfo {
   filePath: string
+  hash: string
   hasUpdate: boolean
+  projectId?: string
   currentVersionName?: string
+  latestVersionId?: string
   latestVersionName?: string
   latestDownloadUrl?: string
+  latestFileName?: string
+  latestFileSize?: number
 }
 
 // 数据
@@ -394,14 +399,15 @@ async function updateSelectedMod() {
     // 还没检查或没有更新，先检查一次
     await checkAllUpdates()
     const newInfo = updateInfoMap.value[selectedMod.value]
-    if (!newInfo?.hasUpdate) {
+    const currentMod = installedMods.value.find((m) => m.filePath === selectedMod.value)
+    if (!newInfo?.hasUpdate || !currentMod) {
       alert(`「${mod?.name || ''}」已是最新版本（${mod?.version || ''}）`)
       return
     }
-    await doUpdateMod(mod, updateInfoMap.value[selectedMod.value])
+    await doUpdateMod(currentMod, newInfo as ModUpdateInfo)
     return
   }
-  await doUpdateMod(mod, info)
+  await doUpdateMod(mod, info as ModUpdateInfo)
 }
 
 async function doUpdateMod(mod: ModItem, info: ModUpdateInfo) {

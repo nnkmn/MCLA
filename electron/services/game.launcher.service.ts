@@ -10,7 +10,7 @@ import * as path from 'path'
 import * as https from 'https'
 import * as http from 'http'
 const { join } = path
-import { getDefaultJava, validateJava } from './java.management.service'
+import { getDefaultJava, validateJava, recommendedJavaMajor, probeJava } from './java.management.service'
 import { updateLastPlayed } from './instances'
 import { getDatabase } from './database'
 import { logger } from '../utils/logger'
@@ -223,7 +223,8 @@ class MinecraftLauncher {
         jvmArgs,
         mcArgs,
         finalVersionJson.mainClass,
-        gameCoreConfig.root
+        gameCoreConfig.root,
+        classpathStr
       )
 
       if (result.success) {
@@ -259,7 +260,7 @@ class MinecraftLauncher {
   }
 
   /**
-   * 验证 Java 环境
+   * 验证 Java 环境（PCL2风格：智能版本匹配 + 兼容性检查）
    */
   private async validateJava(
     javaConfig: JavaConfig,
@@ -272,23 +273,56 @@ class MinecraftLauncher {
       return { success: false, javaPath: '', error: '最小内存不能大于最大内存' }
     }
 
-    // 如果配置了路径，直接使用
+    // 提取纯版本号用于 Java 选择
+    const baseVersion = extractBaseVersion(versionId)
+    const recommendedMajor = recommendedJavaMajor(baseVersion)
+
+    log.info(`[validateJava] 游戏版本: ${baseVersion}, 推荐 Java 主版本: ${recommendedMajor}`)
+
+    let selectedJava: { path: string; vendor: string; version: string; majorVersion: number } | null = null
+
+    // 如果配置了路径，验证后使用
     if (configJavaPath && fs.existsSync(configJavaPath)) {
-      return { success: true, javaPath: configJavaPath }
+      const javaInfo = await getJavaInfoFromPath(configJavaPath)
+      if (javaInfo) {
+        selectedJava = javaInfo
+        log.info(`[validateJava] 使用配置的 Java: ${javaInfo.vendor} ${javaInfo.version}`)
+      } else {
+        log.warn(`[validateJava] 配置的 Java 路径无效，尝试自动选择`)
+      }
     }
 
-    // 否则自动选择
-    const defaultJava = await getDefaultJava(versionId)
-    if (!defaultJava) {
-      return { success: false, javaPath: '', error: '未找到 Java，请在设置中配置 Java' }
+    // 自动选择 Java
+    if (!selectedJava) {
+      const defaultJava = await getDefaultJava(baseVersion)
+      if (!defaultJava) {
+        return {
+          success: false,
+          javaPath: '',
+          error: `未找到兼容的 Java 环境。Minecraft ${baseVersion} 需要 Java ${recommendedMajor} 或更高版本，请在设置中配置 Java`
+        }
+      }
+      selectedJava = defaultJava
+      log.info(`[validateJava] 自动选择 Java: ${defaultJava.vendor} ${defaultJava.version}`)
     }
 
-    log.info(`[validateJava] 自动选择 Java: ${defaultJava.vendor} ${defaultJava.version}`)
-    this.sendProgress(
-      'validating-java',
-      `自动选择 Java: ${defaultJava.vendor} ${defaultJava.version}`
-    )
-    return { success: true, javaPath: defaultJava.path }
+    // 兼容性警告
+    if (selectedJava.majorVersion < recommendedMajor) {
+      log.warn(
+        `[validateJava] Java 版本可能不兼容：当前=${selectedJava.majorVersion}, 推荐>=${recommendedMajor}`
+      )
+      this.sendProgress(
+        'validating-java',
+        `警告: Java ${selectedJava.majorVersion} 可能与 Minecraft ${baseVersion} 不兼容`
+      )
+    } else {
+      this.sendProgress(
+        'validating-java',
+        `已选择 Java: ${selectedJava.vendor} ${selectedJava.version}`
+      )
+    }
+
+    return { success: true, javaPath: selectedJava.path }
   }
 
   /**
@@ -394,13 +428,19 @@ class MinecraftLauncher {
   private checkLibRules(rules?: Array<{ action: string; os?: { name?: string } }>): boolean {
     if (!rules?.length) return true
 
-    return rules.every((rule) => {
-      if (rule.action === 'allow') {
-        if (rule.os?.name && rule.os.name !== process.platform) return false
-        return true
+    let allowed = true
+
+    for (const rule of rules) {
+      const osMatches = !rule.os?.name || rule.os.name === process.platform
+      
+      if (rule.action === 'allow' && osMatches) {
+        allowed = true
+      } else if (rule.action === 'disallow' && osMatches) {
+        allowed = false
       }
-      return true
-    })
+    }
+
+    return allowed
   }
 
   /**
@@ -514,7 +554,7 @@ class MinecraftLauncher {
   }
 
   /**
-   * 构建类路径
+   * 构建类路径（PCL2风格：完整检查 + 详细日志）
    */
   private async buildClasspath(
     gameCoreConfig: GameCoreConfig,
@@ -523,6 +563,11 @@ class MinecraftLauncher {
     const { root, version } = gameCoreConfig
     const baseLibPath = join(root, 'libraries')
     const cp: string[] = []
+    let missingCount = 0
+    let totalCount = 0
+
+    log.info(`[buildClasspath] 开始构建类路径，版本: ${version}`)
+    log.info(`[buildClasspath] 库文件根目录: ${baseLibPath}`)
 
     for (const lib of versionJson.libraries || []) {
       if (!this.checkLibRules(lib.rules)) continue
@@ -530,24 +575,33 @@ class MinecraftLauncher {
       const dl = lib.downloads?.artifact
       if (!dl) continue
 
+      totalCount++
       const fullPath = join(baseLibPath, dl.path)
       if (fs.existsSync(fullPath)) {
         cp.push(fullPath)
       } else {
-        log.warn(`[buildClasspath] 库文件缺失: ${fullPath}`)
+        missingCount++
+        log.warn(`[buildClasspath] 库文件缺失: ${dl.path}`)
       }
     }
+
+    log.info(`[buildClasspath] 库文件统计: 总计=${totalCount}, 有效=${cp.length}, 缺失=${missingCount}`)
 
     const versionJar = join(root, 'versions', version, `${version}.jar`)
     if (fs.existsSync(versionJar)) {
       cp.push(versionJar)
+      log.info(`[buildClasspath] 版本 JAR 已添加: ${versionJar}`)
+    } else {
+      log.error(`[buildClasspath] 版本 JAR 缺失: ${versionJar}`)
+      throw new Error(`版本核心文件缺失: ${version}.jar，请重新下载游戏版本`)
     }
 
+    log.info(`[buildClasspath] 类路径构建完成，共 ${cp.length} 个文件`)
     return cp
   }
 
   /**
-   * 构建 JVM 参数
+   * 构建 JVM 参数（PCL2风格：完整解析 + 详细日志）
    */
   private buildJvmArguments(
     versionJson: VersionJson,
@@ -561,12 +615,16 @@ class MinecraftLauncher {
 
     const args: string[] = []
 
+    log.info(`[buildJvmArguments] 开始构建 JVM 参数，版本: ${version}`)
+    log.info(`[buildJvmArguments] 内存配置: min=${minMemory}M, max=${maxMemory}M`)
+
     // 内存参数
     args.push(`-Xms${minMemory}M`, `-Xmx${maxMemory}M`)
 
     // natives 路径
     const nativesPath = join(root, 'versions', version, `${version}-natives`)
     args.push(`-Djava.library.path=${nativesPath}`)
+    log.info(`[buildJvmArguments] Natives 路径: ${nativesPath}`)
 
     // 基础系统参数
     args.push(
@@ -578,7 +636,10 @@ class MinecraftLauncher {
     )
 
     // 处理版本自带 JVM 参数
+    let versionJvmArgsCount = 0
     if (versionJson.arguments?.jvm) {
+      log.info(`[buildJvmArguments] 处理版本自带 JVM 参数...`)
+
       // 检查是否包含实验性 JVM 选项，需要先添加解锁选项
       const hasExperimentalOption = versionJson.arguments.jvm.some((entry) => {
         if (typeof entry === 'string') {
@@ -593,13 +654,20 @@ class MinecraftLauncher {
 
       if (hasExperimentalOption && !args.includes('-XX:+UnlockExperimentalVMOptions')) {
         args.push('-XX:+UnlockExperimentalVMOptions')
+        log.info(`[buildJvmArguments] 已添加实验性选项解锁参数`)
       }
+
+      const libraryPath = join(root, 'libraries')
+      const pathSeparator = process.platform === 'win32' ? ';' : ':'
+
       for (const entry of versionJson.arguments.jvm) {
         if (typeof entry === 'string') {
           const val = entry
             .replace(/\$\{natives_directory\}/g, nativesPath)
             .replace(/\$\{launcher_name\}/g, 'MCLA')
             .replace(/\$\{launcher_version\}/g, '2.0.0')
+            .replace(/\$\{library_directory\}/g, libraryPath)
+            .replace(/\$\{classpath_separator\}/g, pathSeparator)
             .replace(/\${classpath}/g, '')
             .trim()
 
@@ -608,9 +676,14 @@ class MinecraftLauncher {
           if (val.includes('=') && val.includes('Main')) {
             const eqIdx = val.indexOf('=')
             const fabricFlag = val.substring(0, eqIdx + 1).trimEnd()
-            if (fabricFlag) args.push(fabricFlag)
+            if (fabricFlag) {
+              args.push(fabricFlag)
+              versionJvmArgsCount++
+              log.debug(`[buildJvmArguments] 添加 Fabric 参数: ${fabricFlag}`)
+            }
           } else {
             args.push(val)
+            versionJvmArgsCount++
           }
         } else if (entry.rules) {
           const allowed = this.checkJvmRules(
@@ -621,18 +694,25 @@ class MinecraftLauncher {
             for (const v of vals) {
               const val = (v as string)
                 .replace(/\$\{natives_directory\}/g, nativesPath)
+                .replace(/\$\{library_directory\}/g, libraryPath)
+                .replace(/\$\{classpath_separator\}/g, pathSeparator)
                 .replace(/\${classpath}/g, '')
                 .trim()
-              if (val && !val.startsWith('-cp')) args.push(val)
+              if (val && !val.startsWith('-cp')) {
+                args.push(val)
+                versionJvmArgsCount++
+              }
             }
           }
         }
       }
+      log.info(`[buildJvmArguments] 版本自带 JVM 参数数量: ${versionJvmArgsCount}`)
     }
 
     // GC 参数（1.18+）
     if (!disabledOptimizationGcArgs && this.compareVersions(version, '1.18') >= 0) {
       args.push('-XX:+UseG1GC', '-XX:MaxGCPauseMillis=50', '-XX:+DisableExplicitGC')
+      log.info(`[buildJvmArguments] 已添加 G1 GC 优化参数`)
     }
 
     // 高级优化参数
@@ -641,7 +721,9 @@ class MinecraftLauncher {
     }
 
     // 去重 + 过滤空值
-    return Array.from(new Set(args.filter(Boolean)))
+    const finalArgs = Array.from(new Set(args.filter(Boolean)))
+    log.info(`[buildJvmArguments] JVM 参数构建完成，共 ${finalArgs.length} 个参数`)
+    return finalArgs
   }
 
   /**
@@ -809,9 +891,10 @@ class MinecraftLauncher {
     jvmArgs: string[],
     mcArgs: string[],
     mainClass: string,
-    cwd: string
+    cwd: string,
+    classpathStr: string
   ): Promise<LaunchResult> {
-    const allArgs = [...jvmArgs, '-cp', jvmArgs.includes('-cp') ? '' : '', mainClass, ...mcArgs]
+    const allArgs = [...jvmArgs, '-cp', classpathStr, mainClass, ...mcArgs]
 
     // 移除重复的 -cp 和空参数
     const cleanArgs = allArgs.filter((arg, index) => {
@@ -820,10 +903,27 @@ class MinecraftLauncher {
       return arg.trim() !== ''
     })
 
-    log.info(`[spawnProcess] Java: ${javaPath}`)
+    log.info(`[spawnProcess] ================ 启动命令信息 ================`)
+    log.info(`[spawnProcess] Java 路径: ${javaPath}`)
     log.info(`[spawnProcess] 工作目录: ${cwd}`)
     log.info(`[spawnProcess] 主类: ${mainClass}`)
-    log.info(`[spawnProcess] 完整命令: ${javaPath} ${cleanArgs.join(' ')}`)
+    log.info(`[spawnProcess] JVM 参数数量: ${jvmArgs.length}`)
+    log.info(`[spawnProcess] 游戏参数数量: ${mcArgs.length}`)
+    log.info(`[spawnProcess] 类路径文件数量预览: ${classpathStr.split(';').length}`)
+
+    // 输出简化的类路径（只显示前几个和后几个）
+    const cpFiles = classpathStr.split(';')
+    if (cpFiles.length > 6) {
+      log.info(`[spawnProcess] 类路径预览: `)
+      cpFiles.slice(0, 3).forEach((f, i) => log.info(`[spawnProcess]   [${i + 1}] ${f}`))
+      log.info(`[spawnProcess]   ... 省略 ${cpFiles.length - 6} 个文件 ...`)
+      cpFiles.slice(-3).forEach((f, i) => log.info(`[spawnProcess]   [${cpFiles.length - 2 + i}] ${f}`))
+    } else {
+      log.info(`[spawnProcess] 完整类路径: ${classpathStr}`)
+    }
+
+    log.info(`[spawnProcess] 完整启动参数（已清理）: ${cleanArgs.length} 个`)
+    log.info(`[spawnProcess] =============================================`)
 
     this.sendProgress('launching-process', '正在启动游戏进程...')
 
@@ -1230,6 +1330,23 @@ export function createLaunchConfig(
 }
 
 /**
+ * 提取纯版本号（从完整路径或带 loader 的版本名中提取）
+ */
+function extractBaseVersion(versionId: string): string {
+  // 如果是完整路径，提取文件名
+  let name = versionId
+  if (versionId.includes('\\') || versionId.includes('/')) {
+    name = versionId.split(/[\\/]/).pop() || versionId
+  }
+  // 匹配版本号模式：1.20.1, 1.19.4, 1.18.2 等
+  const match = name.match(/(\d+\.\d+(?:\.\d+)?)/)
+  if (match) {
+    return match[1]
+  }
+  return name
+}
+
+/**
  * 按版本 ID 启动游戏（主入口）
  */
 export async function launchByVersion(
@@ -1238,6 +1355,9 @@ export async function launchByVersion(
 ): Promise<LaunchResult> {
   const config = createLaunchConfig(mainWindow, options)
   const launcher = getLauncher(mainWindow)
+  // 提取纯版本号用于 Java 选择
+  const baseVersion = extractBaseVersion(options.versionId)
+  log.info(`[launchByVersion] 版本ID: ${options.versionId}, 基础版本: ${baseVersion}`)
   return launcher.launch(config)
 }
 
@@ -1316,4 +1436,26 @@ function defaultMcDir(): string {
   } else {
     return join(os.homedir(), '.minecraft')
   }
+}
+
+/**
+ * 从 Java 路径获取 Java 信息（PCL2风格：完整探测）
+ */
+async function getJavaInfoFromPath(
+  javaPath: string
+): Promise<{ path: string; vendor: string; version: string; majorVersion: number } | null> {
+  try {
+    const info = await probeJava(javaPath)
+    if (info) {
+      return {
+        path: info.path,
+        vendor: info.vendor,
+        version: info.version,
+        majorVersion: info.majorVersion
+      }
+    }
+  } catch (e) {
+    log.warn(`[getJavaInfoFromPath] 探测 Java 失败: ${javaPath}`, e)
+  }
+  return null
 }

@@ -37,7 +37,7 @@
     </div>
 
     <!-- 分类标签（可选） -->
-    <div v-if="showCategories && categories.length" class="category-tabs">
+    <div v-if="showCategories && categories?.length" class="category-tabs">
       <button
         v-for="cat in categories"
         :key="cat.id"

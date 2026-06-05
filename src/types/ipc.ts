@@ -103,6 +103,55 @@ export const IPC_PATH = {
   EXISTS: 'path:exists'
 } as const
 
+// ========== 分享功能 ==========
+export const IPC_SHARE = {
+  START_INSTANCE: 'share:start-instance',
+  STOP_SHARE: 'share:stop-share',
+  RECEIVE_INSTANCE: 'share:receive-instance',
+  GET_SESSION: 'share:get-session',
+  IMPORT_RECEIVED: 'share:import-received',
+  CLOSE_SESSION: 'share:close-session',
+  PACK_PROGRESS: 'share:pack-progress',
+  SESSION_UPDATE: 'share:session-update',
+  PROGRESS_UPDATE: 'share:progress-update',
+  PROTOCOL_INVOKE: 'share:protocol-invoke'
+} as const
+
+// ========== 分享功能类型 ==========
+export interface ShareSession {
+  sessionId: string
+  shareCode: string
+  type: 'sender' | 'receiver'
+  status: 'idle' | 'waiting' | 'connecting' | 'transferring' | 'completed' | 'error'
+  transferredChunks: number
+  totalChunks: number
+  bytesPerSecond?: number
+  estimatedRemaining?: number
+  error?: string
+  instanceName?: string
+  mcVersion?: string
+  loaderType?: string
+}
+
+export interface ShareStartResult {
+  sessionId: string
+  shareCode: string
+  peerId: string
+  status: 'waiting' | 'connecting' | 'transferring' | 'completed' | 'error'
+  progress?: number
+}
+
+export interface ShareReceiveResult {
+  sessionId: string
+  peerId: string
+}
+
+export interface ShareImportResult {
+  ok: boolean
+  instanceId?: string
+  error?: string
+}
+
 // ========== 统一导出所有通道名 ==========
 export const IPC_CHANNELS = {
   ...IPC_WINDOW,
@@ -117,5 +166,6 @@ export const IPC_CHANNELS = {
   ...IPC_GAME,
   ...IPC_CONTENT,
   ...IPC_DIALOG,
-  ...IPC_PATH
+  ...IPC_PATH,
+  ...IPC_SHARE
 }

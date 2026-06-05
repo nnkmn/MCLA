@@ -218,8 +218,13 @@
             <!-- 启动区域 -->
             <div class="sb-launch-area">
               <!-- 启动按钮（PCL2 描边风格） -->
-              <button class="btn-launch-pcl2" @click="handleLaunch" :disabled="isLaunching">
-                <span class="launch-label">{{ isLaunching ? '启动中...' : '启动游戏' }}</span>
+              <button 
+                class="btn-launch-pcl2" 
+                @click="handleLaunch" 
+                :disabled="isLaunching || !selectedVersionId"
+                :class="{ 'no-version': !selectedVersionId }"
+              >
+                <span class="launch-label">{{ isLaunching ? '启动中...' : (!selectedVersionId ? '请先下载版本' : '启动游戏') }}</span>
                 <span class="launch-version">{{ selectedVersion }}</span>
               </button>
 
@@ -253,7 +258,7 @@
               :key="cat.id"
               class="nav-item"
               :class="{ active: dlActiveCat === cat.id }"
-              @click="dlActiveCat = cat.id; $emit('dl-category', cat.id)"
+              @click="handleDlCategory(cat.id)"
             >
               <span v-html="cat.icon"></span>
               {{ cat.label }}
@@ -264,7 +269,7 @@
               :key="cat.id"
               class="nav-item sub"
               :class="{ active: dlActiveCat === cat.id }"
-              @click="dlActiveCat = cat.id; $emit('dl-category', cat.id)"
+              @click="handleDlCategory(cat.id)"
             >
               <span v-html="cat.icon"></span>
               {{ cat.label }}
@@ -280,7 +285,7 @@
               :key="item.id"
               class="nav-item"
               :class="{ active: settingsActive === item.id }"
-              @click="settingsActive = item.id; $emit('settings-category', item.id)"
+              @click="handleSettingsCategory(item.id)"
             >
               <span v-html="item.icon"></span>
               {{ item.label }}
@@ -392,8 +397,6 @@
 
     <!-- 全局悬浮下载面板 -->
     <DownloadFloat />
-    <!-- 通知铃铛 + 面板 -->
-    <PxNotification />
   </div>
 </template>
 
@@ -404,7 +407,6 @@ import VersionSettings from './components/VersionSettings.vue'
 import VersionSelect from './components/VersionSelect.vue'
 import AccountManager from './components/AccountManager.vue'
 import DownloadFloat from './components/DownloadFloat.vue'
-import PxNotification from './components/common/PxNotification.vue'
 import { useVersionsStore, useAccountsStore, useInstancesStore, useDownloadStore } from './stores'
 
 const route = useRoute()
@@ -416,9 +418,19 @@ const accountsStore = useAccountsStore()
 const instancesStore = useInstancesStore()
 const downloadStore = useDownloadStore()
 const minecraftPath = ref('')
-const versionGameDir = computed(() =>
-  minecraftPath.value ? `${minecraftPath.value}/versions/${selectedVersionId.value}` : ''
-)
+const versionGameDir = computed(() => {
+  // 1. 如果 selectedVersionId 本身就是完整路径
+  if (selectedVersionId.value.includes('\\') || selectedVersionId.value.includes('/')) {
+    return selectedVersionId.value
+  }
+  // 2. 匹配实例数据库
+  const matchingInstance = instancesStore.instances.find(i => i.id === selectedVersionId.value || i.path?.includes(selectedVersionId.value))
+  if (matchingInstance?.path) {
+    return matchingInstance.path
+  }
+  // 3. 从 minecraftPath 拼接
+  return minecraftPath.value ? `${minecraftPath.value}/versions/${selectedVersionId.value}` : ''
+})
 
 // 当前选中版本的 instanceId（通过 path 匹配）
 const currentInstanceId = computed(
@@ -548,30 +560,31 @@ async function loadLocalInstalledVersions() {
   const instancesStore = useInstancesStore()
   await instancesStore.fetchInstances()
 
-  // 优先：从文件系统扫描真实版本文件夹
-  if (window.electronAPI?.path) {
-    try {
-      const customPath = await window.electronAPI.path.getCustom()
-      const mcPath = customPath || (await window.electronAPI.path.getMinecraft())
-      const result = await window.electronAPI.versions.scanFolder(mcPath)
-      if (result?.ok && result.data?.length) {
-        versions.value = result.data.map((v: any) => ({
-          id: v.id, // 真实文件夹名，用于启动
-          name: v.baseVersion || v.id, // 显示用基础版本号
-          loader: v.loaderInfo || ''
-        }))
-        return
+  // 优先：使用实例数据库中的实例（更准确的路径信息）
+  if (instancesStore.instances.length) {
+    versions.value = instancesStore.instances.map((inst) => {
+      const displayName = inst.name || inst.mcVersion || '未知版本'
+      return {
+        id: inst.path,
+        name: displayName,
+        loader: inst.loaderType !== 'vanilla' && inst.loaderVersion ? `${inst.loaderType} ${inst.loaderVersion}` : ''
       }
-    } catch (e) {}
+    })
+    return
   }
 
-  // 兜底：用实例数据库
-  if (instancesStore.instances.length) {
-    versions.value = instancesStore.instances.map((inst) => ({
-      id: inst.path || inst.id,
-      name: inst.path || inst.mcVersion || inst.id,
-      loader: inst.loaderType !== 'vanilla' ? `${inst.loaderType} ${inst.loaderVersion}` : ''
-    }))
+  // 兜底：从文件系统扫描（使用已设置的 minecraftPath）
+  if (window.electronAPI?.path && minecraftPath.value) {
+    try {
+      const result = await window.electronAPI.versions.scanFolder(minecraftPath.value)
+      if (result?.ok && result.data?.length) {
+        versions.value = result.data.map((v: any) => ({
+          id: v.id,
+          name: v.baseVersion || v.id,
+          loader: v.loaderInfo || ''
+        }))
+      }
+    } catch (e) {}
   }
 }
 
@@ -644,14 +657,19 @@ const moreCategories = [
 onMounted(async () => {
   isElectron.value = !!window.electronAPI
 
-  // 获取 .minecraft 路径（优先自定义路径）
+  // 获取 .minecraft 路径（优先 last_selected_folder，其次自定义路径，最后默认）
   if (window.electronAPI?.path) {
     try {
-      const customPath = await window.electronAPI.path.getCustom()
-      if (customPath) {
-        minecraftPath.value = customPath
+      const lastFolder = await window.electronAPI.folders?.getLast()
+      if (lastFolder) {
+        minecraftPath.value = lastFolder
       } else {
-        minecraftPath.value = await window.electronAPI.path.getMinecraft()
+        const customPath = await window.electronAPI.path.getCustom()
+        if (customPath) {
+          minecraftPath.value = customPath
+        } else {
+          minecraftPath.value = await window.electronAPI.path.getMinecraft()
+        }
       }
     } catch (e) {}
   }
@@ -695,39 +713,13 @@ onMounted(async () => {
   // 加载账号列表
   accountsStore.fetchAccounts()
 
-  // 设置默认版本列表（用于没有数据时显示）
-  // 注意：只作为兜底显示用，不覆盖 localStorage 已保存的版本
+  // 没有找到任何版本时，清除之前的选择并提示用户下载
   if (!versions.value.length) {
-    versions.value = [
-      { id: '1.20.4', name: '1.20.4', loader: '' },
-      { id: '1.20.1', name: '1.20.1', loader: 'Fabric 0.16.9' },
-      { id: '1.20.2', name: '1.20.2', loader: 'NeoForge 47.1' },
-      { id: '1.19.2', name: '1.19.2', loader: 'Forge 45.2' }
-    ]
-    const savedDisplayName = localStorage.getItem('mcla_last_version_name')
-    const lastId = localStorage.getItem('mcla_last_version')
-    if (savedDisplayName && lastId) {
-      // 优先用显示名恢复（用户之前选过的版本）
-      selectedVersionId.value = lastId
-      selectedVersion.value = savedDisplayName
-    } else if (lastId) {
-      // 有 lastId 但不在当前列表中 → 尝试模糊匹配
-      const fuzzy = versions.value.find((v) => v.name && lastId.includes(v.name))
-      if (fuzzy) {
-        selectedVersionId.value = fuzzy.id
-        selectedVersion.value = `${fuzzy.name}${fuzzy.loader ? '-' + fuzzy.loader : ''}`
-      } else {
-        // 列表里找不到 → 保持 lastId，清空显示名，等待用户重新选择
-        selectedVersionId.value = lastId
-        selectedVersion.value = ''
-      }
-    } else if (versions.value.length) {
-      // 从未选择过版本 + 有列表 → 选第一个
-      const target = versions.value[0]
-      selectedVersionId.value = target.id
-      selectedVersion.value = `${target.name}${target.loader ? '-' + target.loader : ''}`
-      localStorage.setItem('mcla_last_version', target.id)
-    }
+    selectedVersionId.value = ''
+    selectedVersion.value = '请先下载版本'
+    userHasSelectedVersion.value = false
+    localStorage.removeItem('mcla_last_version')
+    localStorage.removeItem('mcla_last_version_name')
   }
 
   // 监听版本下载进度事件（始终注册）
@@ -797,7 +789,17 @@ async function onAccountSelect(event: Event) {
   select.value = accountsStore.activeAccount?.id || ''
 }
 
-function onVersionSelect(version: { id: string; name: string; loader?: string }) {
+async function onVersionSelect(version: { id: string; name: string; loader?: string }) {
+  // 同步更新 minecraftPath（用户可能切换了 .minecraft 文件夹）
+  if (window.electronAPI?.folders) {
+    try {
+      const lastFolder = await window.electronAPI.folders.getLast()
+      if (lastFolder) {
+        minecraftPath.value = lastFolder
+      }
+    } catch (e) {}
+  }
+
   selectedVersionId.value = version.id
   const displayName = `${version.name}${version.loader ? '-' + version.loader : ''}`
   selectedVersion.value = displayName
@@ -810,7 +812,9 @@ function onVersionSelect(version: { id: string; name: string; loader?: string })
 async function handleLaunch() {
   // 前置检查
   if (!selectedVersionId.value) {
-    alert('请先选择一个版本')
+    if (confirm('当前没有可用的游戏版本，是否前往下载页面？')) {
+      router.push('/downloads')
+    }
     return
   }
   if (!accountsStore.activeAccount) {
@@ -820,6 +824,9 @@ async function handleLaunch() {
 
   isLaunching.value = true
   const accountId = accountsStore.activeAccount.id
+  const versionId = selectedVersionId.value.includes('\\') || selectedVersionId.value.includes('/') 
+    ? selectedVersionId.value.split(/[\\/]/).pop() || selectedVersionId.value // 如果是完整路径，提取文件夹名作为版本ID
+    : selectedVersionId.value
 
   // 监听启动进度
   if (window.electronAPI?.game.onProgress) {
@@ -827,7 +834,7 @@ async function handleLaunch() {
   }
 
   try {
-    const result = await window.electronAPI?.game.launch('', accountId, selectedVersionId.value)
+    const result = await window.electronAPI?.game.launch('', accountId, versionId)
     if (!result?.success) {
       alert('启动失败: ' + (result?.error || '未知错误'))
     }
@@ -943,6 +950,14 @@ function minimizeWindow() {
 }
 function closeWindow() {
   window.electronAPI?.window?.close?.()
+}
+
+function handleDlCategory(catId: string) {
+  dlActiveCat.value = catId
+}
+
+function handleSettingsCategory(itemId: string) {
+  settingsActive.value = itemId
 }
 </script>
 
@@ -1463,6 +1478,11 @@ function closeWindow() {
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none;
+  }
+
+  &.no-version {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    opacity: 0.9;
   }
 
   .launch-label {

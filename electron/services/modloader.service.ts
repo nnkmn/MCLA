@@ -168,7 +168,7 @@ export class ModLoaderService {
   async installForge(gameDir: string, mcVersion: string, forgeVersion?: string): Promise<void> {
     this.reportProgress({ stage: 'downloading', progress: 0, message: '获取 Forge 版本信息...' })
 
-    let targetForgeVersion = forgeVersion
+    let targetForgeVersion: string | null = forgeVersion || null
     if (!targetForgeVersion) {
       targetForgeVersion = await this.getForgeVersionForMinecraft(mcVersion)
       if (!targetForgeVersion) {
@@ -304,7 +304,7 @@ export class ModLoaderService {
   ): Promise<void> {
     this.reportProgress({ stage: 'downloading', progress: 0, message: '获取 NeoForge 版本信息...' })
 
-    let targetNeoForgeVersion = neoforgeVersion
+    let targetNeoForgeVersion: string | null = neoforgeVersion || null
     if (!targetNeoForgeVersion) {
       targetNeoForgeVersion = await this.getNeoForgeVersionForMinecraft(mcVersion)
       if (!targetNeoForgeVersion) {
@@ -719,7 +719,7 @@ export class ModLoaderService {
         resolve()
       })
 
-      writeStream.on('error', async (err) => {
+      writeStream.on('error', async (err: Error) => {
         try {
           await writer.close()
           await fs.unlink(destPath)
@@ -728,7 +728,7 @@ export class ModLoaderService {
         reject(err)
       })
 
-      response.data.on('error', async (err) => {
+      response.data.on('error', async (err: Error) => {
         try {
           await writer.close()
           await fs.unlink(destPath)

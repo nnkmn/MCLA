@@ -269,7 +269,10 @@ async function handleLaunch() {
 
 async function terminateGame() {
   try {
-    await window.electronAPI?.game.terminate()
+    const api = window.electronAPI
+    if (api?.game?.terminate) {
+      await api.game.terminate()
+    }
     isRunning.value = false
     statusMessage.value = '游戏已终止'
     addLog('[MCLA] 游戏进程已手动终止')
@@ -279,7 +282,11 @@ async function terminateGame() {
 /** 检查游戏是否在运行 */
 async function checkRunning() {
   try {
-    const running = await window.electronAPI?.game.isRunning()
+    const api = window.electronAPI
+    let running = false
+    if (api?.game?.isRunning) {
+      running = await api.game.isRunning()
+    }
     isRunning.value = !!running
     if (running) {
       statusMessage.value = '游戏正在运行中'

@@ -39,8 +39,58 @@
                 <div class="app-name">MCLA</div>
                 <div class="app-version">当前版本：{{ appVersion }}</div>
               </div>
+              <button
+                @click="handleCheckUpdate"
+                class="app-btn update-btn"
+                :disabled="updateStatus.checking"
+              >
+                <template v-if="updateStatus.checking">检查中...</template>
+                <template v-else-if="updateStatus.available">发现更新</template>
+                <template v-else>检查更新</template>
+              </button>
               <a href="https://github.com/nnkmn/MCLA" target="_blank" class="app-btn">查看源代码</a>
             </div>
+          </div>
+
+          <!-- 更新进度条 -->
+          <div
+            v-if="updateStatus.available || updateStatus.downloading || updateStatus.downloaded"
+            class="update-section"
+          >
+            <div class="update-info">
+              <div class="update-version">新版本：v{{ updateStatus.version }}</div>
+              <div v-if="updateStatus.releaseNotes" class="update-notes">
+                {{ updateStatus.releaseNotes }}
+              </div>
+            </div>
+            <div v-if="updateStatus.downloading" class="update-progress">
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  :style="{ width: updateStatus.downloadProgress + '%' }"
+                ></div>
+              </div>
+              <div class="progress-text">
+                下载中：{{ updateStatus.downloadProgress.toFixed(1) }}%
+              </div>
+            </div>
+            <div class="update-actions">
+              <button
+                v-if="!updateStatus.downloading && !updateStatus.downloaded"
+                @click="handleDownloadUpdate"
+                class="update-action-btn primary"
+              >
+                下载更新
+              </button>
+              <button
+                v-if="updateStatus.downloaded"
+                @click="handleInstallUpdate"
+                class="update-action-btn success"
+              >
+                重启安装
+              </button>
+            </div>
+            <div v-if="updateStatus.error" class="update-error">{{ updateStatus.error }}</div>
           </div>
         </div>
       </section>
@@ -227,7 +277,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, ref, onMounted } from 'vue'
+import { inject, computed, ref, reactive, onMounted, onUnmounted } from 'vue'
 import PxModal from '@/components/common/PxModal.vue'
 import starlightLogo from '@/assets/starlight-logo.png'
 import eccenTriAvatar from '@/assets/EccenTri-Avatar.png'
@@ -240,12 +290,57 @@ const activeCat = computed(() => moreActive?.value || 'about')
 const showEmailModal = ref(false)
 const appVersion = ref('0.3.0')
 
+const updateStatus = reactive({
+  checking: false,
+  available: false,
+  downloading: false,
+  downloadProgress: 0,
+  downloaded: false,
+  error: null as string | null,
+  version: null as string | null,
+  releaseNotes: null as string | null
+})
+
+let removeUpdaterListener: (() => void) | null = null
+
+const handleCheckUpdate = async () => {
+  if (updateStatus.checking) return
+  await window.electronAPI?.updater.check()
+}
+
+const handleDownloadUpdate = async () => {
+  await window.electronAPI?.updater.download()
+}
+
+const handleInstallUpdate = async () => {
+  await window.electronAPI?.updater.install()
+}
+
 onMounted(async () => {
   try {
     const v = await window.electronAPI?.app.getVersion()
     if (v) appVersion.value = v
   } catch {
     // 使用默认值
+  }
+
+  try {
+    const status = await window.electronAPI?.updater.getStatus()
+    if (status?.data) {
+      Object.assign(updateStatus, status.data)
+    }
+  } catch {
+    // ignore
+  }
+
+  removeUpdaterListener = window.electronAPI?.updater.onStatusChange((status) => {
+    Object.assign(updateStatus, status)
+  })
+})
+
+onUnmounted(() => {
+  if (removeUpdaterListener) {
+    removeUpdaterListener()
   }
 })
 
@@ -858,5 +953,102 @@ const faqList = [
   &:hover {
     background: rgba(99, 102, 241, 0.35);
   }
+}
+
+/* ===== 更新功能 ===== */
+.update-btn {
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.update-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+}
+
+.update-info {
+  margin-bottom: 12px;
+}
+
+.update-version {
+  font-size: 14px;
+  font-weight: 700;
+  color: #a5b4fc;
+  margin-bottom: 4px;
+}
+
+.update-notes {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.update-progress {
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: right;
+}
+
+.update-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.update-action-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+
+  &.primary {
+    background: #6366f1;
+    color: #fff;
+    &:hover {
+      background: #4f46e5;
+    }
+  }
+
+  &.success {
+    background: #10b981;
+    color: #fff;
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+
+.update-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #ef4444;
 }
 </style>

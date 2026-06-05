@@ -353,12 +353,9 @@ async function loadVersionInfo() {
 async function browseFolder() {
   const api = window.electronAPI
   if (api?.dialog) {
-    const result = await api.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-      title: '选择 .minecraft 文件夹'
-    })
-    if (result?.filePaths?.length) {
-      targetFolder.value = result.filePaths[0]
+    const result = await api.dialog.selectFolder()
+    if (result) {
+      targetFolder.value = result
     }
   }
 }
@@ -379,11 +376,11 @@ async function selectLoader(loaderType: string) {
 
   loaderVersionsLoading.value = true
   showLoaderVersions.value = true
-  loaderVersions.value = await (api.versions as any).getLoaderVersions(versionId.value, loaderType)
   try {
     const api = window.electronAPI
-    if (api?.versions) {
-      loaderVersions.value = await api.versions.getLoaderVersions(versionId.value, loaderType)
+    if (api?.modloader) {
+      const loaders = await api.modloader.getLoaders(versionId.value)
+      loaderVersions.value = loaders[loaderType as keyof typeof loaders] || []
     }
   } catch (e) {
     console.error('Failed to load loader versions:', e)

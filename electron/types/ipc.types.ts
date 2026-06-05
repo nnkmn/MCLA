@@ -394,4 +394,69 @@ export interface IpcInvokeMap {
   // 路径工具
   'path:minecraft': { args: PathMinecraftArgs; return: PathMinecraftReturn }
   'path:exists': { args: PathExistsArgs; return: PathExistsReturn }
+
+  // 分享功能
+  'share:start-instance': { args: ShareStartInstanceArgs; return: ShareStartInstanceReturn }
+  'share:stop-share': { args: ShareStopShareArgs; return: void }
+  'share:receive-instance': { args: ShareReceiveInstanceArgs; return: ShareReceiveInstanceReturn }
+  'share:get-session': { args: ShareGetSessionArgs; return: ShareSession | null }
+  'share:import-received': { args: ShareImportReceivedArgs; return: ShareImportReceivedReturn }
+  'share:close-session': { args: ShareCloseSessionArgs; return: void }
+}
+
+// ==================== 分享功能 ====================
+
+export interface ShareStartInstanceArgs {
+  instanceId: string
+}
+export interface ShareStartInstanceReturn {
+  sessionId: string
+  shareCode: string
+  peerId: string
+  status: 'waiting' | 'connecting' | 'transferring' | 'completed' | 'error'
+  progress?: number
+}
+
+export interface ShareStopShareArgs {
+  sessionId: string
+}
+
+export interface ShareReceiveInstanceArgs {
+  shareCode: string
+  senderPeerId?: string
+}
+export interface ShareReceiveInstanceReturn {
+  sessionId: string
+  peerId: string
+}
+
+export interface ShareGetSessionArgs {
+  sessionId: string
+}
+export interface ShareSession {
+  sessionId: string
+  shareCode: string
+  type: 'sender' | 'receiver'
+  status: 'idle' | 'waiting' | 'connecting' | 'transferring' | 'completed' | 'error'
+  transferredChunks: number
+  totalChunks: number
+  bytesPerSecond?: number
+  estimatedRemaining?: number
+  error?: string
+  instanceName?: string
+  mcVersion?: string
+  loaderType?: string
+}
+
+export interface ShareImportReceivedArgs {
+  sessionId: string
+}
+export interface ShareImportReceivedReturn {
+  ok: boolean
+  instanceId?: string
+  error?: string
+}
+
+export interface ShareCloseSessionArgs {
+  sessionId: string
 }

@@ -201,19 +201,22 @@ export class MinecraftLauncher {
     }
 
     // 2. 解析版本 JSON
-    const versionJson = await this.resolveVersionJson(gameDir, versionId)
+    const versionJson = this.resolveVersionJson(gameDir, versionId)
     if (!versionJson) {
       return { success: false, error: `版本 ${versionId} 不存在` }
     }
 
-    // 3. 补全游戏文件
+    // 3. 处理继承版本（ModLoader版本需要继承基础版本）
+    const finalVersionJson = this.resolveInheritedVersion(gameDir, versionJson)
+
+    // 4. 补全游戏文件
     onProgressChanged({ phase: 'checking-files', message: '正在检查游戏文件...' })
-    await this.completeGameFiles(gameDir, versionJson, onProgressChanged)
+    await this.completeGameFiles(gameDir, finalVersionJson, onProgressChanged)
 
-    // 4. 构建启动命令
-    const command = this.buildLaunchCommand(gameDir, versionJson)
+    // 5. 构建启动命令
+    const command = this.buildLaunchCommand(gameDir, finalVersionJson)
 
-    // 5. 启动游戏进程
+    // 6. 启动游戏进程
     onProgressChanged({ phase: 'launching-process', message: '正在启动游戏...' })
     return new Promise((resolve) => {
       this.process = spawn(command.javaPath, command.args, {
@@ -298,6 +301,25 @@ export class MinecraftLauncher {
     } catch {
       this.logger(`[Launch] JSON 解析失败: ${versionJsonPath}`)
       return null
+    }
+  }
+
+  private resolveInheritedVersion(gameDir: string, versionJson: any): any {
+    if (!versionJson.inheritsFrom) {
+      return versionJson
+    }
+
+    const parentJson = this.resolveVersionJson(gameDir, versionJson.inheritsFrom)
+    if (!parentJson) {
+      this.logger(`[Launch] 继承版本 ${versionJson.inheritsFrom} 不存在，跳过继承处理`)
+      return versionJson
+    }
+
+    this.logger(`[Launch] 合并继承版本: ${versionJson.inheritsFrom}`)
+    return {
+      ...parentJson,
+      ...versionJson,
+      libraries: [...(versionJson.libraries || []), ...(parentJson.libraries || [])]
     }
   }
 

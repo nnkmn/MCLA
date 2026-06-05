@@ -1,7 +1,16 @@
 /**
  * MCLA 主进程入口
  */
-import { app, BrowserWindow, shell, nativeImage, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, nativeImage, type NativeImage, ipcMain } from 'electron'
+import { execSync } from 'child_process'
+
+if (process.platform === 'win32') {
+  try {
+    process.env.LANG = 'zh_CN.UTF-8'
+    process.env.LC_ALL = 'zh_CN.UTF-8'
+    process.env.NODE_ENV === 'development' && execSync('chcp 65001 > nul', { stdio: 'ignore' })
+  } catch {}
+}
 import { join } from 'path'
 import { existsSync, mkdirSync, appendFileSync } from 'fs'
 import { initDatabase } from './services/database'
@@ -13,6 +22,8 @@ import { initializeContentService } from './services/content.ipc'
 import { registerAllIpcHandlers, updateMainWindowRefs } from './ipc'
 import { CrashService } from './services/crash.service'
 import { ModService } from './services/mod.service'
+import { initAutoUpdater, checkForUpdates } from './services/updater.service'
+import { cleanupShareOnExit } from './ipc/share.ipc'
 import { logger } from './utils/logger'
 
 const log = logger.child('Main')
@@ -49,6 +60,54 @@ function writeLog(...args: any[]) {
 
 writeLog('>>> main.ts TOP OF FILE')
 
+// 自定义协议处理（分享功能）
+const PROTOCOL_NAME = 'mcla'
+let pendingShareCode: string | null = null
+
+function parseShareUrl(url: string): string | null {
+  try {
+    const match = url.match(/^mcla:\/\/share:([0-9a-zA-Z]{6,})/i)
+    if (match) {
+      return match[1]
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+// Windows：处理协议唤起（单实例模式）
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (_event, commandLine) => {
+    // 第二个实例启动时，解析命令行中的协议 URL
+    for (const arg of commandLine) {
+      const code = parseShareUrl(arg)
+      if (code) {
+        pendingShareCode = code
+        const windows = BrowserWindow.getAllWindows()
+        if (windows.length > 0) {
+          const win = windows[0]
+          win.show()
+          win.focus()
+          // 通知渲染进程打开分享导入弹窗
+          win.webContents.once('did-finish-load', () => {
+            win.webContents.send('share:protocol-invoke', { shareCode: code })
+          })
+          if (win.webContents.isLoading()) {
+            // 等待加载完成后再发送
+          } else {
+            win.webContents.send('share:protocol-invoke', { shareCode: code })
+          }
+        }
+        break
+      }
+    }
+  })
+}
+
 // 全局错误处理
 process.on('uncaughtException', (error) => {
   writeLog('[FATAL] Uncaught exception:', error.message, error.stack)
@@ -67,8 +126,19 @@ function createWindow(): BrowserWindow {
       : process.resourcesPath
   writeLog('createWindow resourcesPath:', resPath)
 
-  // 用 nativeImage 加载图标（extraResources 映射到 resources/icons/）
-  const appIcon = nativeImage.createFromPath(join(resPath, 'icons', 'icon.ico'))
+  // 加载图标 - 根据环境使用不同路径
+  let appIcon: NativeImage | undefined
+  const iconPathDev = join(__dirname, '..', '..', 'resources', 'icons', 'icon.ico')
+  const iconPathProd = join(resPath, 'icons', 'icon.ico')
+  if (existsSync(iconPathDev)) {
+    appIcon = nativeImage.createFromPath(iconPathDev)
+    writeLog('Using dev icon path:', iconPathDev)
+  } else if (existsSync(iconPathProd)) {
+    appIcon = nativeImage.createFromPath(iconPathProd)
+    writeLog('Using prod icon path:', iconPathProd)
+  } else {
+    writeLog('Icon file not found')
+  }
 
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -89,10 +159,7 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  // dev 模式打开 DevTools
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools()
-  }
+  // DevTools 默认不自动打开，用户可通过 F12 快捷键手动打开
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -140,6 +207,24 @@ app.whenReady().then(() => {
   logFile = join(app.getPath('userData'), 'mcla-main.log')
   writeLog('>>> INSIDE whenReady callback')
 
+  // 注册自定义协议
+  if (process.platform === 'win32') {
+    app.setAsDefaultProtocolClient(PROTOCOL_NAME)
+  } else {
+    app.setAsDefaultProtocolClient(PROTOCOL_NAME)
+  }
+  writeLog('Custom protocol registered:', PROTOCOL_NAME)
+
+  // 处理启动时的协议参数
+  for (const arg of process.argv) {
+    const code = parseShareUrl(arg)
+    if (code) {
+      pendingShareCode = code
+      writeLog('Found share code in startup args:', code)
+      break
+    }
+  }
+
   // Windows：设置 AppUserModelID，让任务栏图标正确显示
   if (process.platform === 'win32') {
     app.setAppUserModelId(isDev() ? process.execPath : 'com.mcla.launcher')
@@ -184,6 +269,18 @@ app.whenReady().then(() => {
 
   const win = createWindow()
 
+  // 如果有挂起的分享码，通知渲染进程
+  if (pendingShareCode) {
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.send('share:protocol-invoke', { shareCode: pendingShareCode })
+      writeLog('Sent pending share code to renderer:', pendingShareCode)
+      pendingShareCode = null
+    })
+  }
+
+  // 初始化自动更新服务
+  initAutoUpdater(win)
+
   // 注册所有 IPC 处理器
   try {
     registerIpcHandlers(win)
@@ -205,6 +302,11 @@ app.whenReady().then(() => {
         writeLog('[startup] xuid 回填失败:', e.message)
       }
     }, 3000)
+
+    // 启动 5 秒后检查更新
+    setTimeout(() => {
+      checkForUpdates()
+    }, 5000)
   } catch (err: any) {
     writeLog('[IPC] >>> Handlers registration FAILED:', err.message, err.stack)
   }
@@ -220,9 +322,15 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  // 清理分享会话和临时文件
+  cleanupShareOnExit()
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  cleanupShareOnExit()
 })
 
 // 打印已注册的 handlers（调试用）

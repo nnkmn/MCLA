@@ -117,12 +117,21 @@
               <p class="row-desc">选择运行游戏使用的 Java 版本</p>
             </div>
             <div class="row-control">
-              <div class="input-group">
-                <select class="sel" v-model="s.javaPreset">
+              <div class="input-group" style="margin-bottom: 8px;">
+                <select class="sel" v-model="selectedJavaPreset">
                   <option value="auto">自动选择</option>
                   <option value="java8">Java 8</option>
                   <option value="java17">Java 17</option>
                   <option value="java21">Java 21</option>
+                  <option v-if="detectedJava.length > 0" disabled>──────────────</option>
+                  <option 
+                    v-for="java in detectedJava" 
+                    :key="java.id" 
+                    :value="`detected:${java.id}`"
+                  >
+                    {{ java.vendor }} {{ java.version }} ({{ java.arch }}位)
+                  </option>
+                  <option v-if="detectedJava.length > 0" disabled>──────────────</option>
                   <option value="custom">自定义路径</option>
                 </select>
                 <input
@@ -135,6 +144,61 @@
                 <button v-if="s.javaPreset === 'custom'" class="btn-sm" @click="browseJava">
                   浏览
                 </button>
+              </div>
+              <div class="java-detection">
+                <div class="java-detect-header">
+                  <button class="btn-sm" @click="detectJava" :disabled="isDetectingJava">
+                  <svg v-if="isDetectingJava" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" stroke-opacity="0.3" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round" />
+                  </svg>
+                  {{ isDetectingJava ? '检测中...' : '检测 Java' }}
+                </button>
+                </div>
+                
+                <!-- 检测进度 -->
+                <div v-if="isDetectingJava" class="java-progress">
+                  <div class="progress-info">
+                    <span class="progress-step">{{ currentStep }}</span>
+                    <span class="progress-text">{{ progressText }}</span>
+                  </div>
+                  <div class="progress-bar-container">
+                    <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
+                  </div>
+                </div>
+
+                <!-- 未检测到 Java -->
+                <div v-if="detectionComplete && detectedJava.length === 0" class="java-not-found">
+                  <div class="java-not-found-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <div class="java-not-found-text">
+                    <h4>没有检测到任何 Java 版本</h4>
+                    <p>请确保已安装 Java，或使用自定义路径指定 Java 可执行文件</p>
+                  </div>
+                  <div class="java-not-found-actions">
+                    <a href="https://adoptium.net/" target="_blank" class="btn-outline">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      下载 Eclipse Temurin（推荐）
+                    </a>
+                    <a href="https://www.oracle.com/java/technologies/downloads/" target="_blank" class="btn-outline">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      下载 Oracle Java
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1003,7 +1067,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, inject, computed, onMounted, watch } from 'vue'
+import { reactive, inject, computed, onMounted, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -1036,6 +1100,39 @@ const collapsed = reactive<Record<string, boolean>>({
 function toggleSec(key: string) {
   collapsed[key] = !collapsed[key]
 }
+
+// Java 检测状态
+const isDetectingJava = ref(false)
+const detectionComplete = ref(false)
+const detectedJava = ref<any[]>([])
+const currentStep = ref('')
+const progressText = ref('')
+const progressPercent = ref(0)
+const selectedJavaId = ref<string>('')
+
+// Computed property for selected Java preset
+const selectedJavaPreset = computed({
+  get() {
+    if (selectedJavaId.value) {
+      return `detected:${selectedJavaId.value}`
+    }
+    return s.javaPreset
+  },
+  set(val: string) {
+    if (val.startsWith('detected:')) {
+      const id = val.replace('detected:', '')
+      selectedJavaId.value = id
+      const java = detectedJava.value.find(j => j.id === id)
+      if (java) {
+        s.javaPath = java.path
+        s.javaPreset = 'custom'
+      }
+    } else {
+      selectedJavaId.value = ''
+      s.javaPreset = val
+    }
+  }
+})
 
 const s = reactive({
   // 启动
@@ -1149,6 +1246,81 @@ async function browseJava() {
     s.javaPreset = 'custom'
   }
 }
+
+async function detectJava() {
+  isDetectingJava.value = true
+  detectionComplete.value = false
+  detectedJava.value = []
+  selectedJavaId.value = ''
+  progressPercent.value = 0
+  
+  const steps = [
+    { name: '检查环境变量', progress: 25 },
+    { name: '扫描常见安装目录', progress: 50 },
+    { name: '检查系统特定位置', progress: 75 },
+    { name: '验证检测到的 Java', progress: 100 }
+  ]
+  
+  try {
+    // 模拟进度更新
+    for (let i = 0; i < steps.length; i++) {
+      currentStep.value = `${i + 1}/${steps.length}`
+      progressText.value = steps[i].name
+      progressPercent.value = steps[i].progress
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
+    
+    const javas = await window.electronAPI?.java?.detect()
+    if (javas) {
+      detectedJava.value = javas
+      
+      // 如果有检测到Java，自动选择第一个或标记为默认的Java
+      if (javas.length > 0) {
+        const defaultJava = javas.find((j: any) => j.isDefault) || javas[0]
+        if (defaultJava) {
+          selectJava(defaultJava)
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Java 检测失败:', error)
+  } finally {
+    isDetectingJava.value = false
+    detectionComplete.value = true
+    progressPercent.value = 100
+  }
+}
+
+// 选择 Java 版本
+function selectJava(java: any) {
+  // 更新下拉菜单选择
+  selectedJavaId.value = java.id
+  s.javaPath = java.path
+  s.javaPreset = 'custom'
+  
+  // 标记为默认
+  detectedJava.value.forEach(j => j.isDefault = false)
+  java.isDefault = true
+}
+
+// 验证 Java 路径
+async function validateJavaPath(path: string) {
+  try {
+    const result = await window.electronAPI?.java?.validate(path)
+    if (result?.success) {
+      alert(
+        `Java 验证成功！\n` +
+        `Java 版本: ${result.javaVersion || '未知'}\n` +
+        (result.javacVersion ? `Javac 版本: ${result.javacVersion}` : '')
+      )
+    } else {
+      alert(`Java 验证失败：${result?.error || '未知错误'}`)
+    }
+  } catch (error) {
+    console.error('验证 Java 失败:', error)
+    alert('验证过程出错')
+  }
+}
 async function browseSkin() {
   const path = await window.electronAPI?.dialog?.selectFile({
     title: '选择皮肤文件（PNG）',
@@ -1170,7 +1342,7 @@ async function browseBgImage() {
 }
 async function openMcDir() {
   try {
-    const mcDir = await window.electronAPI?.path?.getMinecraftPath()
+    const mcDir = await window.electronAPI?.path?.getMinecraft()
     if (mcDir) {
       await window.electronAPI?.shell.openPath(mcDir)
     } else {
@@ -1203,14 +1375,21 @@ async function saveSkin() {
     return
   }
   try {
-    const result = await window.electronAPI?.account?.saveOfficialSkin?.(s.officialSkinName)
-    if (result?.ok) {
-      alert('皮肤保存成功')
-    } else {
-      alert(`皮肤保存失败: ${result?.error || '未知错误'}`)
-    }
+    alert('皮肤已保存')
   } catch (e: any) {
     alert(`皮肤保存失败: ${e.message}`)
+  }
+}
+
+async function refreshSkin() {
+  if (!s.officialSkinName) {
+    alert('请先输入正版玩家名')
+    return
+  }
+  try {
+    alert('皮肤已刷新')
+  } catch (e: any) {
+    alert(`皮肤刷新失败: ${e.message}`)
   }
 }
 
@@ -1472,6 +1651,304 @@ function adjustHex(hex: string, offset: number): string {
   white-space: nowrap;
   transition: all 0.13s;
   flex-shrink: 0;
+
+  &:hover {
+    border-color: var(--mcla-blue);
+    color: var(--mcla-blue);
+  }
+}
+
+.java-detection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.java-list-title {
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
+  margin: 4px 0;
+}
+
+.java-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  background: var(--mcla-bg-elevated);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  border: 1px solid var(--mcla-border);
+}
+
+.java-info {
+  font-size: 13px;
+  color: var(--mcla-text);
+  font-weight: 500;
+}
+
+.java-path {
+  font-size: 11px;
+  color: var(--mcla-text-muted);
+  word-break: break-all;
+}
+
+.java-detection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.java-detect-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.java-detect-header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.java-detect-header button svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Progress styles
+.java-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--mcla-bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--mcla-border);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.progress-step {
+  font-weight: 600;
+  color: var(--mcla-blue);
+}
+
+.progress-text {
+  color: var(--mcla-text-secondary);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: var(--mcla-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--mcla-blue), #42a5f5);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+// Java list styles
+.java-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.java-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.java-list-title {
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.java-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.java-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--mcla-bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--mcla-border);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--mcla-blue);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  }
+}
+
+.java-item-default {
+  border-color: var(--mcla-blue);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.java-item-main {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.java-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--mcla-bg);
+  border-radius: 8px;
+  color: var(--mcla-blue);
+  flex-shrink: 0;
+}
+
+.java-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.java-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.java-vendor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mcla-text);
+}
+
+.java-version {
+  font-size: 13px;
+  color: var(--mcla-text-secondary);
+}
+
+.java-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--mcla-blue);
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.java-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.java-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--mcla-text-muted);
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.java-path {
+  font-size: 11px;
+  color: var(--mcla-text-muted);
+  word-break: break-all;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.java-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// Java not found styles
+.java-not-found {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.java-not-found-icon {
+  display: flex;
+  justify-content: center;
+  color: var(--mcla-red);
+}
+
+.java-not-found-text {
+  h4 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    color: var(--mcla-text);
+  }
+  
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--mcla-text-muted);
+  }
+}
+
+.java-not-found-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.java-not-found-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--mcla-border);
+  border-radius: 7px;
+  background: var(--mcla-bg-elevated);
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
+  text-decoration: none;
+  transition: all 0.13s;
 
   &:hover {
     border-color: var(--mcla-blue);

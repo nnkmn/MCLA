@@ -116,7 +116,10 @@ const api = {
   // Java 管理
   java: {
     detect: () => ipcRenderer.invoke('java:detect'),
-    getDefault: () => ipcRenderer.invoke('java:get-default')
+    getDefault: () => ipcRenderer.invoke('java:get-default'),
+    setDefault: (javaPath: string) => ipcRenderer.invoke('java:set-default', javaPath),
+    validate: (javaPath: string) => ipcRenderer.invoke('java:validate', javaPath),
+    recommendedMajor: (mcVersion: string) => ipcRenderer.invoke('java:recommended-major', mcVersion)
   },
 
   // 游戏版本
@@ -215,6 +218,8 @@ const api = {
     launch: (instanceId: string, accountId: string, versionId?: string) =>
       ipcRenderer.invoke('game:launch', { instanceId, accountId, versionId }),
     getLog: (instanceId: string) => ipcRenderer.invoke('game:get-log', { instanceId }),
+    terminate: () => ipcRenderer.invoke('game:terminate'),
+    isRunning: () => ipcRenderer.invoke('game:is-running'),
     onProgress: (
       callback: (progress: { phase: string; message: string; detail?: string }) => void
     ) => {
@@ -355,6 +360,30 @@ const api = {
       const listener = (_event: any, data: any) => callback(data)
       ipcRenderer.on('mod:update-progress', listener)
       return () => ipcRenderer.removeListener('mod:update-progress', listener)
+    }
+  },
+
+  // 自动更新
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    download: () => ipcRenderer.invoke('updater:download'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    getStatus: () => ipcRenderer.invoke('updater:status'),
+    onStatusChange: (
+      callback: (status: {
+        checking: boolean
+        available: boolean
+        downloading: boolean
+        downloadProgress: number
+        downloaded: boolean
+        error: string | null
+        version: string | null
+        releaseNotes: string | null
+      }) => void
+    ) => {
+      const listener = (_event: any, status: any) => callback(status)
+      ipcRenderer.on('updater:status', listener)
+      return () => ipcRenderer.removeListener('updater:status', listener)
     }
   }
 }

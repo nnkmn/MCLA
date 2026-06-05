@@ -593,11 +593,7 @@ async function handleCreateInstance() {
 }
 
 function launchInstance(inst: Instance) {
-  window.electronAPI?.game?.launch?.({
-    instanceId: inst.id,
-    accountId: undefined,
-    versionId: inst.mc_version
-  })
+  window.electronAPI?.game?.launch?.(inst.id, '', inst.mc_version)
 }
 
 async function openFolder(inst: Instance) {

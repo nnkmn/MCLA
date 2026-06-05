@@ -831,52 +831,20 @@ function cancelInputModal() {
 }
 
 // ====== 快捷方式：打开文件夹 ======
-// 始终从主进程获取 .minecraft 根目录（尊重自定义路径设置）
-async function resolveMinecraftRoot(): Promise<string> {
-  const api = window.electronAPI
-  if (!api?.path) {
-    // 兜底：从 gameDir 推导
-    const parts = props.gameDir.split(/[\\/]/)
-    const idx = parts.indexOf('.minecraft')
-    return idx >= 0 ? parts.slice(0, idx + 1).join('/') : props.gameDir
-  }
-  const custom = await api.path.getCustom()
-  if (custom) return custom
-  return await api.path.getMinecraft()
-}
-
 async function openFolder(subPath: string) {
   const api = window.electronAPI
   if (!api?.shell) return
 
-  const mcRoot = await resolveMinecraftRoot()
-
   if (!subPath) {
-    // 版本文件夹：打开 versions/<版本名>
-    const versionFolderName = props.gameDir.split(/[\\/]/).pop() || ''
-    const target = `${mcRoot}/versions/${versionFolderName}`
-    await api.shell.openPath(target)
+    // 版本文件夹：直接打开 props.gameDir
+    await api.shell.openPath(props.gameDir)
     return
   }
 
-  // saves / mods：优先打开版本隔离目录，不存在则回退全局
-  if (subPath === 'saves' || subPath === 'mods') {
-    const versionFolderName = props.gameDir.split(/[\\/]/).pop() || ''
-    const isolated = `${mcRoot}/versions/${versionFolderName}/${subPath}`
-    const isolatedExists = await api.path.exists(isolated)
-    if (isolatedExists) {
-      await api.shell.openPath(isolated)
-      return
-    }
-    // 回退全局目录
-    const globalTarget = `${mcRoot}/${subPath}`
-    await api.shell.openPath(globalTarget)
-    return
-  }
-
-  // 其他路径（如果有）直接拼全局
-  const target = `${mcRoot}/${subPath}`
+  // saves / mods：在当前版本目录下查找
+  const target = `${props.gameDir}/${subPath}`
   await api.shell.openPath(target)
+  return
 }
 
 // ====== 个性化 ======

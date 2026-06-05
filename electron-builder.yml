@@ -3,7 +3,6 @@ productName: MCLA
 copyright: Copyright © 2026 EccenTri
 
 directories:
-  buildResources: resources
   output: build
 
 files:
@@ -21,8 +20,7 @@ extraResources:
 win:
   target:
     - nsis
-  icon: resources/icons/icon.png
-  signAndEditExecutable: false
+  icon: resources/icons/icon.ico
 
 nsis:
   oneClick: false
@@ -33,3 +31,9 @@ nsis:
   uninstallDisplayName: MCLA
   installerIcon: resources/icons/icon.ico
   uninstallerIcon: resources/icons/icon.ico
+
+publish:
+  provider: github
+  owner: nnkmn
+  repo: MCLA
+  releaseType: release

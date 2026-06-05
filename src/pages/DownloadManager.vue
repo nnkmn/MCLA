@@ -99,7 +99,7 @@
             :class="{
               completed: task.phase === 'completed',
               failed: task.phase === 'failed',
-              downloading: task.phase === 'downloading'
+              downloading: task.phase === 'downloading_json' || task.phase === 'downloading_jar'
             }"
           >
             <!-- 选择框 -->
@@ -163,7 +163,7 @@
                 <span class="task-phase-tag" :class="task.phase">
                   {{ task.phaseLabel }}
                 </span>
-                <span class="task-time">{{ formatTime(task.startTime) }}</span>
+                <span class="task-time">{{ formatTime(task._lastTime) }}</span>
               </div>
               <!-- 进度条 -->
               <div class="task-bar-wrap">
@@ -176,7 +176,7 @@
 
             <!-- 右侧：操作 -->
             <div class="task-actions">
-              <div v-if="task.phase === 'downloading'" class="speed-info">
+              <div v-if="task.phase === 'downloading_json' || task.phase === 'downloading_jar'" class="speed-info">
                 <span class="speed-label">{{ formatSpeed(task.speed) }}</span>
                 <span class="speed-status"
                   >剩余 {{ formatSize(task.totalSize - task.downloadedSize) }}</span
@@ -324,7 +324,11 @@ const filteredTasks = computed(() => {
 
   // 按标签筛选
   if (activeTab.value !== 'all') {
-    result = result.filter((task) => task.phase === activeTab.value)
+    if (activeTab.value === 'downloading') {
+      result = result.filter((task) => task.phase === 'downloading_json' || task.phase === 'downloading_jar')
+    } else {
+      result = result.filter((task) => task.phase === activeTab.value)
+    }
   }
 
   // 搜索筛选
@@ -337,7 +341,7 @@ const filteredTasks = computed(() => {
 })
 
 const totalCount = computed(() => tasks.value.length)
-const downloadingCount = computed(() => tasks.value.filter((t) => t.phase === 'downloading').length)
+const downloadingCount = computed(() => tasks.value.filter((t) => t.phase === 'downloading_json' || t.phase === 'downloading_jar').length)
 const completedCount = computed(() => tasks.value.filter((t) => t.phase === 'completed').length)
 const failedCount = computed(() => tasks.value.filter((t) => t.phase === 'failed').length)
 

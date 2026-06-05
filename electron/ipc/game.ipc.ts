@@ -353,13 +353,38 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
         try {
           mkdirSync(versionDir, { recursive: true })
 
-          // 阶段1：获取版本清单
+          // 阶段1：获取版本清单（带重试）
           sendProgress('resolving', '解析版本清单...', 5, 0, 1, 0)
-          const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`)
-          if (!manifestRes.ok) throw new Error(`获取版本清单失败 HTTP ${manifestRes.status}`)
-          const manifest = (await manifestRes.json()) as {
-            versions: Array<{ id: string; url: string }>
+          let manifest: { versions: Array<{ id: string; url: string }> } | undefined
+          let retries = 3
+          while (retries > 0) {
+            try {
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 30000)
+              const manifestRes = await fetch(`${bmclUrl}/mc/game/version_manifest.json`, {
+                signal: controller.signal
+              })
+              clearTimeout(timeoutId)
+              if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`)
+              
+              const text = await manifestRes.text()
+              if (!text || text.length < 10) throw new Error('响应内容为空')
+              
+              try {
+                manifest = JSON.parse(text) as { versions: Array<{ id: string; url: string }> }
+                break
+              } catch (jsonErr) {
+                throw new Error(`JSON 解析失败: ${(jsonErr as Error).message}`)
+              }
+            } catch (e) {
+              retries--
+              if (retries === 0) throw e
+              log.warn(`[versions:download-start] 获取版本清单失败，重试 ${3 - retries}/3:`, (e as Error).message)
+              await new Promise(r => setTimeout(r, 2000))
+            }
           }
+          
+          if (!manifest) throw new Error('获取版本清单失败')
           const verEntry = manifest.versions.find((v) => v.id === versionId)
           if (!verEntry) throw new Error(`版本清单中未找到 ${versionId}`)
 
@@ -570,6 +595,34 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
 
   // ===== 补全文件：下载缺失的库 =====
 
+  const MIRRORS = [
+    'https://bmclapi2.bangbang93.com',
+    'https://download.mcbbs.net',
+    'https://piston-meta.mojang.com'
+  ]
+
+  async function downloadWithMirrors(
+    pathPattern: (baseUrl: string) => string,
+    destPath: string,
+    description: string
+  ): Promise<void> {
+    for (let i = 0; i < MIRRORS.length; i++) {
+      const mirror = MIRRORS[i]
+      const url = pathPattern(mirror)
+      try {
+        log.info(`[补全] 尝试 ${description} [${i + 1}/${MIRRORS.length}]: ${url}`)
+        await downloadFile(url, destPath)
+        log.info(`[补全] ${description} 成功`)
+        return
+      } catch (e: any) {
+        log.warn(`[补全] ${description} 失败 [${i + 1}/${MIRRORS.length}]:`, e.message)
+        if (i === MIRRORS.length - 1) {
+          throw new Error(`${description} 失败，所有镜像都无法下载: ${e.message}`)
+        }
+      }
+    }
+  }
+
   ipcMain.handle(
     'versions:download-missing',
     async (
@@ -584,7 +637,7 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
     ) => {
       const versionDir = join(gameDir, 'versions', versionId)
       const jsonPath = join(versionDir, `${versionId}.json`)
-      const baseUrl = versionsService?.getBaseUrl?.() ?? 'https://bmclapi2.bangbang93.com'
+      const primaryMirror = versionsService?.getBaseUrl?.() ?? MIRRORS[0]
 
       try {
         if (!existsSync(jsonPath)) {
@@ -602,7 +655,7 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
           if (!dl) continue
           const libPath = join(baseLibPath, dl.path)
           if (!existsSync(libPath)) {
-            missing.push({ path: dl.path, url: dl.url || `${baseUrl}/libraries/${dl.path}` })
+            missing.push({ path: dl.path, url: dl.url || `${primaryMirror}/libraries/${dl.path}` })
           }
         }
 
@@ -610,9 +663,12 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
           // 下载 client.jar（如果缺失）
           const jarPath = join(versionDir, `${versionId}.jar`)
           if (!existsSync(jarPath)) {
-            const jarUrl = `${baseUrl}/mc/version/${versionId}/client`
-            mkdirSync(join(versionDir), { recursive: true })
-            await downloadFile(jarUrl, jarPath)
+            mkdirSync(versionDir, { recursive: true })
+            await downloadWithMirrors(
+              (base) => `${base}/mc/version/${versionId}/client`,
+              jarPath,
+              `下载游戏核心 ${versionId}`
+            )
           }
           // 下载父版本 JSON（如果缺失）
           if (versionJson.inheritsFrom) {
@@ -624,9 +680,10 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
             )
             if (!existsSync(parentJsonPath)) {
               mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
-              await downloadFile(
-                `${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`,
-                parentJsonPath
+              await downloadWithMirrors(
+                (base) => `${base}/mc/game/version/${versionJson.inheritsFrom}`,
+                parentJsonPath,
+                `下载父版本 JSON ${versionJson.inheritsFrom}`
               )
             }
           }
@@ -637,10 +694,30 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
         for (const lib of missing) {
           const libFilePath = join(baseLibPath, lib.path)
           mkdirSync(join(baseLibPath, lib.path).replace(/[^/\\]+$/, ''), { recursive: true })
-          // 优先用 BMCLAPI 镜像
-          const url = `${baseUrl}/libraries/${lib.path}`
+          
           try {
-            await downloadFile(url, libFilePath)
+            let success = false
+            const allUrls = [
+              ...MIRRORS.map(m => `${m}/libraries/${lib.path}`),
+              lib.url
+            ].filter(Boolean)
+            
+            for (let i = 0; i < allUrls.length && !success; i++) {
+              const url = allUrls[i]
+              try {
+                log.info(`[补全] 尝试下载库 ${lib.path} [${i + 1}/${allUrls.length}]: ${url}`)
+                await downloadFile(url, libFilePath)
+                success = true
+                log.info(`[补全] 下载库成功: ${lib.path}`)
+              } catch (e: any) {
+                log.warn(`[补全] 下载库失败 [${i + 1}/${allUrls.length}]:`, e.message)
+              }
+            }
+            
+            if (!success) {
+              throw new Error(`所有镜像都无法下载: ${lib.path}`)
+            }
+            
             downloaded++
             // 推送进度
             mainWindow.webContents.send('version:download-progress', {
@@ -649,20 +726,9 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
               total: missing.length,
               file: lib.path
             })
-          } catch {
-            // 尝试备用 URL
-            try {
-              await downloadFile(lib.url, libFilePath)
-              downloaded++
-              mainWindow.webContents.send('version:download-progress', {
-                versionId,
-                current: downloaded,
-                total: missing.length,
-                file: lib.path
-              })
-            } catch (e: any) {
-              log.warn(`[补全] 下载失败: ${lib.path}`, e.message)
-            }
+          } catch (e: any) {
+            log.warn(`[补全] 下载失败: ${lib.path}`, e.message)
+            throw new Error(`下载 ${lib.path} 失败: ${e.message}`)
           }
         }
 
@@ -670,7 +736,11 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
         const jarPath = join(versionDir, `${versionId}.jar`)
         if (!existsSync(jarPath)) {
           mkdirSync(versionDir, { recursive: true })
-          await downloadFile(`${baseUrl}/mc/version/${versionId}/client`, jarPath)
+          await downloadWithMirrors(
+            (base) => `${base}/mc/version/${versionId}/client`,
+            jarPath,
+            `下载游戏核心 ${versionId}`
+          )
           downloaded++
         }
         if (versionJson.inheritsFrom) {
@@ -682,9 +752,10 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
           )
           if (!existsSync(parentJsonPath)) {
             mkdirSync(join(gameDir, 'versions', versionJson.inheritsFrom), { recursive: true })
-            await downloadFile(
-              `${baseUrl}/mc/game/version/${versionJson.inheritsFrom}`,
-              parentJsonPath
+            await downloadWithMirrors(
+              (base) => `${base}/mc/game/version/${versionJson.inheritsFrom}`,
+              parentJsonPath,
+              `下载父版本 JSON ${versionJson.inheritsFrom}`
             )
             downloaded++
           }

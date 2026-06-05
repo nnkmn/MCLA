@@ -63,6 +63,23 @@
             </svg>
             启动设置
           </button>
+          <button class="wc-btn wc-btn--primary" @click="openReceiveModal">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            接收分享
+          </button>
         </div>
       </div>
 
@@ -86,12 +103,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 接收分享弹窗 -->
+    <ReceiveModal
+      v-model="showReceiveModal"
+      :initial-share-code="initialShareCode"
+      @imported="onInstanceImported"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useInstancesStore } from '../stores'
+import ReceiveModal from '../components/share/ReceiveModal.vue'
 
 interface Instance {
   id: string
@@ -102,6 +128,11 @@ interface Instance {
 }
 
 const instancesStore = useInstancesStore()
+const router = useRouter()
+
+// 接收弹窗状态
+const showReceiveModal = ref(false)
+const initialShareCode = ref('')
 
 // 最近实例（从 Store 获取）
 const recentInstances = computed(() => {
@@ -130,6 +161,15 @@ function formatTime(dateStr?: string | null): string {
 function getLoaderLabel(inst: Instance): string {
   if (!inst.loaderType || inst.loaderType === 'vanilla') return '原版'
   return inst.loaderType.charAt(0).toUpperCase() + inst.loaderType.slice(1)
+}
+
+function openReceiveModal() {
+  showReceiveModal.value = true
+}
+
+function onInstanceImported(instanceId: string) {
+  instancesStore.fetchInstances()
+  router.push('/instances')
 }
 
 onMounted(() => {
@@ -215,6 +255,17 @@ onMounted(() => {
     border-color: var(--mcla-primary-400);
     color: var(--mcla-primary-600);
     box-shadow: var(--mcla-shadow-glow-primary);
+  }
+
+  &.wc-btn--primary {
+    background: var(--mcla-gradient-primary);
+    border-color: transparent;
+    color: #fff;
+
+    &:hover {
+      filter: brightness(1.06);
+      box-shadow: var(--mcla-shadow-glow-primary);
+    }
   }
 }
 

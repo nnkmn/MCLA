@@ -12,9 +12,19 @@ export type DownloadStatus =
   | 'cancelled'
   | 'error'
 
+export interface DownloadChunk {
+  index: number
+  start: number
+  end: number
+  downloaded: number
+  status: 'pending' | 'downloading' | 'completed' | 'error'
+  retries: number
+}
+
 export interface DownloadTask {
   id: string
   url: string
+  originalUrl?: string
   destination: string
   fileName: string
   totalSize: number
@@ -27,6 +37,9 @@ export interface DownloadTask {
   type?: 'mod' | 'resourcepack' | 'version' | 'modloader' | 'asset' | 'other'
   createdAt: Date
   updatedAt: Date
+  threads?: number
+  chunks: DownloadChunk[]
+  useMirror?: boolean
 }
 
 export interface DownloadConfig {
@@ -43,4 +56,10 @@ export interface DownloadProgress {
   speed: number
   downloadedSize: number
   totalSize: number
+}
+
+export interface MirrorInfo {
+  name: string
+  url: string
+  ping: number
 }

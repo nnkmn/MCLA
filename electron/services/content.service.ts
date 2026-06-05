@@ -257,7 +257,11 @@ export class ContentService {
   /**
    * 下载文件
    */
-  async downloadFile(file: ContentFile, destination: string): Promise<DownloadTask> {
+  async downloadFile(
+    file: ContentFile,
+    destination: string,
+    options?: { useMirror?: boolean; threads?: number }
+  ): Promise<DownloadTask> {
     let downloadUrl = file.downloadUrl
 
     // Modrinth 的下载URL需要重定向处理
@@ -267,7 +271,7 @@ export class ContentService {
       downloadUrl = this.curseForgeService.getDownloadUrl(downloadUrl)
     }
 
-    return this.downloadService.addDownload(downloadUrl, destination)
+    return this.downloadService.addDownload(downloadUrl, destination, options)
   }
 
   /**

@@ -320,10 +320,7 @@
             </p>
           </div>
           <div class="confirm-actions">
-            <button
-              class="btn-cancel"
-              @click="showInstallConfirm = false; pendingFile = null; customDest = null"
-            >
+            <button class="btn-cancel" @click="cancelInstallConfirm">
               取消
             </button>
             <button class="btn-confirm" @click="confirmDownload">
@@ -360,6 +357,12 @@ const downloadingId = ref<string | null>(null)
 const showInstallConfirm = ref(false)
 const pendingFile = ref<ProjectFile | null>(null)
 const customDest = ref<string | null>(null)
+
+function cancelInstallConfirm() {
+  showInstallConfirm.value = false
+  pendingFile.value = null
+  customDest.value = null
+}
 
 // ====== 路由参数 ======
 const modId = computed(() => route.params.id as string)
@@ -777,6 +780,7 @@ onMounted(() => {
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

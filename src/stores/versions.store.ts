@@ -82,23 +82,22 @@ export const useVersionsStore = defineStore('versions', () => {
   async function fetchModLoaderVersions(mcVersion: string) {
     loading.value = true
     try {
-      // Fabric
-      const fabricRes = await window.electronAPI?.game.getFabricVersions(mcVersion)
-      fabricVersions.value = ((fabricRes as any)?.data || []).map((v: any) => ({
-        id: v.version,
-        name: `Fabric ${v.version}`,
-        version: v.version,
-        stable: v.stable !== false
-      }))
+      const loaders = await window.electronAPI?.modloader?.getLoaders?.(mcVersion)
+      if (loaders) {
+        fabricVersions.value = (loaders.fabric || []).map((v: any) => ({
+          id: v.id || v.version,
+          name: `Fabric ${v.version}`,
+          version: v.version,
+          stable: v.stable !== false
+        }))
 
-      // Forge
-      const forgeRes = await window.electronAPI?.game.getForgeVersions?.(mcVersion)
-      forgeVersions.value = ((forgeRes as any)?.data || []).map((v: any) => ({
-        id: v.version,
-        name: `Forge ${v.version}`,
-        version: v.version,
-        stable: true
-      }))
+        forgeVersions.value = (loaders.forge || []).map((v: any) => ({
+          id: v.id || v.version,
+          name: `Forge ${v.version}`,
+          version: v.version,
+          stable: true
+        }))
+      }
     } catch (e: any) {
     } finally {
       loading.value = false

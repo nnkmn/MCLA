@@ -18,7 +18,9 @@ import { registerCrashIpcHandlers } from './crash.ipc'
 import { registerModIpcHandlers } from './mod.ipc'
 import { registerModLoaderHandlers } from './modloader.ipc'
 import { registerNotificationHandlers } from './notification.ipc'
+import { registerUpdaterHandlers } from './updater.ipc'
 import { updateModLoaderMainWindow } from './modloader.ipc'
+import { registerShareHandlers, setShareMainWindow } from './share.ipc'
 import { logger } from '../utils/logger'
 const log = logger.child('IPC')
 
@@ -135,6 +137,23 @@ export function registerAllIpcHandlers(
     log.info('[IPC] notification handlers registered')
   } catch (e: any) {
     log.error('[IPC] notification handlers FAILED:', e.message)
+  }
+
+  // 自动更新
+  try {
+    registerUpdaterHandlers()
+    log.info('[IPC] updater handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] updater handlers FAILED:', e.message)
+  }
+
+  // 分享功能
+  try {
+    setShareMainWindow(mainWindow)
+    registerShareHandlers()
+    log.info('[IPC] share handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] share handlers FAILED:', e.message)
   }
 
   // console.error('[IPC] >>>>> All handlers registered')

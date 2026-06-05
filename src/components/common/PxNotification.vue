@@ -176,9 +176,9 @@ async function loadHistory() {
   if (result?.ok) {
     history.value = result.data || []
   }
-  const countResult = await window.electronAPI.notification.getUnreadCount()
-  if (countResult?.ok) {
-    unreadCount.value = countResult.data || 0
+  const count = await window.electronAPI.notification.getUnreadCount()
+  if (typeof count === 'number') {
+    unreadCount.value = count
   }
 }
 

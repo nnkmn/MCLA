@@ -198,7 +198,7 @@ export async function exportInstance(
   if (!instance) return { ok: false, error: '实例不存在' }
 
   try {
-    const archiver = require('archiver')
+    const archiver = (await import('archiver')).default
     const output = fs.createWriteStream(destPath)
     const archive = archiver('zip', { zlib: { level: 5 } })
 

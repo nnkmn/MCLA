@@ -479,7 +479,7 @@ async function startMicrosoftLogin() {
     await accountsStore.fetchAccounts()
   } else if (result?.error === 'LOGIN_CANCELLED') {
     loginState.value = 'idle'
-  } else if (loginState.value !== 'error') {
+  } else {
     loginState.value = 'error'
     loginError.value = result?.error || '登录失败，请重试'
   }
