@@ -37,8 +37,11 @@ export function initAutoUpdater(window: BrowserWindow): void {
     return
   }
 
+  autoUpdater.channel = 'MCLA'
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.allowDowngrade = false
+  autoUpdater.allowPrerelease = false
 
   autoUpdater.on('checking-for-update', () => {
     currentStatus.checking = true

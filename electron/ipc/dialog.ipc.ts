@@ -31,14 +31,22 @@ function getMinecraftPath(): string {
 
 export function registerDialogHandlers(mainWindow: BrowserWindow): void {
   log.error('[IPC dialog] ===== registerDialogHandlers called =====')
-  ipcMain.handle('dialog:select-folder', async () => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-      title: '选择 .minecraft 文件夹'
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    return result.filePaths[0]
-  })
+  ipcMain.handle(
+    'dialog:select-folder',
+    async (
+      _event,
+      options?: {
+        title?: string
+      }
+    ) => {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+        title: options?.title || '选择文件夹'
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      return result.filePaths[0]
+    }
+  )
 
   ipcMain.handle(
     'dialog:select-file',

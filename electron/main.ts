@@ -24,6 +24,11 @@ import { CrashService } from './services/crash.service'
 import { ModService } from './services/mod.service'
 import { initAutoUpdater, checkForUpdates } from './services/updater.service'
 import { cleanupShareOnExit } from './ipc/share.ipc'
+import {
+  setHotkeyActionCallback,
+  registerAllEnabledHotkeys,
+  cleanupHotkeys
+} from './services/hotkey.service'
 import { logger } from './utils/logger'
 
 const log = logger.child('Main')
@@ -269,6 +274,29 @@ app.whenReady().then(() => {
 
   const win = createWindow()
 
+  // 注册全局快捷键回调（触发启动游戏、显示/隐藏窗口等）
+  try {
+    setHotkeyActionCallback((action) => {
+      if (action === 'launch-game') {
+        log.info('[Hotkey] 触发全局快捷键：启动游戏')
+        // 通过 IPC 通知前端，由前端协调启动流程
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('hotkey:trigger', { action: 'launch-game' })
+        }
+      } else if (action === 'toggle-window') {
+        log.info('[Hotkey] 触发全局快捷键：切换窗口显示')
+        if (win && !win.isDestroyed()) {
+          if (win.isVisible()) win.hide()
+          else win.show()
+        }
+      }
+    })
+    registerAllEnabledHotkeys()
+    log.info('[Main] 全局快捷键系统初始化完成')
+  } catch (e: any) {
+    log.warn('[Main] 全局快捷键初始化失败:', e.message)
+  }
+
   // 如果有挂起的分享码，通知渲染进程
   if (pendingShareCode) {
     win.webContents.once('did-finish-load', () => {
@@ -324,6 +352,8 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   // 清理分享会话和临时文件
   cleanupShareOnExit()
+  // 清理全局快捷键
+  cleanupHotkeys()
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -331,6 +361,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   cleanupShareOnExit()
+  cleanupHotkeys()
 })
 
 // 打印已注册的 handlers（调试用）

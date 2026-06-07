@@ -244,7 +244,9 @@ const api = {
 
   // 文件对话框
   dialog: {
-    selectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
+    selectFolder: (options?: {
+      title?: string
+    }) => ipcRenderer.invoke('dialog:select-folder', options ?? {}),
     selectFile: (options?: {
       title?: string
       filters?: Array<{ name: string; extensions: string[] }>
@@ -384,6 +386,59 @@ const api = {
       const listener = (_event: any, status: any) => callback(status)
       ipcRenderer.on('updater:status', listener)
       return () => ipcRenderer.removeListener('updater:status', listener)
+    }
+  },
+
+  // 整合包（mrpack）
+  modpack: {
+    pack: (payload: { instancePath: string; outputPath?: string; options: any }) =>
+      ipcRenderer.invoke('modpack:pack', payload),
+    import: (payload: { mrpackPath: string; targetParentDir: string; instanceName: string }) =>
+      ipcRenderer.invoke('modpack:import', payload),
+    getDefaultOutputDir: () => ipcRenderer.invoke('modpack:get-default-output-dir'),
+    onProgress: (callback: (progress: { stage: string; progress: number; currentFile: string }) => void) => {
+      const listener = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('modpack:progress', listener)
+      return () => ipcRenderer.removeListener('modpack:progress', listener)
+    }
+  },
+
+  // 全局快捷键
+  hotkey: {
+    list: () => ipcRenderer.invoke('hotkey:list'),
+    update: (hotkey: any) => ipcRenderer.invoke('hotkey:update', { hotkey }),
+    toggle: (id: string, enabled: boolean) => ipcRenderer.invoke('hotkey:toggle', { id, enabled }),
+    validate: (accelerator: string) => ipcRenderer.invoke('hotkey:validate', { accelerator }),
+    reload: () => ipcRenderer.invoke('hotkey:reload'),
+    onTrigger: (callback: (data: { action: string }) => void) => {
+      const listener = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('hotkey:trigger', listener)
+      return () => ipcRenderer.removeListener('hotkey:trigger', listener)
+    }
+  },
+
+  // 主题与背景
+  theme: {
+    load: () => ipcRenderer.invoke('theme:load'),
+    save: (settings: any) => ipcRenderer.invoke('theme:save', { settings }),
+    importBackground: (sourcePath: string) =>
+      ipcRenderer.invoke('theme:import-background', { sourcePath }),
+    deleteBackground: (localPath: string) =>
+      ipcRenderer.invoke('theme:delete-background', { localPath }),
+    computeVars: (hex: string) => ipcRenderer.invoke('theme:compute-vars', { hex })
+  },
+
+  // 数据备份与迁移
+  backup: {
+    create: (options?: any) => ipcRenderer.invoke('backup:create', { options }),
+    restore: (backupPath: string) => ipcRenderer.invoke('backup:restore', { backupPath }),
+    list: () => ipcRenderer.invoke('backup:list'),
+    delete: (fileName: string) => ipcRenderer.invoke('backup:delete', { fileName }),
+    getDir: () => ipcRenderer.invoke('backup:get-dir'),
+    onProgress: (callback: (progress: { stage: string; progress: number; currentItem: string }) => void) => {
+      const listener = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('backup:progress', listener)
+      return () => ipcRenderer.removeListener('backup:progress', listener)
     }
   }
 }

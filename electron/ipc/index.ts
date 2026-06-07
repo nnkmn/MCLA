@@ -17,10 +17,14 @@ import { registerDialogHandlers } from './dialog.ipc'
 import { registerCrashIpcHandlers } from './crash.ipc'
 import { registerModIpcHandlers } from './mod.ipc'
 import { registerModLoaderHandlers } from './modloader.ipc'
-import { registerNotificationHandlers } from './notification.ipc'
-import { registerUpdaterHandlers } from './updater.ipc'
+import { registerNotificationHandlers } from './notification.ipc' 
 import { updateModLoaderMainWindow } from './modloader.ipc'
 import { registerShareHandlers, setShareMainWindow } from './share.ipc'
+import { registerModpackHandlers } from './modpack.ipc'
+import { registerHotkeyHandlers } from './hotkey.ipc'
+import { registerThemeHandlers } from './theme.ipc'
+import { registerBackupHandlers } from './backup.ipc'
+import { registerUpdaterHandlers } from './updater.ipc'
 import { logger } from '../utils/logger'
 const log = logger.child('IPC')
 
@@ -154,6 +158,38 @@ export function registerAllIpcHandlers(
     log.info('[IPC] share handlers registered')
   } catch (e: any) {
     log.error('[IPC] share handlers FAILED:', e.message)
+  }
+
+  // 整合包（mrpack）
+  try {
+    registerModpackHandlers()
+    log.info('[IPC] modpack handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] modpack handlers FAILED:', e.message)
+  }
+
+  // 全局快捷键
+  try {
+    registerHotkeyHandlers()
+    log.info('[IPC] hotkey handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] hotkey handlers FAILED:', e.message)
+  }
+
+  // 主题与背景
+  try {
+    registerThemeHandlers()
+    log.info('[IPC] theme handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] theme handlers FAILED:', e.message)
+  }
+
+  // 数据备份与迁移
+  try {
+    registerBackupHandlers()
+    log.info('[IPC] backup handlers registered')
+  } catch (e: any) {
+    log.error('[IPC] backup handlers FAILED:', e.message)
   }
 
   // console.error('[IPC] >>>>> All handlers registered')

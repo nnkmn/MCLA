@@ -818,9 +818,134 @@
         </div>
         <!-- /sec-body -->
       </section>
-    </template>
 
-    <!-- ========== 其他 ========== -->
+      <!-- ========== 全局快捷键 ========== -->
+      <section class="sec">
+        <h3 class="sec-title" @click="toggleSec('hotkey')">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" />
+          </svg>
+          全局快捷键
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.hotkey }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </h3>
+
+        <div class="sec-body" v-show="collapsed.hotkey">
+          <p class="sec-desc">
+            设置全局快捷键，在任何时候按下都可执行对应操作。格式示例：<code>Ctrl+Shift+L</code>、<code>Alt+F12</code>
+          </p>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">启动游戏</label>
+              <p class="row-desc">在任何窗口按下都可快速启动选中的实例</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.hotkeyLaunch"
+                  placeholder="Ctrl+Shift+L"
+                />
+                <button
+                  class="btn-sm"
+                  @click="updateHotkey('launch-game', s.hotkeyLaunch)"
+                >保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">切换窗口显示</label>
+              <p class="row-desc">隐藏或显示启动器主窗口</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.hotkeyToggleWindow"
+                  placeholder="Ctrl+Shift+H"
+                />
+                <button
+                  class="btn-sm"
+                  @click="updateHotkey('toggle-window', s.hotkeyToggleWindow)"
+                >保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">打开主页</label>
+              <p class="row-desc">快速跳转到启动器首页</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.hotkeyOpenHome"
+                  placeholder="Ctrl+Shift+O"
+                />
+                <button
+                  class="btn-sm"
+                  @click="updateHotkey('open-home', s.hotkeyOpenHome)"
+                >保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">打开设置</label>
+              <p class="row-desc">快速跳转到设置页面</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.hotkeyOpenSettings"
+                  placeholder="Ctrl+,"
+                />
+                <button
+                  class="btn-sm"
+                  @click="updateHotkey('open-settings', s.hotkeyOpenSettings)"
+                >保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="action-btn outline" @click="reloadHotkeys">
+              重新加载快捷键
+            </button>
+          </div>
+        </div>
+        <!-- /sec-body -->
+      </section>
+    </template>
     <template v-if="activeCategory === 'other'">
       <section class="sec">
         <h3 class="sec-title">
@@ -1032,6 +1157,262 @@
         </div>
       </section>
 
+      <!-- ========== 整合包工具 ========== -->
+      <section class="sec">
+        <h3 class="sec-title" @click="toggleSec('modpack')">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 000 4l-7 4v0a2 2 0 000 4l7 4 7 4 7-4a2 2 0 000-4l7-4z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          整合包工具
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.modpack }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </h3>
+
+        <div class="sec-body" v-show="collapsed.modpack">
+          <p class="sec-desc">
+            创建或导入 Modrinth 格式（.mrpack）整合包。一个整合包可包含 Mod、配置、资源包、存档等。
+          </p>
+
+          <!-- 打包整合包 -->
+          <h4 class="sec-subtitle">📦 打包整合包</h4>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">实例目录</label>
+              <p class="row-desc">选择要打包的 .minecraft 或实例目录</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.modpackInstancePath"
+                  placeholder="例如：C:/Users/xxx/.minecraft"
+                />
+                <button class="btn-sm" @click="browseModpackInstance">浏览...</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">输出目录</label>
+              <p class="row-desc">生成的 .mrpack 文件保存位置</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp"
+                  v-model="s.modpackOutputDir"
+                  placeholder="留空使用默认目录"
+                />
+                <button class="btn-sm" @click="browseModpackOutput">浏览...</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">整合包信息</label>
+              <p class="row-desc">名称、版本号、作者</p>
+            </div>
+            <div class="row-control">
+              <div class="input-group compact">
+                <input
+                  type="text"
+                  class="inp short"
+                  v-model="s.modpackName"
+                  placeholder="名称"
+                />
+                <input
+                  type="text"
+                  class="inp short"
+                  v-model="s.modpackVersion"
+                  placeholder="版本"
+                />
+                <input
+                  type="text"
+                  class="inp short"
+                  v-model="s.modpackAuthor"
+                  placeholder="作者"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">包含内容</label>
+              <p class="row-desc">选择要打包到整合包中的文件类型</p>
+            </div>
+            <div class="row-control">
+              <label class="chk">
+                <input type="checkbox" v-model="s.modpackIncludeMods" /> Mods
+              </label>
+              <label class="chk">
+                <input type="checkbox" v-model="s.modpackIncludeConfigs" /> 配置文件
+              </label>
+              <label class="chk">
+                <input type="checkbox" v-model="s.modpackIncludeSaves" /> 存档
+              </label>
+              <label class="chk">
+                <input type="checkbox" v-model="s.modpackIncludeResourcepacks" /> 资源包
+              </label>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="action-btn primary" @click="packAsMrpack" :disabled="isWorkingModpack">
+              {{ isWorkingModpack ? '正在打包...' : '生成 .mrpack' }}
+            </button>
+          </div>
+
+          <!-- 进度显示 -->
+          <div v-if="isWorkingModpack && modpackProgress.stage" class="progress-box">
+            <div class="progress-label">
+              {{ modpackProgress.stage }} {{ modpackProgress.progress }}%
+            </div>
+            <div class="progress-bar-wrap">
+              <div
+                class="progress-bar"
+                :style="{ width: modpackProgress.progress + '%' }"
+              ></div>
+            </div>
+            <div v-if="modpackProgress.currentFile" class="progress-sub">
+              {{ modpackProgress.currentFile }}
+            </div>
+          </div>
+
+          <!-- 导入整合包 -->
+          <h4 class="sec-subtitle" style="margin-top:20px">📥 导入整合包</h4>
+          <p class="sec-desc">从 .mrpack 文件创建新的实例</p>
+
+          <div class="btn-row">
+            <button class="action-btn outline" @click="importMrpack" :disabled="isWorkingModpack">
+              {{ isWorkingModpack ? '处理中...' : '选择 .mrpack 文件导入' }}
+            </button>
+          </div>
+        </div>
+        <!-- /sec-body -->
+      </section>
+
+      <!-- ========== 数据备份与恢复 ========== -->
+      <section class="sec">
+        <h3 class="sec-title" @click="toggleSec('backup')">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M3 5v14a9 3 0 0018 0V5" />
+            <path d="M3 12a9 3 0 0018 0" />
+          </svg>
+          数据备份与恢复
+          <svg
+            class="sec-arrow"
+            :class="{ open: collapsed.backup }"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </h3>
+
+        <div class="sec-body" v-show="collapsed.backup">
+          <p class="sec-desc">
+            备份启动器的所有配置、实例信息等数据，可用于迁移到新设备或恢复状态。
+          </p>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">上次备份</label>
+              <p class="row-desc">{{ s.backupLastTime || '尚未备份' }}</p>
+            </div>
+            <div class="row-control">
+              <button class="action-btn primary" @click="createBackup" :disabled="isWorkingBackup">
+                {{ isWorkingBackup ? '备份中...' : '立即备份' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-main">
+              <label class="row-label">恢复备份</label>
+              <p class="row-desc">从 .zip 备份文件恢复数据（会覆盖当前）</p>
+            </div>
+            <div class="row-control">
+              <button class="action-btn outline" @click="restoreBackup" :disabled="isWorkingBackup">
+                选择备份文件恢复
+              </button>
+            </div>
+          </div>
+
+          <div v-if="isWorkingBackup && backupProgress.stage" class="progress-box">
+            <div class="progress-label">
+              {{ backupProgress.stage }} {{ backupProgress.progress }}%
+            </div>
+            <div class="progress-bar-wrap">
+              <div
+                class="progress-bar"
+                :style="{ width: backupProgress.progress + '%' }"
+              ></div>
+            </div>
+            <div v-if="backupProgress.currentItem" class="progress-sub">
+              {{ backupProgress.currentItem }}
+            </div>
+          </div>
+
+          <!-- 备份文件列表 -->
+          <div v-if="backupFiles.length > 0" class="backup-list">
+            <h4 class="sec-subtitle">📁 已有备份</h4>
+            <div
+              class="backup-item"
+              v-for="f in backupFiles"
+              :key="f.name"
+            >
+              <div class="backup-info">
+                <div class="backup-name">{{ f.name }}</div>
+                <div class="backup-meta">
+                  <span v-if="f.size">{{ (f.size / 1024).toFixed(1) }} KB</span>
+                  <span v-if="f.created">{{ new Date(f.created).toLocaleString() }}</span>
+                </div>
+              </div>
+              <button class="btn-sm danger-btn" @click="deleteBackup(f.name)">
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- /sec-body -->
+      </section>
+
       <section class="sec">
         <h3 class="sec-title">
           <svg
@@ -1059,6 +1440,70 @@
               />
             </svg>
             前往更多页面
+          </button>
+        </div>
+      </section>
+
+      <!-- 更新检查 -->
+      <section class="sec">
+        <h3 class="sec-title">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 2v4m0 16v4M4.93 4.93l2.83 2.83M18.24 18.24l2.83 2.83M2 12h4m16 0h4M4.93 19.07l2.83-2.83M18.24 5.76l2.83-2.83" />
+          </svg>
+          检查更新
+        </h3>
+
+        <div v-if="updateStatus.checking" class="update-status checking">
+          <div class="update-icon">🔄</div>
+          <div class="update-text">正在检查更新...</div>
+        </div>
+
+        <div v-else-if="updateStatus.available" class="update-status available">
+          <div class="update-icon">📦</div>
+          <div class="update-text">
+            <div>发现新版本: v{{ updateStatus.version }}</div>
+            <div v-if="updateStatus.releaseNotes" class="update-notes">{{ updateStatus.releaseNotes }}</div>
+          </div>
+          <div class="update-actions">
+            <button v-if="!updateStatus.downloading && !updateStatus.downloaded" 
+                    class="action-btn primary" 
+                    @click="checkForUpdateDownload">
+              下载更新
+            </button>
+            <div v-else-if="updateStatus.downloading" class="download-progress">
+              <div class="progress-text">下载中 {{ updateStatus.downloadProgress.toFixed(0) }}%</div>
+              <div class="progress-bar-wrap small">
+                <div class="progress-bar" :style="{ width: updateStatus.downloadProgress + '%' }"></div>
+              </div>
+            </div>
+            <button v-else-if="updateStatus.downloaded" 
+                    class="action-btn danger" 
+                    @click="installUpdate">
+              安装并重启
+            </button>
+          </div>
+        </div>
+
+        <div v-else-if="updateStatus.error" class="update-status error">
+          <div class="update-icon">❌</div>
+          <div class="update-text">检查更新失败: {{ updateStatus.error }}</div>
+        </div>
+
+        <div v-else class="update-status up-to-date">
+          <div class="update-icon">✅</div>
+          <div class="update-text">当前已是最新版本</div>
+        </div>
+
+        <div class="btn-row" style="margin-top: 12px">
+          <button class="action-btn outline" @click="checkForUpdate" :disabled="updateStatus.checking">
+            {{ updateStatus.checking ? '检查中...' : '手动检查更新' }}
           </button>
         </div>
       </section>
@@ -1095,7 +1540,11 @@ const collapsed = reactive<Record<string, boolean>>({
   download: true,
   community: true,
   data: true,
-  about: true
+  about: true,
+  hotkey: true, // P2: 全局快捷键
+  themeAdvanced: false, // P2: 主题自定义增强
+  modpack: true, // P2: 整合包工具
+  backup: true // P2: 数据备份
 })
 function toggleSec(key: string) {
   collapsed[key] = !collapsed[key]
@@ -1178,7 +1627,53 @@ const s = reactive({
   modSource: 'both',
   cfApiKey: '',
   fileNameFormat: 'name-version',
-  modManageStyle: 'card'
+  modManageStyle: 'card',
+
+  // P2: 全局快捷键
+  hotkeyLaunch: 'Ctrl+Shift+L',
+  hotkeyToggleWindow: 'Ctrl+Shift+H',
+  hotkeyOpenHome: 'Ctrl+Shift+O',
+  hotkeyOpenSettings: 'Ctrl+,',
+
+  // P2: 主题自定义
+  themeCustomColor: '#6366f1',
+  themeBgOpacity: 100,
+  themeBgBlur: 0,
+
+  // P2: 整合包工具
+  modpackInstancePath: '',
+  modpackOutputDir: '',
+  modpackIncludeConfigs: true,
+  modpackIncludeMods: true,
+  modpackIncludeSaves: true,
+  modpackIncludeResourcepacks: false,
+  modpackName: '',
+  modpackAuthor: '',
+  modpackVersion: '1.0.0',
+
+  // P2: 数据备份
+  backupLastTime: '',
+  backupFile: ''
+})
+
+// P2 状态变量
+const hotkeyList = ref<any[]>([])
+const modpackProgress = ref({ stage: '', progress: 0, currentFile: '' })
+const backupProgress = ref({ stage: '', progress: 0, currentItem: '' })
+const isWorkingModpack = ref(false)
+const isWorkingBackup = ref(false)
+const backupFiles = ref<any[]>([])
+
+// 更新检查状态
+const updateStatus = ref({
+  checking: false,
+  available: false,
+  downloading: false,
+  downloadProgress: 0,
+  downloaded: false,
+  error: null as string | null,
+  version: null as string | null,
+  releaseNotes: null as string | null
 })
 
 const memoryPercent = computed(() => {
@@ -1431,6 +1926,306 @@ async function saveJavaPath() {
 // 监听 javaPreset 和 javaPath 变化，自动保存
 watch(() => s.javaPreset, saveJavaPreset)
 watch(() => s.javaPath, saveJavaPath)
+
+// ========== P2: 全局快捷键 ==========
+async function loadHotkeys() {
+  try {
+    const list = await window.electronAPI?.hotkey?.list()
+    if (list) {
+      hotkeyList.value = list
+      list.forEach((h: any) => {
+        if (h.action === 'launch-game') s.hotkeyLaunch = h.accelerator || 'Ctrl+Shift+L'
+        else if (h.action === 'toggle-window') s.hotkeyToggleWindow = h.accelerator || 'Ctrl+Shift+H'
+        else if (h.action === 'open-home') s.hotkeyOpenHome = h.accelerator || 'Ctrl+Shift+O'
+        else if (h.action === 'open-settings') s.hotkeyOpenSettings = h.accelerator || 'Ctrl+,'
+      })
+    }
+  } catch (e) {
+    console.warn('加载快捷键失败:', e)
+  }
+}
+
+async function updateHotkey(action: string, accelerator: string) {
+  try {
+    const res = await window.electronAPI?.hotkey?.update({ id: action, action, accelerator, enabled: true })
+    if (res?.error) {
+      alert(`快捷键保存失败: ${res.error}`)
+      return
+    }
+    alert('快捷键已更新')
+    await loadHotkeys()
+  } catch (e: any) {
+    alert(`快捷键更新失败: ${e.message}`)
+  }
+}
+
+async function validateHotkey(accelerator: string) {
+  try {
+    const res = await window.electronAPI?.hotkey?.validate(accelerator)
+    return res?.valid
+  } catch (e) {
+    return false
+  }
+}
+
+async function reloadHotkeys() {
+  try {
+    await window.electronAPI?.hotkey?.reload()
+    alert('快捷键已重新加载')
+  } catch (e: any) {
+    alert(`重载失败: ${e.message}`)
+  }
+}
+
+// ========== P2: 整合包工具 ==========
+async function browseModpackInstance() {
+  try {
+    const path = await window.electronAPI?.dialog?.selectFolder({
+      title: '选择实例目录（.minecraft）'
+    })
+    if (path) s.modpackInstancePath = path
+  } catch (e: any) {
+    console.error('选择实例目录失败:', e)
+  }
+}
+
+async function browseModpackOutput() {
+  try {
+    const path = await window.electronAPI?.dialog?.selectFolder({
+      title: '选择整合包输出目录'
+    })
+    if (path) s.modpackOutputDir = path
+  } catch (e: any) {
+    console.error('选择输出目录失败:', e)
+  }
+}
+
+async function packAsMrpack() {
+  if (!s.modpackInstancePath) {
+    alert('请先选择实例目录')
+    return
+  }
+  if (!s.modpackName) {
+    alert('请填写整合包名称')
+    return
+  }
+  try {
+    isWorkingModpack.value = true
+    modpackProgress.value = { stage: '准备中', progress: 0, currentFile: '' }
+
+    const result = await window.electronAPI?.modpack?.pack({
+      instancePath: s.modpackInstancePath,
+      outputPath: s.modpackOutputDir,
+      options: {
+        includeConfigs: s.modpackIncludeConfigs,
+        includeMods: s.modpackIncludeMods,
+        includeSaves: s.modpackIncludeSaves,
+        includeResourcepacks: s.modpackIncludeResourcepacks,
+        name: s.modpackName,
+        author: s.modpackAuthor,
+        version: s.modpackVersion
+      }
+    })
+
+    if (result?.ok) {
+      alert(`整合包创建成功！\n输出文件: ${result.filePath || '(未知)'}`)
+    } else {
+      alert(`创建失败: ${result?.error || '未知错误'}`)
+    }
+  } catch (e: any) {
+    alert(`创建整合包失败: ${e.message}`)
+  } finally {
+    isWorkingModpack.value = false
+  }
+}
+
+async function importMrpack() {
+  try {
+    const mrpackPath = await window.electronAPI?.dialog?.selectFile({
+      title: '选择 mrpack 文件',
+      filters: [{ name: 'Modrinth 整合包', extensions: ['mrpack'] }]
+    })
+    if (!mrpackPath) return
+
+    const targetDir = await window.electronAPI?.dialog?.selectFolder({
+      title: '选择安装位置（父目录，将创建子目录）'
+    })
+    if (!targetDir) return
+
+    const instanceName = prompt('请输入新实例名称:', 'New Modpack')
+    if (!instanceName) return
+
+    isWorkingModpack.value = true
+    modpackProgress.value = { stage: '导入中', progress: 0, currentFile: '' }
+
+    const result = await window.electronAPI?.modpack?.import({
+      mrpackPath,
+      targetParentDir: targetDir,
+      instanceName
+    })
+
+    if (result?.ok) {
+      alert(`整合包导入成功！\n位置: ${result.instancePath || '(未知)'}`)
+    } else {
+      alert(`导入失败: ${result?.error || '未知错误'}`)
+    }
+  } catch (e: any) {
+    alert(`导入整合包失败: ${e.message}`)
+  } finally {
+    isWorkingModpack.value = false
+  }
+}
+
+// ========== P2: 主题自定义增强 ==========
+async function applyCustomThemeColor(hex: string) {
+  try {
+    const vars = await window.electronAPI?.theme?.computeVars(hex)
+    if (vars) {
+      const root = document.documentElement
+      Object.entries(vars).forEach(([k, v]) => {
+        root.style.setProperty(k, String(v))
+      })
+      s.themeColor = hex
+      s.themeCustomColor = hex
+    }
+  } catch (e: any) {
+    console.error('应用主题色失败:', e)
+  }
+}
+
+async function importBgImage() {
+  try {
+    const path = await window.electronAPI?.dialog?.selectFile({
+      title: '选择背景图片',
+      filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'] }]
+    })
+    if (!path) return
+    const local = await window.electronAPI?.theme?.importBackground(path)
+    if (local) {
+      s.bgImageMode = 'custom'
+      s.bgImagePath = local
+      alert('背景已保存到启动器目录')
+    }
+  } catch (e: any) {
+    alert(`导入背景失败: ${e.message}`)
+  }
+}
+
+// ========== P2: 数据备份/恢复 ==========
+async function createBackup() {
+  try {
+    isWorkingBackup.value = true
+    backupProgress.value = { stage: '备份中', progress: 0, currentItem: '' }
+    const result = await window.electronAPI?.backup?.create()
+    if (result?.ok) {
+      s.backupLastTime = new Date().toLocaleString()
+      alert(`备份成功！\n文件: ${result.filePath || '(未知)'}\n大小: ${(result.size / 1024).toFixed(1)} KB`)
+      await listBackups()
+    } else {
+      alert(`备份失败: ${result?.error || '未知错误'}`)
+    }
+  } catch (e: any) {
+    alert(`备份失败: ${e.message}`)
+  } finally {
+    isWorkingBackup.value = false
+  }
+}
+
+async function restoreBackup() {
+  try {
+    const path = await window.electronAPI?.dialog?.selectFile({
+      title: '选择备份文件（.zip）',
+      filters: [{ name: '备份文件', extensions: ['zip'] }]
+    })
+    if (!path) return
+
+    if (!confirm('恢复备份将覆盖当前数据，确认继续？')) return
+
+    isWorkingBackup.value = true
+    backupProgress.value = { stage: '恢复中', progress: 0, currentItem: '' }
+
+    const result = await window.electronAPI?.backup?.restore(path)
+    if (result?.ok) {
+      alert('恢复成功！请重启启动器以生效')
+    } else {
+      alert(`恢复失败: ${result?.error || '未知错误'}`)
+    }
+  } catch (e: any) {
+    alert(`恢复失败: ${e.message}`)
+  } finally {
+    isWorkingBackup.value = false
+  }
+}
+
+async function listBackups() {
+  try {
+    const list = await window.electronAPI?.backup?.list()
+    backupFiles.value = list || []
+  } catch (e: any) {
+    console.warn('列出备份失败:', e)
+  }
+}
+
+async function deleteBackup(fileName: string) {
+  if (!confirm(`确定删除备份文件 ${fileName} 吗？`)) return
+  try {
+    await window.electronAPI?.backup?.delete(fileName)
+    await listBackups()
+  } catch (e: any) {
+    alert(`删除失败: ${e.message}`)
+  }
+}
+
+// ====== 更新检查 ======
+async function checkForUpdate() {
+  try {
+    updateStatus.value.checking = true
+    updateStatus.value.error = null
+    await window.electronAPI?.updater?.check()
+  } catch (e: any) {
+    updateStatus.value.checking = false
+    updateStatus.value.error = e.message
+  }
+}
+
+async function checkForUpdateDownload() {
+  try {
+    await window.electronAPI?.updater?.download()
+  } catch (e: any) {
+    alert(`下载失败: ${e.message}`)
+  }
+}
+
+async function installUpdate() {
+  try {
+    await window.electronAPI?.updater?.install()
+  } catch (e: any) {
+    alert(`安装失败: ${e.message}`)
+  }
+}
+
+function setupUpdateListener() {
+  const unsub = window.electronAPI?.updater?.onStatusChange((status: any) => {
+    updateStatus.value = {
+      checking: status.checking,
+      available: status.available,
+      downloading: status.downloading,
+      downloadProgress: status.downloadProgress,
+      downloaded: status.downloaded,
+      error: status.error,
+      version: status.version,
+      releaseNotes: status.releaseNotes
+    }
+  })
+  return unsub
+}
+
+// P2 初始化
+onMounted(async () => {
+  await loadHotkeys()
+  await listBackups()
+  setupUpdateListener()
+})
 
 // ====== 主题色应用：用户选择颜色后实时更新全局 CSS 变量 ======
 function applyThemeColor(hex: string) {
@@ -2429,5 +3224,168 @@ function adjustHex(hex: string, offset: number): string {
   flex-direction: column;
   gap: 8px;
   padding: 4px 0;
+}
+
+/* ---- 进度条（整合包/备份）---- */
+.progress-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--mcla-bg);
+  border-radius: 7px;
+  border: 1px solid var(--mcla-border-light);
+}
+
+.progress-label {
+  font-size: 12.5px;
+  color: var(--mcla-text-secondary);
+  margin-bottom: 8px;
+}
+
+.progress-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--mcla-bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--mcla-primary, #6366f1), var(--mcla-blue));
+  transition: width 0.2s ease;
+  border-radius: 4px;
+}
+
+.progress-sub {
+  font-size: 11.5px;
+  color: var(--mcla-text-muted);
+  margin-top: 6px;
+  word-break: break-all;
+}
+
+/* ---- section 子标题 ---- */
+.sec-subtitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--mcla-text-primary);
+  margin: 4px 0 10px;
+  padding: 0;
+}
+
+/* ---- 小按钮 danger ---- */
+.btn-sm.danger-btn {
+  color: var(--mcla-red);
+  border-color: rgba(229, 57, 53, 0.3);
+  &:hover {
+    background: var(--mcla-red);
+    border-color: var(--mcla-red);
+    color: #fff;
+  }
+}
+
+/* ---- 备份文件列表 ---- */
+.backup-list {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--mcla-border);
+}
+
+.backup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--mcla-bg);
+  border-radius: 7px;
+  margin-bottom: 6px;
+  border: 1px solid var(--mcla-border-light);
+}
+
+.backup-info {
+  flex: 1;
+}
+
+.backup-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mcla-text-primary);
+}
+
+.backup-meta {
+  font-size: 11.5px;
+  color: var(--mcla-text-muted);
+  margin-top: 3px;
+  display: flex;
+  gap: 14px;
+}
+
+/* ---- 更新检查状态 ---- */
+.update-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--mcla-bg);
+  border-radius: 8px;
+  border: 1px solid var(--mcla-border-light);
+
+  &.checking {
+    border-color: var(--mcla-blue);
+    background: rgba(21, 101, 192, 0.05);
+  }
+
+  &.available {
+    border-color: var(--mcla-green);
+    background: rgba(46, 125, 50, 0.05);
+  }
+
+  &.error {
+    border-color: var(--mcla-red);
+    background: rgba(229, 57, 53, 0.05);
+  }
+
+  &.up-to-date {
+    border-color: var(--mcla-border-light);
+  }
+}
+
+.update-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.update-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--mcla-text-primary);
+
+  .update-notes {
+    font-size: 11.5px;
+    color: var(--mcla-text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+    max-width: 400px;
+    word-break: break-all;
+  }
+}
+
+.update-actions {
+  flex-shrink: 0;
+}
+
+.download-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--mcla-text-secondary);
+}
+
+.progress-bar-wrap.small {
+  height: 6px;
 }
 </style>
