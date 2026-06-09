@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MCLA](https://img.shields.io/badge/MCLA-v0.5.0-6366f1?style=for-the-badge&labelColor=1e1e2e)
+![MCLA](https://img.shields.io/badge/MCLA-v0.5.3-6366f1?style=for-the-badge&labelColor=1e1e2e)
 ![Electron](https://img.shields.io/badge/Electron-33-478cbf?style=flat-square&logo=electron&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3.5-4db08b?style=flat-square&logo=vuedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?style=flat-square&logo=typescript&logoColor=white)
@@ -21,7 +21,7 @@ _Powered by Electron + Vue 3 + TypeScript + Pixel UI_
 
 最新版本已发布，点击下方链接前往下载：
 
-**[👉 前往 GitHub Releases 下载 v0.5.0](https://github.com/nnkmn/MC-Launcher-Alpha-/releases)**
+**[👉 前往 GitHub Releases 下载 v0.5.3](https://github.com/nnkmn/MC-Launcher-Alpha-/releases)**
 
 ---
 
@@ -261,6 +261,8 @@ MCLA 使用 SQLite（better-sqlite3）持久化数据，6 张表：
 
 | 版本 | 日期 | 核心内容 |
 |------|------|-----------|
+| v0.5.3 | 2026-06-09 | 稳定性更新 + Bug 修复 + 文档完善，修复实例列表刷新、下载队列同步、主题切换问题，版本列表双层缓存 + 骨架屏优化，类型安全提升，通知系统增强，主题系统优化，全局快捷键系统 |
+| v0.5.2 | 2026-06-07 | P2P 实例分享（WebRTC 直连 + 6 位分享码）、主题自定义（色盘编辑器 + CSS 变量动态计算）、TypeScript 类型完善、版本列表缓存优化、通知系统增强 |
 | v0.5.0 | 2026-06-05 | 启动核心修复（类路径传递）、多镜像下载、启动器热更新、下载管理页面、智能 Java 版本匹配、控制台中文支持、桌面图标修复 |
 | v0.4.2 | 2026-06-02 | 代码规范检查、日志级别修正、API Key 安全配置、ESLint + Prettier 集成 |
 | v0.4.0 | 2026-05-14 | isVersionInstalled 修复、ModLoader IPC 重写、动态版本号 |

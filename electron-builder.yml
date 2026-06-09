@@ -37,3 +37,4 @@ publish:
   owner: nnkmn
   repo: MC-Launcher-Alpha-
   releaseType: release
+  updaterCacheDirName: mcla-updater

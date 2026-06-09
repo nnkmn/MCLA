@@ -15,6 +15,7 @@ export interface UpdateStatus {
 }
 
 let mainWindow: BrowserWindow | null = null
+let cachedUpdateCheckResult: any = null
 const currentStatus: UpdateStatus = {
   checking: false,
   available: false,
@@ -58,6 +59,8 @@ export function initAutoUpdater(window: BrowserWindow): void {
       typeof info.releaseNotes === 'string' ? info.releaseNotes : JSON.stringify(info.releaseNotes)
     broadcastStatus()
     log.info('[updater] Update available:', info.version)
+    const files = (info as any).files
+    log.info('[updater] Update files:', files ? files.map((f: any) => f.url || f.name).join(', ') : 'N/A')
   })
 
   autoUpdater.on('update-not-available', () => {
@@ -104,19 +107,34 @@ export function checkForUpdates(): void {
     log.info('[updater.check] Development mode - skip check')
     return
   }
-  autoUpdater.checkForUpdates().catch((err) => {
+  log.info('[updater.check] Starting update check...')
+  autoUpdater.checkForUpdates().then((result) => {
+    cachedUpdateCheckResult = result
+    log.info('[updater.check] Check completed, result:', result ? 'got update info' : 'no update info')
+    if (result && result.updateInfo) {
+      log.info('[updater.check] Update version:', result.updateInfo.version)
+    }
+  }).catch((err) => {
     log.error('[updater.check] Failed:', err.message)
   })
 }
 
 export function startDownload(): void {
   if (!currentStatus.available) {
-    log.warn('[updater.download] No update available')
+    log.warn('[updater.download] Cannot download - no update available, available flag is false')
     return
   }
-  autoUpdater.downloadUpdate().catch((err) => {
-    log.error('[updater.download] Failed:', err.message)
-  })
+  log.info('[updater.download] Initiating download, version:', currentStatus.version)
+  log.info('[updater.download] Has cached result:', cachedUpdateCheckResult ? 'yes' : 'no')
+
+  autoUpdater.downloadUpdate()
+    .then((result: any) => {
+      log.info('[updater.download] Download started, result type:', typeof result)
+    })
+    .catch((err: any) => {
+      log.error('[updater.download] Failed to start download:', err && err.message ? err.message : err)
+      log.error('[updater.download] Full error:', JSON.stringify(err))
+    })
 }
 
 export function installUpdate(): void {

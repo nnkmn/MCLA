@@ -28,9 +28,6 @@ import { registerUpdaterHandlers } from './updater.ipc'
 import { logger } from '../utils/logger'
 const log = logger.child('IPC')
 
-// DEBUG: 模块加载时输出
-// console.error('[IPC] >>>>> ipc/index.ts module loaded')
-
 /**
  * 注册所有 IPC 处理器
  * @param mainWindow - 主窗口实例
@@ -45,7 +42,6 @@ export function registerAllIpcHandlers(
     modService?: any
   }
 ): void {
-  // console.error('[IPC] >>>>> registerAllIpcHandlers called')
   // 注入游戏依赖
   if (deps) {
     setGameDependencies(deps.versionsService, deps.modLoaderService)
@@ -192,7 +188,6 @@ export function registerAllIpcHandlers(
     log.error('[IPC] backup handlers FAILED:', e.message)
   }
 
-  // console.error('[IPC] >>>>> All handlers registered')
 }
 
 /**

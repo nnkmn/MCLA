@@ -680,7 +680,11 @@ async function doExport() {
     if (res?.ok) {
       showExport.value = false
     } else {
-      alert('导出失败: ' + (res?.error || '未知错误'))
+      window.electronAPI?.notification?.send({
+        title: '错误',
+        body: '导出失败: ' + (res?.error || '未知错误'),
+        type: 'error'
+      })
     }
   } finally {
     exportLoading.value = false

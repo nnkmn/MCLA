@@ -57,4 +57,21 @@ export function registerNotificationHandlers(): void {
       return { ok: false, error: error.message }
     }
   })
+
+  // 前端发送通知（替换 alert()）
+  ipcMain.handle(
+    'notification:send',
+    async (
+      _event,
+      payload: { title: string; body?: string; type?: 'info' | 'success' | 'warning' | 'error'; route?: string }
+    ) => {
+      try {
+        const { title, body = '', type = 'info', route } = payload
+        notification.notify({ title, body, type, route })
+        return { ok: true }
+      } catch (error: any) {
+        return { ok: false, error: error.message }
+      }
+    }
+  )
 }

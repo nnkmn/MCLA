@@ -401,7 +401,11 @@ async function updateSelectedMod() {
     const newInfo = updateInfoMap.value[selectedMod.value]
     const currentMod = installedMods.value.find((m) => m.filePath === selectedMod.value)
     if (!newInfo?.hasUpdate || !currentMod) {
-      alert(`「${mod?.name || ''}」已是最新版本（${mod?.version || ''}）`)
+      window.electronAPI?.notification?.send({
+        title: '成功',
+        body: `「${mod?.name || ''}」已是最新版本（${mod?.version || ''}）`,
+        type: 'success'
+      })
       return
     }
     await doUpdateMod(currentMod, newInfo as ModUpdateInfo)
@@ -412,7 +416,11 @@ async function updateSelectedMod() {
 
 async function doUpdateMod(mod: ModItem, info: ModUpdateInfo) {
   if (!info?.latestDownloadUrl) {
-    alert('未找到可下载的更新文件')
+    window.electronAPI?.notification?.send({
+      title: '提示',
+      body: '未找到可下载的更新文件',
+      type: 'warning'
+    })
     return
   }
   if (!confirm(`更新「${mod.name}」\n${info.currentVersionName} → ${info.latestVersionName}？`))
@@ -443,10 +451,18 @@ async function doUpdateMod(mod: ModItem, info: ModUpdateInfo) {
       updateInfoMap.value = newMap
       await loadMods()
     } else {
-      alert(`更新失败：${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({
+        title: '错误',
+        body: `更新失败：${result?.error || '未知错误'}`,
+        type: 'error'
+      })
     }
   } catch (e: any) {
-    alert(`更新出错：${e.message}`)
+    window.electronAPI?.notification?.send({
+      title: '错误',
+      body: `更新出错：${e.message}`,
+      type: 'error'
+    })
   } finally {
     updatingMod.value = null
     delete updateProgressMap.value[mod.filePath]

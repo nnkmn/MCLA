@@ -589,10 +589,18 @@ async function confirmDownload() {
     if ((res as any)?.success) {
       await dlStore.refreshQueue()
     } else {
-      alert('下载失败：' + ((res as any)?.error || '未知错误'))
+      window.electronAPI?.notification?.send({
+        title: '错误',
+        body: '下载失败：' + ((res as any)?.error || '未知错误'),
+        type: 'error'
+      })
     }
   } catch (e: any) {
-    alert('下载出错：' + (e.message || '未知错误'))
+    window.electronAPI?.notification?.send({
+      title: '错误',
+      body: '下载出错：' + (e.message || '未知错误'),
+      type: 'error'
+    })
   } finally {
     downloadingId.value = null
     pendingFile.value = null

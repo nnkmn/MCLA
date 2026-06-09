@@ -1,4 +1,65 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { IpcRendererEvent } from 'electron'
+
+// ===== 暴露给前端的局部类型定义（仅用于 preload 参数/回调约束） =====
+
+/** 本地 Mod 信息（用于 mod API 参数约束） */
+interface LocalMod {
+  id?: string
+  name?: string
+  fileName?: string
+  filePath?: string
+  size?: number
+  enabled?: boolean
+  gameVersions?: string[]
+  loaders?: string[]
+  platform?: string
+  version?: string
+}
+
+/** Mod 更新信息（用于 mod.update 参数约束） */
+interface ModUpdateInfo {
+  id?: string
+  fileName?: string
+  url?: string
+  version?: string
+}
+
+/** 全局快捷键配置（用于 hotkey API 参数约束） */
+interface HotkeyConfig {
+  id?: string
+  accelerator?: string
+  action?: string
+  enabled?: boolean
+  description?: string
+}
+
+/** 主题设置（用于 theme API 参数约束） */
+interface ThemeSettings {
+  mode?: 'light' | 'dark' | 'system'
+  primaryColor?: string
+  backgroundUrl?: string
+  useCustomBackground?: boolean
+}
+
+/** 备份选项（用于 backup API 参数约束） */
+interface BackupOptions {
+  includeInstances?: boolean
+  includeAccounts?: boolean
+  includeDownloads?: boolean
+  includeSettings?: boolean
+  outputPath?: string
+}
+
+/** Modpack 打包选项（用于 modpack API 参数约束） */
+interface ModpackOptions {
+  includeMods?: boolean
+  includeConfigs?: boolean
+  includeSaves?: boolean
+  includeResourcePacks?: boolean
+  includeShaderPacks?: boolean
+  overrides?: Record<string, unknown>
+}
 
 const api = {
   // 窗口控制
@@ -8,7 +69,7 @@ const api = {
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
     onMaximizedChange: (callback: (isMaximized: boolean) => void) => {
-      const listener = (_event: any, isMaximized: boolean) => callback(isMaximized)
+      const listener = (_event: IpcRendererEvent, isMaximized: boolean) => callback(isMaximized)
       ipcRenderer.on('window:maximized-changed', listener)
       return () => ipcRenderer.removeListener('window:maximized-changed', listener)
     }
@@ -23,7 +84,6 @@ const api = {
   config: {
     get: (key: string) => ipcRenderer.invoke('config:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('config:set', key, value),
-    // 敏感配置（自动加解密，用于 API Key 等）
     getSecure: (key: string) => ipcRenderer.invoke('config:get-secure', key),
     setSecure: (key: string, value: string) => ipcRenderer.invoke('config:set-secure', key, value)
   },
@@ -64,7 +124,7 @@ const api = {
     openVerificationUrl: () => ipcRenderer.invoke('account:open-verification-url'),
     getSkinDataUrl: (uuid: string) => ipcRenderer.invoke('account:get-skin-data-url', uuid),
     onLoginProgress: (callback: (payload: { stage: string; detail?: string }) => void) => {
-      const listener = (_event: any, payload: any) => callback(payload)
+      const listener = (_event: IpcRendererEvent, payload: { stage: string; detail?: string }) => callback(payload)
       ipcRenderer.on('account:login-progress', listener)
       return () => ipcRenderer.removeListener('account:login-progress', listener)
     }
@@ -74,8 +134,8 @@ const api = {
   download: {
     searchMods: (params: {
       query?: string
-      source?: string // 前端兼容字段（保留，不传后端）
-      platform?: string // 后端读取的字段：'modrinth' | 'curseforge' | undefined
+      source?: string
+      platform?: string
       offset?: number
       limit?: number
       gameVersion?: string
@@ -106,7 +166,7 @@ const api = {
     getActive: () => ipcRenderer.invoke('download:get-active'),
     getQueue: () => ipcRenderer.invoke('download:get-queue'),
     onProgress: (callback: (progress: unknown) => void) => {
-      const listener = (_event: any, progress: any) => callback(progress)
+      const listener = (_event: IpcRendererEvent, progress: unknown) => callback(progress)
       ipcRenderer.on('download:progress', listener)
       return () => ipcRenderer.removeListener('download:progress', listener)
     },
@@ -166,7 +226,20 @@ const api = {
         gameDir: string
       }) => void
     ) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: {
+          taskId: string
+          versionId: string
+          phase: string
+          phaseLabel: string
+          progress: number
+          downloaded: number
+          total: number
+          speed: number
+          gameDir: string
+        }
+      ) => callback(data)
       ipcRenderer.on('version:download-progress', listener)
       return () => ipcRenderer.removeListener('version:download-progress', listener)
     },
@@ -174,7 +247,10 @@ const api = {
     onDownloadComplete: (
       callback: (data: { taskId: string; versionId: string; gameDir: string }) => void
     ) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { taskId: string; versionId: string; gameDir: string }
+      ) => callback(data)
       ipcRenderer.on('version:download-complete', listener)
       return () => ipcRenderer.removeListener('version:download-complete', listener)
     },
@@ -182,7 +258,10 @@ const api = {
     onDownloadError: (
       callback: (data: { taskId: string; versionId: string; error: string }) => void
     ) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { taskId: string; versionId: string; error: string }
+      ) => callback(data)
       ipcRenderer.on('version:download-error', listener)
       return () => ipcRenderer.removeListener('version:download-error', listener)
     }
@@ -207,7 +286,15 @@ const api = {
         message: string
       }) => void
     ) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: {
+          instanceId: string
+          stage: string
+          progress: number
+          message: string
+        }
+      ) => callback(data)
       ipcRenderer.on('modloader:progress', listener)
       return () => ipcRenderer.removeListener('modloader:progress', listener)
     }
@@ -224,19 +311,19 @@ const api = {
       callback: (progress: { phase: string; message: string; detail?: string }) => void
     ) => {
       const listener = (
-        _event: any,
+        _event: IpcRendererEvent,
         progress: { phase: string; message: string; detail?: string }
       ) => callback(progress)
       ipcRenderer.on('game:progress', listener)
       return () => ipcRenderer.removeListener('game:progress', listener)
     },
     onLog: (callback: (log: string) => void) => {
-      const listener = (_event: any, log: string) => callback(log)
+      const listener = (_event: IpcRendererEvent, log: string) => callback(log)
       ipcRenderer.on('game:log', listener)
       return () => ipcRenderer.removeListener('game:log', listener)
     },
     onExit: (callback: (code: number) => void) => {
-      const listener = (_event: any, code: number) => callback(code)
+      const listener = (_event: IpcRendererEvent, code: number) => callback(code)
       ipcRenderer.on('game:exit', listener)
       return () => ipcRenderer.removeListener('game:exit', listener)
     }
@@ -300,7 +387,10 @@ const api = {
     list: (gameDir: string) => ipcRenderer.invoke('crash:list', { gameDir }),
     latest: (gameDir: string) => ipcRenderer.invoke('crash:latest', { gameDir }),
     onCrash: (callback: (data: { reason: string; crashReportPath?: string }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { reason: string; crashReportPath?: string }
+      ) => callback(data)
       ipcRenderer.on('crash:detected', listener)
       return () => ipcRenderer.removeListener('crash:detected', listener)
     }
@@ -308,6 +398,12 @@ const api = {
 
   // 通知系统
   notification: {
+    send: (payload: {
+      title: string
+      body?: string
+      type?: 'info' | 'success' | 'warning' | 'error'
+      route?: string
+    }) => ipcRenderer.invoke('notification:send', payload),
     getHistory: (limit?: number) => ipcRenderer.invoke('notification:get-history', limit),
     markRead: (id: string) => ipcRenderer.invoke('notification:mark-read', id),
     markAllRead: () => ipcRenderer.invoke('notification:mark-all-read'),
@@ -323,12 +419,23 @@ const api = {
         route?: string
       }) => void
     ) => {
-      const listener = (_event: any, item: any) => callback(item)
+      const listener = (
+        _event: IpcRendererEvent,
+        item: {
+          id: string
+          title: string
+          body: string
+          type: string
+          timestamp: number
+          route?: string
+        }
+      ) => callback(item)
       ipcRenderer.on('notification:new', listener)
       return () => ipcRenderer.removeListener('notification:new', listener)
     },
     onClicked: (callback: (data: { id: string; route?: string }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (_event: IpcRendererEvent, data: { id: string; route?: string }) =>
+        callback(data)
       ipcRenderer.on('notification:clicked', listener)
       return () => ipcRenderer.removeListener('notification:clicked', listener)
     }
@@ -344,7 +451,7 @@ const api = {
     disable: (modPath: string) => ipcRenderer.invoke('mod:disable', { modPath }),
     installBatch: (sourcePaths: string[], gameDir: string) =>
       ipcRenderer.invoke('mod:install-batch', { sourcePaths, gameDir }),
-    checkCompat: (mods: any[], targetVersion: string, loader?: string) =>
+    checkCompat: (mods: LocalMod[], targetVersion: string, loader?: string) =>
       ipcRenderer.invoke('mod:check-compat', { mods, targetVersion, loader }),
     ensureDir: (gameDir: string) => ipcRenderer.invoke('mod:ensure-dir', { gameDir }),
     // Config 文件读写
@@ -355,11 +462,15 @@ const api = {
       ipcRenderer.invoke('mod:save-config-content', { filePath, content }),
     openConfigDir: (gameDir: string) => ipcRenderer.invoke('mod:open-config-dir', { gameDir }),
     // 更新检测
-    checkUpdate: (mods: any[], mcVersion?: string, loader?: string) =>
+    checkUpdate: (mods: LocalMod[], mcVersion?: string, loader?: string) =>
       ipcRenderer.invoke('mod:check-update', { mods, mcVersion, loader }),
-    update: (mod: any, updateInfo: any) => ipcRenderer.invoke('mod:update', { mod, updateInfo }),
+    update: (mod: LocalMod, updateInfo: ModUpdateInfo) =>
+      ipcRenderer.invoke('mod:update', { mod, updateInfo }),
     onUpdateProgress: (callback: (data: { filePath: string; progress: number }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { filePath: string; progress: number }
+      ) => callback(data)
       ipcRenderer.on('mod:update-progress', listener)
       return () => ipcRenderer.removeListener('mod:update-progress', listener)
     }
@@ -383,7 +494,19 @@ const api = {
         releaseNotes: string | null
       }) => void
     ) => {
-      const listener = (_event: any, status: any) => callback(status)
+      const listener = (
+        _event: IpcRendererEvent,
+        status: {
+          checking: boolean
+          available: boolean
+          downloading: boolean
+          downloadProgress: number
+          downloaded: boolean
+          error: string | null
+          version: string | null
+          releaseNotes: string | null
+        }
+      ) => callback(status)
       ipcRenderer.on('updater:status', listener)
       return () => ipcRenderer.removeListener('updater:status', listener)
     }
@@ -391,13 +514,21 @@ const api = {
 
   // 整合包（mrpack）
   modpack: {
-    pack: (payload: { instancePath: string; outputPath?: string; options: any }) =>
-      ipcRenderer.invoke('modpack:pack', payload),
+    pack: (payload: {
+      instancePath: string
+      outputPath?: string
+      options: ModpackOptions
+    }) => ipcRenderer.invoke('modpack:pack', payload),
     import: (payload: { mrpackPath: string; targetParentDir: string; instanceName: string }) =>
       ipcRenderer.invoke('modpack:import', payload),
     getDefaultOutputDir: () => ipcRenderer.invoke('modpack:get-default-output-dir'),
-    onProgress: (callback: (progress: { stage: string; progress: number; currentFile: string }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+    onProgress: (
+      callback: (progress: { stage: string; progress: number; currentFile: string }) => void
+    ) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { stage: string; progress: number; currentFile: string }
+      ) => callback(data)
       ipcRenderer.on('modpack:progress', listener)
       return () => ipcRenderer.removeListener('modpack:progress', listener)
     }
@@ -406,12 +537,12 @@ const api = {
   // 全局快捷键
   hotkey: {
     list: () => ipcRenderer.invoke('hotkey:list'),
-    update: (hotkey: any) => ipcRenderer.invoke('hotkey:update', { hotkey }),
+    update: (hotkey: HotkeyConfig) => ipcRenderer.invoke('hotkey:update', { hotkey }),
     toggle: (id: string, enabled: boolean) => ipcRenderer.invoke('hotkey:toggle', { id, enabled }),
     validate: (accelerator: string) => ipcRenderer.invoke('hotkey:validate', { accelerator }),
     reload: () => ipcRenderer.invoke('hotkey:reload'),
     onTrigger: (callback: (data: { action: string }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+      const listener = (_event: IpcRendererEvent, data: { action: string }) => callback(data)
       ipcRenderer.on('hotkey:trigger', listener)
       return () => ipcRenderer.removeListener('hotkey:trigger', listener)
     }
@@ -420,7 +551,7 @@ const api = {
   // 主题与背景
   theme: {
     load: () => ipcRenderer.invoke('theme:load'),
-    save: (settings: any) => ipcRenderer.invoke('theme:save', { settings }),
+    save: (settings: ThemeSettings) => ipcRenderer.invoke('theme:save', { settings }),
     importBackground: (sourcePath: string) =>
       ipcRenderer.invoke('theme:import-background', { sourcePath }),
     deleteBackground: (localPath: string) =>
@@ -430,13 +561,18 @@ const api = {
 
   // 数据备份与迁移
   backup: {
-    create: (options?: any) => ipcRenderer.invoke('backup:create', { options }),
+    create: (options?: BackupOptions) => ipcRenderer.invoke('backup:create', { options }),
     restore: (backupPath: string) => ipcRenderer.invoke('backup:restore', { backupPath }),
     list: () => ipcRenderer.invoke('backup:list'),
-    delete: (fileName: string) => ipcRenderer.invoke('backup:delete', { fileName }),
+    delete: (fileName: string) => ipcRenderer.invoke('backup:delete', fileName),
     getDir: () => ipcRenderer.invoke('backup:get-dir'),
-    onProgress: (callback: (progress: { stage: string; progress: number; currentItem: string }) => void) => {
-      const listener = (_event: any, data: any) => callback(data)
+    onProgress: (
+      callback: (progress: { stage: string; progress: number; currentItem: string }) => void
+    ) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        data: { stage: string; progress: number; currentItem: string }
+      ) => callback(data)
       ipcRenderer.on('backup:progress', listener)
       return () => ipcRenderer.removeListener('backup:progress', listener)
     }

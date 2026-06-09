@@ -592,7 +592,7 @@ function isRecommended(file: ProjectFile): boolean {
 
 async function downloadFile(file: ProjectFile) {
   if (!selectedTarget.value) {
-    alert('请先选择一个目标实例')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请先选择一个目标实例', type: 'warning' })
     return
   }
 
@@ -629,10 +629,10 @@ async function confirmDownload() {
     if (result?.success) {
       await dlStore.refreshQueue()
     } else {
-      alert('下载失败：' + (result?.error || '未知错误'))
+      window.electronAPI?.notification?.send({ title: '错误', body: '下载失败：' + (result?.error || '未知错误'), type: 'error' })
     }
   } catch (e: any) {
-    alert('下载出错：' + (e.message || '未知错误'))
+    window.electronAPI?.notification?.send({ title: '错误', body: '下载出错：' + (e.message || '未知错误'), type: 'error' })
   } finally {
     downloadingId.value = null
   }
@@ -678,9 +678,9 @@ async function copyName() {
   if (!detail.value) return
   try {
     await navigator.clipboard.writeText(detail.value.name)
-    alert('名称已复制')
+    window.electronAPI?.notification?.send({ title: '成功', body: '名称已复制', type: 'success' })
   } catch {
-    alert('复制失败')
+    window.electronAPI?.notification?.send({ title: '错误', body: '复制失败', type: 'error' })
   }
 }
 

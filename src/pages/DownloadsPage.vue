@@ -996,9 +996,17 @@ async function downloadServer(ver: VerItem) {
   if (result.filePath) {
     const res = await (api.versions as any).downloadServer(ver.id, result.filePath)
     if (res?.ok) {
-      alert(`服务端下载成功: ${result.filePath}`)
+      window.electronAPI?.notification?.send({
+        title: '成功',
+        body: `服务端下载成功: ${result.filePath}`,
+        type: 'success'
+      })
     } else {
-      alert(`下载失败: ${res?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({
+        title: '错误',
+        body: `下载失败: ${res?.error || '未知错误'}`,
+        type: 'error'
+      })
     }
   }
 }

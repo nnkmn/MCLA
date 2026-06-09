@@ -73,10 +73,16 @@ async function downloadFileWithProgress(
   writer.end()
 }
 
-let versionsService: any = null
+let versionsService: {
+  getAllVersions: () => Promise<Array<{ id: string; type: string; releaseTime: string; url: string; time: string }>>
+  getLatestVersion: () => Promise<{ release: string; snapshot: string }>
+  getVersionInfo: (versionId: string) => Promise<any | null>
+  isVersionInstalled: (versionId: string, gameDir: string) => Promise<boolean>
+  getBaseUrl?: () => string
+} | null = null
 let modLoaderService: any = null
 
-export function setGameDependencies(versions: any, modloader: any) {
+export function setGameDependencies(versions: typeof versionsService, modloader: any) {
   versionsService = versions
   modLoaderService = modloader
 }
@@ -240,7 +246,8 @@ export function registerGameHandlers(mainWindow: BrowserWindow): void {
       return result
     } catch (e: any) {
       log.error('[versions:list] ERROR:', e.message, e.stack)
-      return []
+      // ✅ 不再吞掉错误，让前端可以显示错误信息
+      throw new Error(e.message || '加载版本列表失败')
     }
   })
 

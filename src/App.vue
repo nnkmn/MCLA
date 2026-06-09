@@ -818,7 +818,7 @@ async function handleLaunch() {
     return
   }
   if (!accountsStore.activeAccount) {
-    alert('请先添加并选择一个账号')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请先添加并选择一个账号', type: 'warning' })
     return
   }
 
@@ -836,10 +836,10 @@ async function handleLaunch() {
   try {
     const result = await window.electronAPI?.game.launch('', accountId, versionId)
     if (!result?.success) {
-      alert('启动失败: ' + (result?.error || '未知错误'))
+      window.electronAPI?.notification?.send({ title: '错误', body: '启动失败: ' + (result?.error || '未知错误'), type: 'error' })
     }
   } catch (e: any) {
-    alert('启动异常: ' + e.message)
+    window.electronAPI?.notification?.send({ title: '错误', body: '启动异常: ' + e.message, type: 'error' })
   } finally {
     isLaunching.value = false
   }

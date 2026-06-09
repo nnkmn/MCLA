@@ -1,0 +1,84 @@
+name: MCLA Release Workflow
+
+on:
+  push:
+    tags:
+      - 'MCLA*'
+
+env:
+  NODE_VERSION: 20.x
+  NPM_REGISTRY: https://registry.npmjs.org/
+
+jobs:
+  release:
+    name: Build and Release MCLA
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Lint code
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Build TypeScript
+        run: npm run build
+        continue-on-error: false
+
+      - name: Build Windows Installer
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Upload to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/MCLA Setup 0.5.3.exe
+            build/MCLA Setup 0.5.3.exe.blockmap
+            build/latest.yml
+          tag_name: ${{ github.ref_name }}
+          name: MCLA v0.5.3
+          body: |
+            ## MCLA v0.5.3 发布
+
+            **版本类型**: 稳定性更新 + Bug 修复 + 文档完善
+
+            **主要变更**:
+            - ✅ 修复实例列表刷新问题
+            - ✅ 修复下载队列状态同步问题
+            - ✅ 修复主题切换样式更新问题
+            - ✅ 版本列表加载优化（双层缓存 + 骨架屏）
+            - ✅ 类型安全提升（消除核心路径 any 类型）
+            - ✅ 通知系统增强（历史记录 + 未读计数）
+            - ✅ 主题系统优化（7+ 预设色 + 背景自定义）
+            - ✅ 全局快捷键系统
+            - ✅ 文档完善（所有项目文档更新至 v0.5.3）
+
+            **已知问题**:
+            - Forge/NeoForge/Quilt 安装不完全（计划 v0.6.0 修复）
+            - i18n 国际化未接入（计划 v0.6.0 修复）
+
+            **升级建议**: 所有用户建议升级到此版本
+
+          draft: false
+          prerelease: false
+
+      - name: Cleanup
+        run: |
+          echo "Release workflow completed successfully"
+          echo "Version: 0.5.3"
+          echo "Tag: ${{ github.ref_name }}"

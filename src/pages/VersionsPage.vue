@@ -9,7 +9,14 @@
       <div class="section-header">
         <h3>Minecraft 版本</h3>
         <div class="section-actions">
-          <button class="btn-primary" @click="refreshVersions" :disabled="isLoading">
+          <!-- 搜索框 -->
+          <input
+            class="search-input"
+            v-model="searchKeyword"
+            placeholder="搜索版本号..."
+            :disabled="loading"
+          />
+          <button class="btn-primary" @click="refreshVersions" :disabled="loading">
             <svg
               width="14"
               height="14"
@@ -17,46 +24,98 @@
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              :class="{ spinning: isLoading }"
+              :class="{ spinning: loading }"
             >
               <polyline points="23 4 23 10 17 10" />
               <polyline points="1 20 1 14 7 14" />
               <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
             </svg>
-            {{ isLoading ? '加载中...' : '刷新' }}
+            {{ loading ? '加载中...' : '刷新' }}
           </button>
         </div>
       </div>
 
-      <!-- 加载中状态 -->
-      <div class="loading-state" v-if="isLoading">
-        <div class="loading-spinner"></div>
-        <p>正在加载版本列表...</p>
+      <!-- 分类 Tabs -->
+      <div class="filter-tabs" v-if="!loading && versions.length">
+        <button
+          class="filter-tab"
+          :class="{ active: activeFilter === 'all' }"
+          @click="activeFilter = 'all'"
+        >
+          全部 ({{ filteredVersions('all').length }})
+        </button>
+        <button
+          class="filter-tab"
+          :class="{ active: activeFilter === 'release' }"
+          @click="activeFilter = 'release'"
+        >
+          正式版 ({{ filteredVersions('release').length }})
+        </button>
+        <button
+          class="filter-tab"
+          :class="{ active: activeFilter === 'snapshot' }"
+          @click="activeFilter = 'snapshot'"
+        >
+          快照版 ({{ filteredVersions('snapshot').length }})
+        </button>
+        <button
+          class="filter-tab"
+          :class="{ active: activeFilter === 'old' }"
+          @click="activeFilter = 'old'"
+        >
+          旧版 ({{ filteredVersions('old').length }})
+        </button>
+      </div>
+
+      <!-- 加载中状态：骨架屏 -->
+      <div class="skeleton-state" v-if="loading">
+        <div class="skeleton-item" v-for="n in 8" :key="n">
+          <div class="skeleton-id"></div>
+          <div class="skeleton-type"></div>
+          <div class="skeleton-date"></div>
+        </div>
       </div>
 
       <!-- 错误状态 -->
-      <div class="error-state" v-else-if="hasError">
-        <p class="error-text">{{ errorMessage }}</p>
+      <div class="error-state" v-else-if="error">
+        <p class="error-text">{{ error }}</p>
         <button class="btn-primary" @click="refreshVersions">重试</button>
       </div>
 
-      <!-- 版本列表 -->
-      <div class="versions-list" v-else-if="versions.length">
-        <div class="version-item" v-for="version in versions" :key="version.id">
+      <!-- 版本列表（按需渲染：首次 100 条 + 滚动加载更多） -->
+      <div class="versions-list" v-else-if="displayedVersions.length">
+        <div
+          class="version-item"
+          v-for="version in displayedVersions"
+          :key="version.id"
+          :class="{ selected: selectedVersion === version.id }"
+          @click="selectVersion(version.id)"
+        >
           <div class="version-info">
             <div class="version-id">{{ version.id }}</div>
             <div class="version-type" :class="version.type">{{ version.type }}</div>
             <div class="version-date">{{ formatDate(version.releaseTime) }}</div>
           </div>
           <div class="version-actions">
-            <button class="btn-sm btn-ghost" @click="selectVersion(version.id)">选择</button>
+            <button class="btn-sm btn-ghost" @click.stop="selectVersion(version.id)">
+              {{ selectedVersion === version.id ? '已选中' : '选择' }}
+            </button>
           </div>
+        </div>
+
+        <!-- "加载更多"：如果还有剩余数据 -->
+        <div class="load-more" v-if="hasMoreData" @click="loadMore">
+          <button class="btn-ghost" :disabled="loading">
+            加载更多（剩余 {{ totalFiltered - displayedVersions.length }} 条）
+          </button>
         </div>
       </div>
 
       <!-- 空状态 -->
       <div class="empty-state" v-else>
-        <p>暂无版本数据，请点击"刷新"按钮获取最新版本</p>
+        <p>
+          {{ searchKeyword || activeFilter !== 'all' ? '没有匹配的版本，请调整搜索条件。' : '暂无版本数据' }}
+        </p>
       </div>
     </section>
 
@@ -77,13 +136,29 @@
           </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" v-if="selectedVersion">
           <label>选择 ModLoader</label>
           <div class="loader-options">
-            <label v-for="loader in loaders" :key="loader.id" class="loader-option">
-              <input type="radio" :value="loader.id" v-model="selectedLoader" />
-              <span>{{ loader.name }}</span>
-            </label>
+            <!-- Fabric -->
+            <template v-if="fabricVersions.length">
+              <label class="loader-option" v-for="v in fabricVersions.slice(0, 3)" :key="v.id">
+                <input type="radio" :value="`fabric:${v.version}`" v-model="selectedLoader" />
+                <span>{{ v.name }}</span>
+              </label>
+            </template>
+            <!-- Forge -->
+            <template v-if="forgeVersions.length">
+              <label class="loader-option" v-for="v in forgeVersions.slice(0, 3)" :key="v.id">
+                <input type="radio" :value="`forge:${v.version}`" v-model="selectedLoader" />
+                <span>{{ v.name }}</span>
+              </label>
+            </template>
+
+            <div class="loader-empty" v-if="!fabricVersions.length && !forgeVersions.length">
+              <span class="muted">
+                {{ modLoaderLoading ? '正在加载 Mod Loader 版本...' : '该版本暂无可用 Mod Loader' }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -91,9 +166,9 @@
           <button
             class="btn-primary"
             @click="installModLoader"
-            :disabled="!selectedVersion || !selectedLoader"
+            :disabled="!selectedVersion || !selectedLoader || modLoaderLoading"
           >
-            安装 ModLoader
+            {{ modLoaderLoading ? '正在安装...' : '安装 ModLoader' }}
           </button>
         </div>
       </div>
@@ -102,88 +177,141 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useVersionsStore } from '../stores/versions.store'
 import { useInstancesStore } from '../stores/instances.store'
-import type { VersionInfo, ModLoader } from '../types/versions'
 
-const versions = ref<VersionInfo[]>([])
-const loaders = ref<ModLoader[]>([])
-const selectedVersion = ref('')
-const selectedLoader = ref('')
-const isLoading = ref(false)
-const hasError = ref(false)
-const errorMessage = ref('')
+// ===== Pinia Store（代替本地状态） =====
+const versionsStore = useVersionsStore()
 const instancesStore = useInstancesStore()
 
-// 获取版本列表
+// 从 store 派生的响应式数据
+const versions = computed(() => versionsStore.versions)
+const fabricVersions = computed(() => versionsStore.fabricVersions)
+const forgeVersions = computed(() => versionsStore.forgeVersions)
+const loading = computed(() => versionsStore.loading)
+const error = computed(() => versionsStore.error)
+
+// ===== 页面级 UI 状态 =====
+const searchKeyword = ref('')
+const activeFilter = ref<'all' | 'release' | 'snapshot' | 'old'>('all')
+const pageSize = 100
+const displayedCount = ref(pageSize)
+const selectedVersion = ref('')
+const selectedLoader = ref('')
+const modLoaderLoading = ref(false)
+
+// ===== 计算属性：过滤后的版本列表 =====
+function filteredVersions(filter: 'all' | 'release' | 'snapshot' | 'old') {
+  let list = versions.value
+
+  // 1. 按类型过滤
+  if (filter === 'release') list = list.filter((v) => v.type === 'release')
+  else if (filter === 'snapshot') list = list.filter((v) => v.type === 'snapshot')
+  else if (filter === 'old')
+    list = list.filter((v) => v.type === 'old_alpha' || v.type === 'old_beta')
+
+  // 2. 按搜索关键词过滤
+  const kw = searchKeyword.value.trim().toLowerCase()
+  if (kw) list = list.filter((v) => v.id.toLowerCase().includes(kw))
+
+  return list
+}
+
+/** 当前 Tab + 搜索后的完整数据 */
+const totalFiltered = computed(() => filteredVersions(activeFilter.value).length)
+
+/** 实际渲染的数据（分页） */
+const displayedVersions = computed(() => filteredVersions(activeFilter.value).slice(0, displayedCount.value))
+
+/** 是否还有更多数据可加载 */
+const hasMoreData = computed(() => displayedVersions.value.length < totalFiltered.value)
+
+// ===== 事件处理 =====
+
+/** 从 store 请求版本列表（store 内部处理缓存） */
 async function fetchVersions() {
-  isLoading.value = true
-  hasError.value = false
-  errorMessage.value = ''
-
-  try {
-    const result = await window.electronAPI.versions.list()
-    versions.value = result
-  } catch (error) {
-    hasError.value = true
-    errorMessage.value = error instanceof Error ? error.message : '加载版本列表失败'
-  } finally {
-    isLoading.value = false
-  }
+  await versionsStore.fetchVersions(false)
 }
 
-// 获取 ModLoader 列表
-async function fetchLoaders() {
-  try {
-    const result = await window.electronAPI.modloader.getLoaders(selectedVersion.value)
-    loaders.value = result
-  } catch (error) {
-    console.error('Failed to load modloaders:', error)
-  }
-}
-
-// 刷新版本
+/** 强制刷新（跳过前端缓存） */
 async function refreshVersions() {
-  fetchVersions()
+  displayedCount.value = pageSize
+  await versionsStore.fetchVersions(true)
 }
 
-// 选择版本
-function selectVersion(versionId: string) {
+/** 选择一个版本：同步选中状态 + 按需加载 Mod Loader 列表 */
+async function selectVersion(versionId: string) {
   selectedVersion.value = versionId
+  selectedLoader.value = ''
+
+  if (versionId) {
+    modLoaderLoading.value = true
+    try {
+      await versionsStore.fetchModLoaderVersions(versionId)
+    } finally {
+      modLoaderLoading.value = false
+    }
+  }
 }
 
-// 安装 ModLoader
+/** 安装 ModLoader（保持原有逻辑不变，仅增加错误提示） */
 async function installModLoader() {
   if (!selectedVersion.value || !selectedLoader.value) return
 
   const currentInstance = instancesStore.currentInstance
   if (!currentInstance) {
-    alert('请先在实例管理选择一个实例')
+    window.electronAPI?.notification?.send({
+      title: '提示',
+      body: '请先在实例管理选择一个实例',
+      type: 'warning'
+    })
     return
   }
+
+  // 解析用户选择的 "loaderType:version"（简单约定）
+  const [loaderType, loaderVersion] = selectedLoader.value.split(':')
 
   try {
     await window.electronAPI.modloader.install(
       currentInstance.id,
-      selectedLoader.value,
-      selectedVersion.value,
+      loaderType,
+      loaderVersion,
       currentInstance.path
     )
-    alert('ModLoader 安装开始，请查看日志')
-  } catch (error) {
-    alert(`安装失败: ${error}`)
+    window.electronAPI?.notification?.send({
+      title: '提示',
+      body: 'ModLoader 安装开始，请查看日志',
+      type: 'info'
+    })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    window.electronAPI?.notification?.send({
+      title: '错误',
+      body: `安装失败: ${message}`,
+      type: 'error'
+    })
   }
 }
 
-// 格式化日期
+/** 加载更多（分页） */
+function loadMore() {
+  displayedCount.value += pageSize
+}
+
+/** 日期格式化 */
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('zh-CN')
 }
 
-// 初始化
+// ===== 监听：搜索关键词变化时重置分页计数 =====
+watch([searchKeyword, activeFilter], () => {
+  displayedCount.value = pageSize
+})
+
+// ===== 初始化：进入页面从 store 加载版本列表（store 管理缓存）=====
 onMounted(() => {
   fetchVersions()
-  fetchLoaders()
 })
 </script>
 
@@ -228,22 +356,108 @@ onMounted(() => {
 .section-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
-/* Loading state */
-.loading-state,
-.error-state {
-  padding: 48px 16px;
-  text-align: center;
+.search-input {
+  padding: 6px 10px;
+  border: 1px solid var(--mcla-border-color);
+  border-radius: 6px;
+  background: var(--mcla-bg-primary);
+  color: var(--mcla-text-primary);
+  font-size: 12px;
+  width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--mcla-primary);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 16px;
-  border: 3px solid var(--mcla-border-color);
-  border-top-color: var(--mcla-primary);
-  border-radius: 50%;
+/* ===== 分类 Tabs ===== */
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--mcla-border);
+  background: var(--mcla-bg-primary);
+}
+
+.filter-tab {
+  padding: 6px 12px;
+  font-size: 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mcla-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--mcla-bg-secondary);
+  }
+  &.active {
+    background: var(--mcla-primary);
+    color: white;
+    font-weight: 600;
+  }
+}
+
+/* ===== 骨架屏 ===== */
+.skeleton-state {
+  padding: 16px;
+}
+
+.skeleton-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: var(--mcla-bg-primary);
+
+  > div {
+    background: linear-gradient(
+      90deg,
+      var(--mcla-border-color) 25%,
+      var(--mcla-bg-secondary) 50%,
+      var(--mcla-border-color) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 14px;
+  }
+
+  .skeleton-id {
+    width: 120px;
+    height: 16px;
+  }
+  .skeleton-type {
+    width: 60px;
+  }
+  .skeleton-date {
+    width: 80px;
+    margin-left: auto;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== Loading spinner 动画 ===== */
+.spinning {
   animation: spin 0.8s linear infinite;
 }
 
@@ -253,26 +467,23 @@ onMounted(() => {
   }
 }
 
-.loading-state p {
-  color: var(--mcla-text-secondary);
-  font-size: 13px;
-  margin: 0;
+/* ===== 错误状态 ===== */
+.error-state {
+  padding: 32px 16px;
+  text-align: center;
 }
 
-/* Error state */
 .error-text {
-  color: #dc2626;
+  color: var(--mcla-danger, #dc2626);
   font-size: 13px;
   margin: 0 0 16px;
 }
 
-/* Spinning animation for refresh button */
-.spinning {
-  animation: spin 0.8s linear infinite;
-}
-
+/* ===== 版本列表 ===== */
 .versions-list {
   padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .version-item {
@@ -284,9 +495,17 @@ onMounted(() => {
   margin-bottom: 8px;
   background: var(--mcla-bg-primary);
   transition: all 0.15s;
+  cursor: pointer;
+  border: 1px solid transparent;
 
   &:hover {
     background: var(--mcla-bg-secondary);
+    border-color: var(--mcla-border-color);
+  }
+
+  &.selected {
+    border-color: var(--mcla-primary);
+    background: color-mix(in srgb, var(--mcla-primary) 8%, var(--mcla-bg-primary));
   }
 }
 
@@ -332,6 +551,33 @@ onMounted(() => {
   gap: 4px;
 }
 
+/* ===== "加载更多" ===== */
+.load-more {
+  padding: 12px 0 4px;
+  text-align: center;
+
+  button {
+    padding: 6px 16px;
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid var(--mcla-border-color);
+    border-radius: 6px;
+    color: var(--mcla-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover:not(:disabled) {
+      border-color: var(--mcla-primary);
+      color: var(--mcla-primary);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* ===== ModLoader 表单 ===== */
 .modloader-form {
   padding: 16px;
 }
@@ -348,6 +594,21 @@ onMounted(() => {
   }
 }
 
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--mcla-border-color);
+  border-radius: 6px;
+  background: var(--mcla-bg-primary);
+  color: var(--mcla-text-primary);
+  font-size: 13px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--mcla-primary);
+  }
+}
+
 .loader-options {
   display: flex;
   flex-wrap: wrap;
@@ -359,8 +620,20 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
+  cursor: pointer;
 }
 
+.loader-empty {
+  font-size: 12px;
+  color: var(--mcla-text-muted);
+  padding: 8px 0;
+}
+
+.muted {
+  color: var(--mcla-text-muted);
+}
+
+/* ===== 按钮 ===== */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -375,7 +648,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.15s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: var(--mcla-primary-hover);
   }
   &:disabled {
@@ -396,13 +669,15 @@ onMounted(() => {
   border-radius: var(--mcla-radius-xs);
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.15s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: var(--mcla-primary-400);
     color: var(--mcla-primary-600);
   }
 }
 
+/* ===== 空状态 ===== */
 .empty-state {
   padding: 32px;
   text-align: center;

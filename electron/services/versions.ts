@@ -197,7 +197,7 @@ export class VersionsService {
     return manifest.latest
   }
 
-  // 获取版本详细信息
+  // 获取版本详细信息（复用 getVersionList 缓存，不重复下载 manifest）
   async getVersionInfo(versionId: string): Promise<MojangVersion | null> {
     const cacheKey = `versionInfo_${versionId}`
     const cached = this.cache.get(cacheKey)
@@ -206,16 +206,12 @@ export class VersionsService {
     }
 
     try {
-      // 先从版本清单获取该版本的 URL
-      const manifestRes = await fetch(`${this.getBaseUrl()}/mc/game/version_manifest.json`)
-      if (!manifestRes.ok) throw new Error(`HTTP ${manifestRes.status}`)
-      const manifest = (await manifestRes.json()) as {
-        versions: Array<{ id: string; url: string }>
-      }
-      const verEntry = manifest.versions.find((v: any) => v.id === versionId)
+      // ✅ 复用 getVersionList() 的缓存，不再重复下载 manifest
+      const manifest = await this.getVersionList()
+      const verEntry = manifest.versions.find((v) => v.id === versionId)
       if (!verEntry) return null
 
-      // 用 manifest 中的 URL（已镜像）下载
+      // 用 manifest 中的 URL 下载 version.json
       const response = await fetch(verEntry.url)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()

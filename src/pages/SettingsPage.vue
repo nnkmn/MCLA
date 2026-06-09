@@ -1803,17 +1803,17 @@ async function validateJavaPath(path: string) {
   try {
     const result = await window.electronAPI?.java?.validate(path)
     if (result?.success) {
-      alert(
-        `Java 验证成功！\n` +
-        `Java 版本: ${result.javaVersion || '未知'}\n` +
-        (result.javacVersion ? `Javac 版本: ${result.javacVersion}` : '')
-      )
+      window.electronAPI?.notification?.send({
+        title: '成功',
+        body: `Java 验证成功！ Java 版本: ${result.javaVersion || '未知'} ${result.javacVersion ? `Javac 版本: ${result.javacVersion}` : ''}`,
+        type: 'success'
+      })
     } else {
-      alert(`Java 验证失败：${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `Java 验证失败：${result?.error || '未知错误'}`, type: 'error' })
     }
   } catch (error) {
     console.error('验证 Java 失败:', error)
-    alert('验证过程出错')
+    window.electronAPI?.notification?.send({ title: '错误', body: '验证过程出错', type: 'error' })
   }
 }
 async function browseSkin() {
@@ -1841,10 +1841,10 @@ async function openMcDir() {
     if (mcDir) {
       await window.electronAPI?.shell.openPath(mcDir)
     } else {
-      alert('无法确定 .minecraft 目录位置')
+      window.electronAPI?.notification?.send({ title: '提示', body: '无法确定 .minecraft 目录位置', type: 'warning' })
     }
   } catch (e: any) {
-    alert(`打开目录失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `打开目录失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -1866,25 +1866,25 @@ function onSkinSelect(val: string) {
 
 async function saveSkin() {
   if (!s.officialSkinName) {
-    alert('请先输入正版玩家名')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请先输入正版玩家名', type: 'warning' })
     return
   }
   try {
-    alert('皮肤已保存')
+    window.electronAPI?.notification?.send({ title: '成功', body: '皮肤已保存', type: 'success' })
   } catch (e: any) {
-    alert(`皮肤保存失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `皮肤保存失败: ${e.message}`, type: 'error' })
   }
 }
 
 async function refreshSkin() {
   if (!s.officialSkinName) {
-    alert('请先输入正版玩家名')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请先输入正版玩家名', type: 'warning' })
     return
   }
   try {
-    alert('皮肤已刷新')
+    window.electronAPI?.notification?.send({ title: '成功', body: '皮肤已刷新', type: 'success' })
   } catch (e: any) {
-    alert(`皮肤刷新失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `皮肤刷新失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -1949,13 +1949,13 @@ async function updateHotkey(action: string, accelerator: string) {
   try {
     const res = await window.electronAPI?.hotkey?.update({ id: action, action, accelerator, enabled: true })
     if (res?.error) {
-      alert(`快捷键保存失败: ${res.error}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `快捷键保存失败: ${res.error}`, type: 'error' })
       return
     }
-    alert('快捷键已更新')
+    window.electronAPI?.notification?.send({ title: '成功', body: '快捷键已更新', type: 'success' })
     await loadHotkeys()
   } catch (e: any) {
-    alert(`快捷键更新失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `快捷键更新失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -1971,9 +1971,9 @@ async function validateHotkey(accelerator: string) {
 async function reloadHotkeys() {
   try {
     await window.electronAPI?.hotkey?.reload()
-    alert('快捷键已重新加载')
+    window.electronAPI?.notification?.send({ title: '成功', body: '快捷键已重新加载', type: 'success' })
   } catch (e: any) {
-    alert(`重载失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `重载失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -2002,11 +2002,11 @@ async function browseModpackOutput() {
 
 async function packAsMrpack() {
   if (!s.modpackInstancePath) {
-    alert('请先选择实例目录')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请先选择实例目录', type: 'warning' })
     return
   }
   if (!s.modpackName) {
-    alert('请填写整合包名称')
+    window.electronAPI?.notification?.send({ title: '提示', body: '请填写整合包名称', type: 'warning' })
     return
   }
   try {
@@ -2028,12 +2028,12 @@ async function packAsMrpack() {
     })
 
     if (result?.ok) {
-      alert(`整合包创建成功！\n输出文件: ${result.filePath || '(未知)'}`)
+      window.electronAPI?.notification?.send({ title: '成功', body: `整合包创建成功！ 输出文件: ${result.filePath || '(未知)'}`, type: 'success' })
     } else {
-      alert(`创建失败: ${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `创建失败: ${result?.error || '未知错误'}`, type: 'error' })
     }
   } catch (e: any) {
-    alert(`创建整合包失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `创建整合包失败: ${e.message}`, type: 'error' })
   } finally {
     isWorkingModpack.value = false
   }
@@ -2065,12 +2065,12 @@ async function importMrpack() {
     })
 
     if (result?.ok) {
-      alert(`整合包导入成功！\n位置: ${result.instancePath || '(未知)'}`)
+      window.electronAPI?.notification?.send({ title: '成功', body: `整合包导入成功！ 位置: ${result.instancePath || '(未知)'}`, type: 'success' })
     } else {
-      alert(`导入失败: ${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `导入失败: ${result?.error || '未知错误'}`, type: 'error' })
     }
   } catch (e: any) {
-    alert(`导入整合包失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `导入整合包失败: ${e.message}`, type: 'error' })
   } finally {
     isWorkingModpack.value = false
   }
@@ -2104,10 +2104,10 @@ async function importBgImage() {
     if (local) {
       s.bgImageMode = 'custom'
       s.bgImagePath = local
-      alert('背景已保存到启动器目录')
+      window.electronAPI?.notification?.send({ title: '成功', body: '背景已保存到启动器目录', type: 'success' })
     }
   } catch (e: any) {
-    alert(`导入背景失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `导入背景失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -2119,13 +2119,13 @@ async function createBackup() {
     const result = await window.electronAPI?.backup?.create()
     if (result?.ok) {
       s.backupLastTime = new Date().toLocaleString()
-      alert(`备份成功！\n文件: ${result.filePath || '(未知)'}\n大小: ${(result.size / 1024).toFixed(1)} KB`)
+      window.electronAPI?.notification?.send({ title: '成功', body: `备份成功！ 文件: ${result.filePath || '(未知)'} 大小: ${(result.size / 1024).toFixed(1)} KB`, type: 'success' })
       await listBackups()
     } else {
-      alert(`备份失败: ${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `备份失败: ${result?.error || '未知错误'}`, type: 'error' })
     }
   } catch (e: any) {
-    alert(`备份失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `备份失败: ${e.message}`, type: 'error' })
   } finally {
     isWorkingBackup.value = false
   }
@@ -2146,12 +2146,12 @@ async function restoreBackup() {
 
     const result = await window.electronAPI?.backup?.restore(path)
     if (result?.ok) {
-      alert('恢复成功！请重启启动器以生效')
+      window.electronAPI?.notification?.send({ title: '成功', body: '恢复成功！请重启启动器以生效', type: 'success' })
     } else {
-      alert(`恢复失败: ${result?.error || '未知错误'}`)
+      window.electronAPI?.notification?.send({ title: '错误', body: `恢复失败: ${result?.error || '未知错误'}`, type: 'error' })
     }
   } catch (e: any) {
-    alert(`恢复失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `恢复失败: ${e.message}`, type: 'error' })
   } finally {
     isWorkingBackup.value = false
   }
@@ -2172,7 +2172,7 @@ async function deleteBackup(fileName: string) {
     await window.electronAPI?.backup?.delete(fileName)
     await listBackups()
   } catch (e: any) {
-    alert(`删除失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `删除失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -2192,7 +2192,7 @@ async function checkForUpdateDownload() {
   try {
     await window.electronAPI?.updater?.download()
   } catch (e: any) {
-    alert(`下载失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `下载失败: ${e.message}`, type: 'error' })
   }
 }
 
@@ -2200,7 +2200,7 @@ async function installUpdate() {
   try {
     await window.electronAPI?.updater?.install()
   } catch (e: any) {
-    alert(`安装失败: ${e.message}`)
+    window.electronAPI?.notification?.send({ title: '错误', body: `安装失败: ${e.message}`, type: 'error' })
   }
 }
 
